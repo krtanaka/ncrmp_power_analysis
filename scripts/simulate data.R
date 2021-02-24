@@ -1,0 +1,5 @@
+library(purrr)
+library(ggplot2)
+library(broom)
+library(dplyr)
+library(tidyr)
