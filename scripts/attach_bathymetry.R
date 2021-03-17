@@ -25,11 +25,12 @@ e <- extent(range(pretty(SM$X))[1] ,
             range(pretty(SM$Y))[2])
 
 this_r <- crop(this_r, e)
-this_r[this_r > 0] <- NA
+this_r[this_r > 0] <- 0
+plot(this_r)
 
 crs(SM_sp) = crs(this_r)
 
-this_Ex = ExpandingExtract(this_r, SM_sp, Dists = c(0, 50, 100, 1000, 2000, 4000, 8000))
+this_Ex = ExpandingExtract(this_r, SM_sp, Dists = c(0, 1)); summary(this_Ex)
 
 SM_sp$DEPTH_e = this_Ex$values
 Hawaii_Survey_Grid = as.data.frame(SM_sp)
