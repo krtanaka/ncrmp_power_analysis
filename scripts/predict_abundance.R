@@ -5,7 +5,6 @@ library(dplyr)
 library(maps)
 library(ggdark)
 
-
 load("data/HAW_Grid.RData")
 grid = Hawaii_Survey_Grid
 grid$DEPTH = ifelse(grid$DEPTH < -2000, grid$DEPTH_e, grid$DEPTH)
@@ -77,4 +76,3 @@ predict_env %>% ggplot(aes(lon, lat, fill = fit)) +
   scale_fill_viridis_c("g/sq.m") + 
   dark_theme_minimal() + 
   coord_fixed()
-

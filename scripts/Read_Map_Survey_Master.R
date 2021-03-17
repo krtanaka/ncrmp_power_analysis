@@ -8,7 +8,8 @@ library(sf)
 library(ggplot2)
 library(stringr)
 
-df <- read_csv("data/SURVEY MASTER.csv") %>% subset(ISLAND == "Hawaii")
+load("data/SURVEY MASTER.RData"); df = SURVEY_MASTER
+df <- df %>% subset(ISLAND == "Hawaii")
 
 df %>% group_by(
   DEPTH_BIN,
@@ -55,7 +56,7 @@ pacific_crop <- world_crop %>%
 df$Month = ifelse(df$Month %in% c(1:9), sprintf("%02d", as.numeric(df$Month)), df$Month)
 
 ggplot() +
-  geom_sf(data = pacific_crop, size = 0.01, fill = "gray", color = "gray") +
+  # geom_sf(data = pacific_crop, size = 0.01, fill = "gray", color = "gray") +
   geom_point(data = df, aes(x = LONGITUDE_LOV, y = LATITUDE_LOV, color = log(n)), alpha = 0.5, size = 3) +
   scale_color_viridis_c() + 
   # facet_grid(Month ~ Year) +
@@ -63,5 +64,6 @@ ggplot() +
   # facet_wrap(~Month) +
   # scale_x_continuous(expand = c(0, 0), "") +
   # scale_y_continuous(expand = c(0, 0), "") + 
-  theme_void()
+  # ggdark::dark_theme_void() + 
+  coord_fixed()
   # theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
