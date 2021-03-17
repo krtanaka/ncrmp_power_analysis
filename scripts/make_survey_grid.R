@@ -14,7 +14,7 @@ survey = subset(survey, ISLAND == "Hawaii")
 
 ggplot() + 
   geom_tile(data = df, aes(longitude, latitude, fill = bathymetry_m)) +
-  geom_point(data = survey, aes(longitude, latitude, color = as.factor(OBS_YEAR))) +
+  # geom_point(data = survey, aes(longitude, latitude, color = as.factor(OBS_YEAR))) +
   scale_fill_viridis_c() + 
   scale_color_manual(values = cm.colors(9),"") +
   coord_fixed()
