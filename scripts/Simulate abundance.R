@@ -55,6 +55,7 @@ N0_fun(R0 = 1000, Z0 = rep(0.5, 20), ages = 1:20)
 
 sim_abundance(N0 = sim_N0(N0 = "exp", plot = TRUE))
 
+#Closure for simulating length given age using von Bertalanffy notation
 growth_fun <- sim_vonB(Linf = 100, 
                        L0 = 5, 
                        K = 0.2, 

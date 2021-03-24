@@ -34,4 +34,12 @@ this_Ex = ExpandingExtract(this_r, SM_sp, Dists = c(0, 1)); summary(this_Ex)
 
 SM_sp$DEPTH_e = this_Ex$values
 Hawaii_Survey_Grid = as.data.frame(SM_sp)
+
+Hawaii_Survey_Grid %>% subset(DEPTH_e > -30) %>% 
+  group_by(X, Y) %>% 
+  summarise(depth = mean(DEPTH_e)) %>% 
+  ggplot(aes(X, Y, color = depth)) + 
+  geom_point(size = 0.05) + 
+  scale_color_viridis_c()
+
 save(Hawaii_Survey_Grid, file = "data/HAW_Grid.RData")
