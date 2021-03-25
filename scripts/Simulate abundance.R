@@ -1,12 +1,12 @@
 library(SimSurvey)
 
 #Simulate starting abundance, random recruitment and total mortality
-R_fun <- sim_R(log_mean = log(100000), 
+R_fun <- sim_R(log_mean = log(1000), 
                log_sd = 0.1,
                random_walk = TRUE, #Simulate recruitment as a random walk
                plot = TRUE)
 
-R_fun(years = 1:100)
+R_fun(years = 1:1000)
 
 
 #generate N0
