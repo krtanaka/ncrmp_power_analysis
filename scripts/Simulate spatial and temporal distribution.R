@@ -1,8 +1,8 @@
 # Simulate spatial and temporal distribution
 
-sim <- sim_abundance(ages = 1:2,
-                     years = 1:10) %>%
-  sim_distribution(grid = survey_grid,
+sim <- sim_abundance(ages = 1:5,
+                     years = 1:20) %>%
+  sim_distribution(grid = survey_grid_kt,
                    ays_covar = sim_ays_covar(phi_age = 0.8,
                                              phi_year = 0.1),
                    depth_par = sim_parabola(mu = 200,
@@ -27,9 +27,13 @@ sp::plot(p)
 #Simulate age-year-space covariance
 
 #Define relationships with covariates
-parabola_fun <- sim_parabola(alpha = 25, mu = 50, sigma = 5, plot = TRUE)
-parabola_fun(x = 0:100)
+parabola_fun <- sim_parabola(alpha = 25, mu = 15, sigma = 5, plot = TRUE)
+parabola_fun(x = 0:30)
 
 df = merge(sim$sp_N, sim$grid_xy)
 df = df %>% group_by(x, y, year) %>% summarise(n = mean(N))
-df %>% ggplot(aes(x, y, fill = n)) + geom_raster() + facet_wrap(~year) + scale_fill_viridis_c()
+df %>% ggplot(aes(x, y, fill = n)) + 
+  geom_raster() + 
+  facet_wrap(~year) + 
+  scale_fill_viridis_c() + 
+  ggdark::dark_theme_void()

@@ -2,6 +2,9 @@ rm(list = ls())
 
 library(SimSurvey)
 library(raster)
+library(dplyr)
+library(sp)
+library(rgdal)
 
 plot(survey_grid)
 
@@ -14,10 +17,8 @@ df = Hawaii_Survey_Grid %>%
             Y = mean(Y),
             depth = mean(DEPTH_e, na.rm = T))
 
-plot(df$X, df$Y, pch = ".")
+plot(df$X, df$Y, pch = ".", axes = F); degAxis(1); degAxis(2)
 
-library(sp)
-library(rgdal)
 coordinates(df)=~X+Y
 
 proj4string(df)=CRS("+init=epsg:4326") # set it to lat-long
