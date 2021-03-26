@@ -8,13 +8,12 @@ library(raster)
 library(sp)
 library(rgdal)
 library(tidyr)
-
-plot(survey_grid)
+library(patchwork)
 
 load("data/HAW_Grid.RData")
 
-df = Hawaii_Survey_Grid %>% 
-  subset(DEPTH_e > -150) %>% 
+Hawaii_Survey_Grid = Hawaii_Survey_Grid %>% 
+  subset(DEPTH > -150) %>% 
   group_by(X, Y) %>% 
   summarise(X = mean(X),
             Y = mean(Y),
@@ -26,7 +25,7 @@ df = Hawaii_Survey_Grid %>%
 # topo = topo %>% drop_na()
 # 
 # save(topo, file = 'data/Topography_NOAA_CRM_vol10.RData')
-
+# 
 # topo %>%
 #   ggplot(aes(x, y, fill = Topography, color = Topography)) +
 #   geom_tile() +
@@ -46,16 +45,28 @@ df$depth = df$Topography*-1
 df$longitude = df$x
 df$latitude = df$y
 
-df <- subset(df, longitude > -154.8 & longitude < -156.2 & latitude > 18.8 | latitude < 20.4)
+df <- df %>% subset(longitude < -154.8 & longitude > -156.2 & latitude > 18.8 & latitude < 20.4)
+# df <- df %>% subset(longitude < -157.5 & longitude > -158.5 & latitude > 21 & latitude < 22)
 
-
-df %>% 
-  ggplot( aes(longitude, latitude, color = depth)) + 
-  geom_tile() +
+crm = df %>% 
+  ggplot( aes(longitude, latitude, color = depth, fill = depth)) + 
+  # geom_tile(aes(width = 0.001, height = 0.001)) +
+  geom_point(size = 0.5) +
   scale_fill_viridis_c() +
   scale_color_viridis_c() +
   coord_fixed() +
   ggdark::dark_theme_void()
+
+haw_grid = Hawaii_Survey_Grid %>% 
+  ggplot( aes(X, Y, color = depth, fill = depth)) + 
+  # geom_tile(aes(width = 0.001, height = 0.001)) +
+  geom_point(size = 0.1) + 
+  scale_fill_viridis_c() +
+  scale_color_viridis_c() +
+  coord_fixed() +
+  ggdark::dark_theme_void()
+
+crm + haw_grid
 
 cell = rasterFromXYZ(df[,c("longitude", "latitude", "cell")]); plot(cell)
 division = rasterFromXYZ(df[,c("longitude", "latitude", "division")]); plot(division)
