@@ -46,6 +46,9 @@ df$depth = df$Topography*-1
 df$longitude = df$x
 df$latitude = df$y
 
+df <- subset(df, longitude > -154.8 & longitude < -156.2 & latitude > 18.8 | latitude < 20.4)
+
+
 df %>% 
   ggplot( aes(longitude, latitude, color = depth)) + 
   geom_tile() +
