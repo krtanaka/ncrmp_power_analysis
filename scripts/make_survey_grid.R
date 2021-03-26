@@ -1,10 +1,13 @@
 rm(list = ls())
 
+library(readr)
+library(dplyr)
+library(ggplot2)
 library(SimSurvey)
 library(raster)
-library(dplyr)
 library(sp)
 library(rgdal)
+library(tidyr)
 
 plot(survey_grid)
 
@@ -17,18 +20,52 @@ df = Hawaii_Survey_Grid %>%
             Y = mean(Y),
             depth = mean(DEPTH_e, na.rm = T))
 
-plot(df$X, df$Y, pch = ".", axes = F); degAxis(1); degAxis(2)
+topo = raster("/Users/Kisei.Tanaka/Desktop/usgsCeCrm10.nc")
+topo = as.data.frame(rasterToPoints(topo))
+topo$Topography = ifelse(topo$Topography %in% c(-30:0), topo$Topography, NA)
+topo = topo %>% drop_na()
 
-coordinates(df)=~X+Y
+save(topo, file = 'data/Topography_NOAA_CRM_vol10.RData')
 
-proj4string(df)=CRS("+init=epsg:4326") # set it to lat-long
-df = spTransform(df,CRS("+proj=longlat +datum=NAD27"))
+topo %>%
+  ggplot(aes(x, y, fill = Topography, color = Topography)) +
+  geom_tile() +
+  scale_fill_viridis_c() +
+  scale_color_viridis_c() +
+  coord_fixed() +
+  ggdark::dark_theme_void()
 
-gridded(df) = TRUE
+load("data/Topography_NOAA_CRM_vol10.RData"); df = topo
 
-  
-  r = raster(pts)
-projection(r) = CRS("insert your proj4 string here")
-Now have a look:
-  
-  plot(r)
+df$cell = 1:dim(df)[1]
+df$division = 1
+df$strat = 2
+df$strat = ifelse(df$Topography %in% c(-10:0), 1, df$strat)
+df$strat = ifelse(df$Topography %in% c(-30:-20), 3, df$strat)
+df$depth = df$Topography*-1
+df$longitude = df$x
+df$latitude = df$y
+
+df %>% 
+  ggplot( aes(longitude, latitude, color = depth)) + 
+  geom_tile() +
+  scale_fill_viridis_c() +
+  scale_color_viridis_c() +
+  coord_fixed() +
+  ggdark::dark_theme_void()
+
+cell = rasterFromXYZ(df[,c("longitude", "latitude", "cell")]); plot(cell)
+division = rasterFromXYZ(df[,c("longitude", "latitude", "division")]); plot(division)
+strat = rasterFromXYZ(df[,c("longitude", "latitude", "strat")]); plot(strat)
+depth = rasterFromXYZ(df[,c("longitude", "latitude", "depth")]); plot(depth)
+
+survey_grid_kt = stack(cell, division, strat, depth)
+
+sp::spplot(survey_grid)
+sp::spplot(survey_grid_kt)
+
+p <- raster::rasterToPolygons(survey_grid$strat, dissolve = TRUE)
+sp::plot(p)
+
+p <- raster::rasterToPolygons(survey_grid_kt$strat, dissolve = TRUE)
+sp::plot(p)
