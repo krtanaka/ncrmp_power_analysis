@@ -10,15 +10,16 @@ sim <- sim_abundance(ages = 1:2,
                      R = sim_R(log_mean = log(150), 
                                log_sd = 0.1,
                                random_walk = TRUE),
-                     N0 = sim_N0(),
+                     N0 = sim_N0(N0 = 1),
                      growth = sim_vonB())%>%
   sim_distribution(grid = survey_grid_kt,
                    ays_covar = sim_ays_covar(phi_age = 0.8,
                                              phi_year = 0.1),
-                   depth_par = sim_parabola(mu = 10,
-                                            sigma = 50))
+                   depth_par = sim_parabola(alpha = 25, 
+                                            mu = 15,
+                                            sigma = 5))
 
-plot_distribution(sim)
+# plot_distribution(sim)
 
 head(sim$sp_N)
 head(sim$grid_xy)
@@ -36,8 +37,17 @@ df %>% ggplot(aes(x, y, fill = n, color = n)) +
   ggdark::dark_theme_void()
 
 #Define relationships with covariates
-parabola_fun <- sim_parabola(alpha = 25, mu = 15, sigma = 5, plot = TRUE)
+parabola_fun <- sim_parabola(mu = 15, sigma = 5, plot = TRUE)
 parabola_fun(x = 0:30)
+
+parabola_fun <- sim_parabola(mu = 50, sigma = 0.5, plot = TRUE)
+parabola_fun(x = 0:100)
+
+parabola_fun <- sim_parabola(mu = log(40), sigma = 0.5, log_space = TRUE, plot = TRUE)
+parabola_fun(x = 1:1000)
+
+parabola_fun <- sim_parabola(mu = c(50, 120), sigma = c(5, 3), plot = TRUE)
+parabola_fun(x = rep(1:200, 2), age = rep(c(1, 2), each = 200))
 
 
 #Make a depth stratified survey grid

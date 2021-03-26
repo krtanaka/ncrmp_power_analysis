@@ -74,5 +74,5 @@ predict_env = data.frame(predict_env, pred_biomass)
 predict_env %>% ggplot(aes(lon, lat, fill = fit)) +
   geom_tile(width = 0.005, height = 0.005) + 
   scale_fill_viridis_c("g/sq.m") + 
-  dark_theme_minimal() + 
+  ggdark::dark_theme_minimal() + 
   coord_fixed()
