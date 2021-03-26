@@ -20,20 +20,20 @@ df = Hawaii_Survey_Grid %>%
             Y = mean(Y),
             depth = mean(DEPTH_e, na.rm = T))
 
-topo = raster("/Users/Kisei.Tanaka/Desktop/usgsCeCrm10.nc")
-topo = as.data.frame(rasterToPoints(topo))
-topo$Topography = ifelse(topo$Topography %in% c(-30:0), topo$Topography, NA)
-topo = topo %>% drop_na()
+# topo = raster("/Users/Kisei.Tanaka/Desktop/usgsCeCrm10.nc")
+# topo = as.data.frame(rasterToPoints(topo))
+# topo$Topography = ifelse(topo$Topography %in% c(-30:0), topo$Topography, NA)
+# topo = topo %>% drop_na()
+# 
+# save(topo, file = 'data/Topography_NOAA_CRM_vol10.RData')
 
-save(topo, file = 'data/Topography_NOAA_CRM_vol10.RData')
-
-topo %>%
-  ggplot(aes(x, y, fill = Topography, color = Topography)) +
-  geom_tile() +
-  scale_fill_viridis_c() +
-  scale_color_viridis_c() +
-  coord_fixed() +
-  ggdark::dark_theme_void()
+# topo %>%
+#   ggplot(aes(x, y, fill = Topography, color = Topography)) +
+#   geom_tile() +
+#   scale_fill_viridis_c() +
+#   scale_color_viridis_c() +
+#   coord_fixed() +
+#   ggdark::dark_theme_void()
 
 load("data/Topography_NOAA_CRM_vol10.RData"); df = topo
 
