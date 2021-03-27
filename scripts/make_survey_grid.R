@@ -19,39 +19,43 @@ Hawaii_Survey_Grid = Hawaii_Survey_Grid %>%
             Y = mean(Y),
             depth = mean(DEPTH_e, na.rm = T))
 
-# topo = raster("/Users/Kisei.Tanaka/Desktop/usgsCeCrm10.nc")
-# topo = as.data.frame(rasterToPoints(topo))
-# topo$Topography = ifelse(topo$Topography %in% c(-30:0), topo$Topography, NA)
-# topo = topo %>% drop_na()
-# 
-# save(topo, file = 'data/Topography_NOAA_CRM_vol10.RData')
-# 
-# topo %>%
-#   ggplot(aes(x, y, fill = Topography, color = Topography)) +
-#   geom_tile() +
-#   scale_fill_viridis_c() +
-#   scale_color_viridis_c() +
-#   coord_fixed() +
-#   ggdark::dark_theme_void()
+topo = raster("G:/GIS/usgsCeCrm10.nc")
+topo = as.data.frame(rasterToPoints(topo))
+topo$Topography = ifelse(topo$Topography %in% c(-30:0), topo$Topography, NA)
+topo = topo %>% drop_na()
 
-load("data/Topography_NOAA_CRM_vol10.RData"); df = topo
+save(topo, file = 'data/Topography_NOAA_CRM_vol10.RData')
+
+topo %>%
+  ggplot(aes(x, y, fill = Topography, color = Topography)) +
+  geom_tile() +
+  scale_fill_viridis_c() +
+  scale_color_viridis_c() +
+  coord_fixed() +
+  ggdark::dark_theme_void()
+
+# load("data/Topography_NOAA_CRM_vol10.RData")
+df = topo
 
 df$cell = 1:dim(df)[1]
 df$division = 1
 df$strat = 2
-df$strat = ifelse(df$Topography %in% c(-10:0), 1, df$strat)
-df$strat = ifelse(df$Topography %in% c(-30:-20), 3, df$strat)
+df$strat = ifelse(df$Topography %in% c(-9:0), 1, df$strat)
+df$strat = ifelse(df$Topography %in% c(-30:-19), 3, df$strat)
 df$depth = df$Topography*-1
 df$longitude = df$x
 df$latitude = df$y
 
 df <- df %>% subset(longitude < -154.8 & longitude > -156.2 & latitude > 18.8 & latitude < 20.4)
-# df <- df %>% subset(longitude < -157.5 & longitude > -158.5 & latitude > 21 & latitude < 22)
+df <- df %>% subset(longitude < -157.5 & longitude > -158.5 & latitude > 21 & latitude < 22)
+ 
+df$longitude = round(df$longitude, digits = 2) 
+df$latitude = round(df$latitude, digits = 2) 
 
 crm = df %>% 
   ggplot( aes(longitude, latitude, color = depth, fill = depth)) + 
-  # geom_tile(aes(width = 0.001, height = 0.001)) +
-  geom_point(size = 0.5) +
+  geom_tile(aes(width = 0.01, height = 0.01)) +
+  # geom_point(size = 0.5) +
   scale_fill_viridis_c() +
   scale_color_viridis_c() +
   coord_fixed() +
@@ -59,8 +63,8 @@ crm = df %>%
 
 haw_grid = Hawaii_Survey_Grid %>% 
   ggplot( aes(X, Y, color = depth, fill = depth)) + 
-  # geom_tile(aes(width = 0.001, height = 0.001)) +
-  geom_point(size = 0.1) + 
+  geom_tile(aes(width = 0.001, height = 0.001)) +
+  # geom_point(size = 0.1) + 
   scale_fill_viridis_c() +
   scale_color_viridis_c() +
   coord_fixed() +
