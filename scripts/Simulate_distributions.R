@@ -1,3 +1,5 @@
+library(SimSurvey)
+
 
 parabola_fun <- sim_parabola(mu = 200, sigma = 50, plot = TRUE)
 parabola_fun(x = 0:500)

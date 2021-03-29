@@ -21,7 +21,7 @@ Hawaii_Survey_Grid = Hawaii_Survey_Grid %>%
 
 topo = raster("G:/GIS/usgsCeCrm10.nc")
 topo = as.data.frame(rasterToPoints(topo))
-topo$Topography = ifelse(topo$Topography %in% c(-30:0), topo$Topography, NA)
+topo$Topography = ifelse(topo$Topography %in% c(-300:0), topo$Topography, NA)
 topo = topo %>% drop_na()
 
 save(topo, file = 'data/Topography_NOAA_CRM_vol10.RData')
@@ -37,12 +37,13 @@ topo %>%
 # load("data/Topography_NOAA_CRM_vol10.RData")
 df = topo
 
-df$cell = 1:dim(df)[1]
-df$division = 1
+df$cell = 1:dim(df)[1]; df$cell = as.numeric(df$cell)
+df$division = as.numeric(1)
 df$strat = 2
-df$strat = ifelse(df$Topography %in% c(-9:0), 1, df$strat)
-df$strat = ifelse(df$Topography %in% c(-30:-19), 3, df$strat)
-df$depth = df$Topography*-1
+df$strat = ifelse(df$Topography %in% c(-99:0), 1, df$strat)
+df$strat = ifelse(df$Topography %in% c(-300:-199), 3, df$strat)
+df$strat = as.numeric(df$strat)
+df$depth = as.numeric(df$Topography*-1)
 df$longitude = df$x
 df$latitude = df$y
 
@@ -81,6 +82,8 @@ survey_grid_kt = stack(cell, division, strat, depth)
 
 sp::spplot(survey_grid)
 sp::spplot(survey_grid_kt)
+
+crs(survey_grid_kt) = crs(survey_grid)
 
 p <- raster::rasterToPolygons(survey_grid$strat, dissolve = TRUE)
 sp::plot(p)

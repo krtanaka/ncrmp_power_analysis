@@ -35,8 +35,7 @@ space = df %>% ggplot(aes(x, y, fill = n, color = n)) +
   scale_fill_viridis_c("g/sq.m") + 
   scale_color_viridis_c("g/sq.m") + 
   coord_fixed() + 
-  ggdark::dark_theme_void() + 
-  theme(legend.position = "bottom")
+  ggdark::dark_theme_void()
 
 time = sim$sp_N %>% 
   group_by(year) %>% 
@@ -45,8 +44,7 @@ time = sim$sp_N %>%
   geom_line() + 
   geom_point(size = 2) + 
   scale_color_viridis_c("")+ 
-  ggdark::dark_theme_classic() + 
-  theme(legend.position = c(0.2, 0.8))
+  ggdark::dark_theme_classic()
 
 parabola_fun = sim_parabola(mu = 10, sigma = 10)
 depth = parabola_fun(x = 0:30) %>% as.data.frame()
@@ -56,8 +54,7 @@ response = depth %>%
   ggplot(aes(depth, response, color = response)) + 
   geom_point() + 
   scale_color_viridis_c("")+ 
-  ggdark::dark_theme_classic() + 
-  theme(legend.position = c(0.2,0.2))
+  ggdark::dark_theme_classic()
   
 space + (time/response)
   
