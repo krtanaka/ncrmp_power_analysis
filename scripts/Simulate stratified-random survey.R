@@ -7,7 +7,8 @@ sim <- sim_abundance(ages = 1:5,
                    ays_covar = sim_ays_covar(range = 8000, 
                                              phi_year = 0.99),
                    depth_par = sim_parabola(mu = 100, sigma = 10)) %>%
-  sim_survey(trawl_dim = c(0.005, 0.005))
+  sim_survey(trawl_dim = c(0.005, 0.005))%>%
+  run_strat()
 
 plot_survey(sim, which_year = 2000)
 
