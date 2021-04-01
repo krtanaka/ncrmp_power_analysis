@@ -4,20 +4,21 @@ library(patchwork)
 
 sim <- sim_abundance(ages = 1:20, 
                      years = 1980:2020,
-                     R = sim_R(log_mean = log(3e+07)),
+                     R = sim_R(log_mean = log(100)),
                      Z = sim_Z(log_mean = log(0.2))) %>%
   sim_distribution(grid = survey_grid_kt,
-                   ays_covar = sim_ays_covar(range = 8000, 
+                   ays_covar = sim_ays_covar(range = 300, 
                                              phi_year = 0.99),
                    depth_par = sim_parabola(mu = 10, sigma = 10))
 
 sim <- sim_abundance(ages = 1:5, 
                      years = 2000:2020,
-                     R = sim_R(log_mean = log(1e+10)),
+                     R = sim_R(log_mean = log(500)),
                      Z = sim_Z(log_mean = log(0.8))) %>%
   sim_distribution(grid = survey_grid_kt,
-                   ays_covar = sim_ays_covar(range = 1000, 
-                                             phi_year = 0.1),
+                   ays_covar = sim_ays_covar(range = 2, 
+                                             phi_year = 0.1,
+                                             phi_age = 0.8,),
                    depth_par = sim_parabola(mu = 10, sigma = 10))
 
 # plot_distribution(sim)

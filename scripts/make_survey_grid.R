@@ -1,77 +1,100 @@
+#######################################
+### prep survey_grid for simulation ###
+#######################################
+
 rm(list = ls())
 
-library(readr)
 library(dplyr)
 library(ggplot2)
-library(SimSurvey)
 library(raster)
 library(sp)
 library(rgdal)
 library(tidyr)
 library(patchwork)
 
+########################
+### see raw GIS data ###
+########################
+
 load("data/HAW_Grid.RData")
 
-Hawaii_Survey_Grid = Hawaii_Survey_Grid %>% 
-  subset(DEPTH > -150) %>% 
+Hawaii_Survey_Grid %>% 
   group_by(X, Y) %>% 
   summarise(X = mean(X),
             Y = mean(Y),
-            depth = mean(DEPTH_e, na.rm = T))
+            depth = mean(DEPTH, na.rm = T)) %>% 
+  na_if(-9999) %>% 
+  ggplot( aes(X, Y, fill = depth)) + 
+  geom_tile(aes(width = 0.005, height = 0.005)) +
+  scale_fill_viridis_c("") +
+  coord_fixed() +
+  ggdark::dark_theme_minimal() + 
+  theme(axis.title = element_blank())
 
+#############################################################################
+### Topography, NOAA Coastal Relief Model, 3 arc second, Vol. 10 (Hawaii) ###
+### https://coastwatch.pfeg.noaa.gov/erddap/griddap/usgsCeCrm10.html      ###
+### NOAA NGDC   (Dataset ID: usgsCeCrm10)                                 ###
+#############################################################################
 topo = raster("G:/GIS/usgsCeCrm10.nc")
 topo = as.data.frame(rasterToPoints(topo))
-topo$Topography = ifelse(topo$Topography %in% c(-300:0), topo$Topography, NA)
+topo$Topography = ifelse(topo$Topography %in% c(-30:0), topo$Topography, NA)
 topo = topo %>% drop_na()
+
+topo %>%
+  group_by(x, y) %>% 
+  summarise(x = mean(x),
+            y = mean(y),
+            Topography = mean(Topography, na.rm = T)) %>% 
+  ggplot(aes(x, y, fill = Topography)) +
+  geom_tile(aes(width = 0.005, height = 0.005)) +
+  scale_fill_viridis_c() +
+  coord_fixed() +
+  ggdark::dark_theme_minimal() + 
+  theme(axis.title = element_blank())
 
 save(topo, file = 'data/Topography_NOAA_CRM_vol10.RData')
 
-topo %>%
-  ggplot(aes(x, y, fill = Topography, color = Topography)) +
-  geom_tile() +
-  scale_fill_viridis_c() +
-  scale_color_viridis_c() +
-  coord_fixed() +
-  ggdark::dark_theme_void()
+load("data/Topography_NOAA_CRM_vol10.RData")
 
-# load("data/Topography_NOAA_CRM_vol10.RData")
 df = topo
+
+df$longitude = round(df$x, digits = 2) 
+df$latitude = round(df$y, digits = 2) 
+
+df = df %>% 
+  group_by(longitude, latitude) %>% 
+  summarise(Topography = mean(Topography, na.rm = T))
 
 df$cell = 1:dim(df)[1]; df$cell = as.numeric(df$cell)
 df$division = as.numeric(1)
-df$strat = 2
-df$strat = ifelse(df$Topography %in% c(-99:0), 1, df$strat)
-df$strat = ifelse(df$Topography %in% c(-300:-199), 3, df$strat)
+df$strat = ""
+df$strat = ifelse(df$Topography <= 0 & df$Topography >= -6, 1, df$strat)
+df$strat = ifelse(df$Topography < -6 & df$Topography >= -18, 2, df$strat)
+df$strat = ifelse(df$Topography < -18 & df$Topography >= -30, 3, df$strat)
 df$strat = as.numeric(df$strat)
 df$depth = as.numeric(df$Topography*-1)
-df$longitude = df$x
-df$latitude = df$y
 
 df <- df %>% subset(longitude < -154.8 & longitude > -156.2 & latitude > 18.8 & latitude < 20.4)
-df <- df %>% subset(longitude < -157.5 & longitude > -158.5 & latitude > 21 & latitude < 22)
+# df <- df %>% subset(longitude < -157.5 & longitude > -158.5 & latitude > 21 & latitude < 22)
  
-df$longitude = round(df$longitude, digits = 2) 
-df$latitude = round(df$latitude, digits = 2) 
-
-crm = df %>% 
-  ggplot( aes(longitude, latitude, color = depth, fill = depth)) + 
+depth = df %>% 
+  ggplot( aes(longitude, latitude, fill = depth)) + 
   geom_tile(aes(width = 0.01, height = 0.01)) +
-  # geom_point(size = 0.5) +
-  scale_fill_viridis_c() +
-  scale_color_viridis_c() +
+  scale_fill_viridis_c("") +
   coord_fixed() +
-  ggdark::dark_theme_void()
+  ggdark::dark_theme_minimal() + 
+  theme(axis.title = element_blank())
 
-haw_grid = Hawaii_Survey_Grid %>% 
-  ggplot( aes(X, Y, color = depth, fill = depth)) + 
-  geom_tile(aes(width = 0.001, height = 0.001)) +
-  # geom_point(size = 0.1) + 
-  scale_fill_viridis_c() +
-  scale_color_viridis_c() +
+strat = df %>% 
+  ggplot( aes(longitude, latitude, fill = as.factor(strat))) + 
+  geom_tile(aes(width = 0.01, height = 0.01)) +
+  scale_fill_viridis_d("") +
   coord_fixed() +
-  ggdark::dark_theme_void()
+  ggdark::dark_theme_minimal() + 
+  theme(axis.title = element_blank())
 
-crm + haw_grid
+depth + strat
 
 cell = rasterFromXYZ(df[,c("longitude", "latitude", "cell")]); plot(cell)
 division = rasterFromXYZ(df[,c("longitude", "latitude", "division")]); plot(division)
@@ -80,7 +103,7 @@ depth = rasterFromXYZ(df[,c("longitude", "latitude", "depth")]); plot(depth)
 
 survey_grid_kt = stack(cell, division, strat, depth)
 
-sp::spplot(survey_grid)
+sp::spplot(survey_grid) #SimSurvey example
 sp::spplot(survey_grid_kt)
 
 crs(survey_grid_kt) = crs(survey_grid)
@@ -90,3 +113,6 @@ sp::plot(p)
 
 p <- raster::rasterToPolygons(survey_grid_kt$strat, dissolve = TRUE)
 sp::plot(p)
+
+survey_grid_kt = readAll(survey_grid_kt)
+save(survey_grid_kt, file = "data/survey_grid_kt.RData")
