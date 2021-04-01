@@ -35,19 +35,9 @@ SM_sp$DEPTH_e = this_Ex$values
 GIS_Survey_Grid = as.data.frame(SM_sp) %>% 
   subset(DEPTH_e > -30)
 
-obs = GIS_Survey_Grid %>%
+g1 = GIS_Survey_Grid %>%
   group_by(X, Y) %>% 
   summarise(depth = mean(DEPTH_e)) %>% 
-  ggplot(aes(X, Y, fill = depth)) + 
-  geom_raster() + 
-  scale_fill_viridis_c("obs")+
-  coord_fixed() +
-  ggdark::dark_theme_minimal() + 
-  theme(axis.title = element_blank())
-
-strm = GIS_Survey_Grid %>% 
-  group_by(X, Y) %>% 
-  summarise(depth = mean(DEPTH)) %>% 
   ggplot(aes(X, Y, fill = depth)) + 
   geom_raster() + 
   scale_fill_viridis_c("strm")+
@@ -55,7 +45,17 @@ strm = GIS_Survey_Grid %>%
   ggdark::dark_theme_minimal() + 
   theme(axis.title = element_blank())
 
-error = GIS_Survey_Grid %>% 
+g2 = GIS_Survey_Grid %>% 
+  group_by(X, Y) %>% 
+  summarise(depth = mean(DEPTH)) %>% 
+  ggplot(aes(X, Y, fill = depth)) + 
+  geom_raster() + 
+  scale_fill_viridis_c("obs")+
+  coord_fixed() +
+  ggdark::dark_theme_minimal() + 
+  theme(axis.title = element_blank())
+
+g3 = GIS_Survey_Grid %>% 
   group_by(X, Y) %>% 
   mutate(error = DEPTH-DEPTH_e) %>% 
   summarise(error = abs(mean(error))) %>% 
@@ -66,6 +66,6 @@ error = GIS_Survey_Grid %>%
   ggdark::dark_theme_minimal() + 
   theme(axis.title = element_blank())
 
-obs + strm + error
+g1 + g2 + g3
 
 save(GIS_Survey_Grid, file = "data/OAH_Grid.RData")
