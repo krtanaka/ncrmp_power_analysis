@@ -6,12 +6,11 @@ library(lubridate)
 library(raster)
 library(readr)
 
-Hawaii_Survey_Grid = read_csv("T:/Fish/GIS/Projects/Gridding/HAW/HAW_sites.csv")
+GIS_Survey_Grid = read_csv("T:/Fish/GIS/Projects/Gridding/OAH/OAH_sites.csv")
 
 source("/Users/Kisei.Tanaka/env_data_summary/scripts/HelperCode/ExpandingExtract.R")
 
-SM = as.data.frame(Hawaii_Survey_Grid)
-# SM$X = ifelse(SM$X < 0, SM$X + 360, SM$X)
+SM = as.data.frame(GIS_Survey_Grid)
 
 SM = SM[complete.cases(SM[,c("X", "Y")]), ]
 SM_sp = SM; SM_sp = as.data.frame(SM_sp)
@@ -33,13 +32,40 @@ crs(SM_sp) = crs(this_r)
 this_Ex = ExpandingExtract(this_r, SM_sp, Dists = c(0, 1)); summary(this_Ex)
 
 SM_sp$DEPTH_e = this_Ex$values
-Hawaii_Survey_Grid = as.data.frame(SM_sp)
+GIS_Survey_Grid = as.data.frame(SM_sp) %>% 
+  subset(DEPTH_e > -30)
 
-Hawaii_Survey_Grid %>% subset(DEPTH_e > -30) %>% 
+obs = GIS_Survey_Grid %>%
   group_by(X, Y) %>% 
   summarise(depth = mean(DEPTH_e)) %>% 
-  ggplot(aes(X, Y, color = depth)) + 
-  geom_point(size = 0.05) + 
-  scale_color_viridis_c()
+  ggplot(aes(X, Y, fill = depth)) + 
+  geom_raster() + 
+  scale_fill_viridis_c("obs")+
+  coord_fixed() +
+  ggdark::dark_theme_minimal() + 
+  theme(axis.title = element_blank())
 
-save(Hawaii_Survey_Grid, file = "data/HAW_Grid.RData")
+strm = GIS_Survey_Grid %>% 
+  group_by(X, Y) %>% 
+  summarise(depth = mean(DEPTH)) %>% 
+  ggplot(aes(X, Y, fill = depth)) + 
+  geom_raster() + 
+  scale_fill_viridis_c("strm")+
+  coord_fixed() +
+  ggdark::dark_theme_minimal() + 
+  theme(axis.title = element_blank())
+
+error = GIS_Survey_Grid %>% 
+  group_by(X, Y) %>% 
+  mutate(error = DEPTH-DEPTH_e) %>% 
+  summarise(error = abs(mean(error))) %>% 
+  ggplot(aes(X, Y, fill = error)) + 
+  geom_raster() + 
+  scale_fill_viridis_c("error")+
+  coord_fixed() +
+  ggdark::dark_theme_minimal() + 
+  theme(axis.title = element_blank())
+
+obs + strm + error
+
+save(GIS_Survey_Grid, file = "data/OAH_Grid.RData")
