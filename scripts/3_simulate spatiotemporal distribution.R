@@ -16,7 +16,7 @@ sim1 <- sim_abundance(ages = 1:20,
                      Z = sim_Z(log_mean = log(0.2))) %>%
   sim_distribution(grid = survey_grid_kt,
                    ays_covar = sim_ays_covar(range = 50, 
-                                             phi_year = 0.99),
+                                             phi_year = 0.9),
                    depth_par = sim_parabola(mu = 10, sigma = 10))
 
 sim2 <- sim_abundance(ages = 1:5, 
