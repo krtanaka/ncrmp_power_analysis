@@ -10,29 +10,41 @@ rm(list = ls())
 
 load("data/survey_grid_kt.RData")
 
-sim1 <- sim_abundance(ages = 1:20, 
-                     years = 1980:2020,
-                     R = sim_R(log_mean = log(100)),
-                     Z = sim_Z(log_mean = log(0.2))) %>%
+set.seed(438)
+
+### simulate a dynamic age structured populations ###
+### a long-lived, spatially diffused              ###
+long_diffused <- sim_abundance(ages = 1:500, 
+                               years = 2000:2020,
+                               R = sim_R(log_mean = log(3000),
+                                         log_sd = 0.1),
+                               Z = sim_Z(log_mean = log(0.05),
+                                         log_sd = 0.1,
+                                         phi_age = 0.1,
+                                         phi_year = 0.1)) %>% 
   sim_distribution(grid = survey_grid_kt,
-                   ays_covar = sim_ays_covar(range = 50, 
+                   ays_covar = sim_ays_covar(range = 100, 
+                                             phi_age = 0.9, 
                                              phi_year = 0.9),
-                   depth_par = sim_parabola(mu = 10, sigma = 10))
+                   depth_par = sim_parabola(mu = 10, 
+                                            sigma = 10))
 
-sim2 <- sim_abundance(ages = 1:5, 
-                     years = 2000:2020,
-                     R = sim_R(log_mean = log(500)),
-                     Z = sim_Z(log_mean = log(0.8))) %>%
+### simulate a dynamic age structured populations ###
+### a short-lived, spatially clustered            ###
+short_clustered <- sim_abundance(ages = 1:5, 
+                                 years = 2000:2020,
+                                 R = sim_R(log_mean = log(10000),
+                                           log_sd = 0.1),
+                                 Z = sim_Z(log_mean = log(0.8))) %>%
   sim_distribution(grid = survey_grid_kt,
-                   ays_covar = sim_ays_covar(range = 2, 
-                                             phi_year = 0.1,
-                                             phi_age = 0.8,),
+                   ays_covar = sim_ays_covar(range = 10, 
+                                             phi_year = 0.2,
+                                             phi_age = 0.2),
                    depth_par = sim_parabola(mu = 10, sigma = 10))
 
-sim = sim1
-sim = sim2
+sim = long_diffused
+sim = short_clustered
 
-plot_distribution(sim)
 
 head(sim$sp_N)
 head(sim$grid_xy)
@@ -41,10 +53,11 @@ df = merge(sim$sp_N, sim$grid_xy)
 df = df %>% group_by(x, y, year) %>% summarise(n = mean(N))
 
 space = df %>% 
-  ggplot(aes(x, y, fill = n)) + 
-  geom_tile(aes(width = 0.05, height = 0.05)) + 
+  ggplot(aes(x, y, fill = n, color = n)) + 
+  geom_tile(aes(width = 0.03, height = 0.03)) +
   facet_wrap(~year) + 
-  scale_fill_viridis_c("g/sq.m") + 
+  scale_fill_viridis_c("g/sq.m") +
+  scale_color_viridis_c("g/sq.m") + 
   coord_fixed() + 
   ggdark::dark_theme_void()
 
@@ -66,6 +79,5 @@ response = depth %>%
   geom_point() + 
   scale_color_viridis_c("")+ 
   ggdark::dark_theme_classic()
-  
+
 space + (time/response)
-  
