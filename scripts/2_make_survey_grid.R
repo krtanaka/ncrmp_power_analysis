@@ -11,6 +11,7 @@ library(sp)
 library(rgdal)
 library(tidyr)
 library(patchwork)
+library(SimSurvey)
 
 ########################
 ### see raw GIS data ###
@@ -36,24 +37,24 @@ Hawaii_Survey_Grid %>%
 ### https://coastwatch.pfeg.noaa.gov/erddap/griddap/usgsCeCrm10.html      ###
 ### NOAA NGDC   (Dataset ID: usgsCeCrm10)                                 ###
 #############################################################################
-topo = raster("G:/GIS/usgsCeCrm10.nc")
-topo = as.data.frame(rasterToPoints(topo))
-topo$Topography = ifelse(topo$Topography %in% c(-30:0), topo$Topography, NA)
-topo = topo %>% drop_na()
-
-topo %>%
-  group_by(x, y) %>% 
-  summarise(x = mean(x),
-            y = mean(y),
-            Topography = mean(Topography, na.rm = T)) %>% 
-  ggplot(aes(x, y, fill = Topography)) +
-  geom_tile(aes(width = 0.005, height = 0.005)) +
-  scale_fill_viridis_c() +
-  coord_fixed() +
-  ggdark::dark_theme_minimal() + 
-  theme(axis.title = element_blank())
-
-save(topo, file = 'data/Topography_NOAA_CRM_vol10.RData')
+# topo = raster("G:/GIS/usgsCeCrm10.nc")
+# topo = as.data.frame(rasterToPoints(topo))
+# topo$Topography = ifelse(topo$Topography %in% c(-30:0), topo$Topography, NA)
+# topo = topo %>% drop_na()
+# 
+# topo %>%
+#   group_by(x, y) %>% 
+#   summarise(x = mean(x),
+#             y = mean(y),
+#             Topography = mean(Topography, na.rm = T)) %>% 
+#   ggplot(aes(x, y, fill = Topography)) +
+#   geom_tile(aes(width = 0.005, height = 0.005)) +
+#   scale_fill_viridis_c() +
+#   coord_fixed() +
+#   ggdark::dark_theme_minimal() + 
+#   theme(axis.title = element_blank())
+# 
+# save(topo, file = 'data/Topography_NOAA_CRM_vol10.RData')
 
 load("data/Topography_NOAA_CRM_vol10.RData")
 
@@ -101,12 +102,23 @@ division = rasterFromXYZ(df[,c("longitude", "latitude", "division")]); plot(divi
 strat = rasterFromXYZ(df[,c("longitude", "latitude", "strat")]); plot(strat)
 depth = rasterFromXYZ(df[,c("longitude", "latitude", "depth")]); plot(depth)
 
+default_proj = "+init=epsg:4326 +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +towgs84=0,0,0"
+
+## UTM projection for Hawaii = 5, for Kauai-Maui = 4
+## http://www.gdsihawaii.com/hawpacgis/docs/HawaiiCooSys.pdf
+# utm_proj <- "+proj=utm +ellps=WGS84 +datum=WGS84 +units=km +no_defs"
+# utm_proj <- "+proj=utm +zone=4 +ellps=WGS84 +datum=WGS84 +units=km +no_defs"
+utm_proj <- "+proj=utm +zone=5 +ellps=WGS84 +datum=WGS84 +units=km +no_defs"
+
+crs(cell) = default_proj; cell = projectRaster(cell, crs = utm_proj); plot(cell)
+crs(division) = default_proj; division = projectRaster(division, crs = utm_proj); plot(division)
+crs(strat) = default_proj; strat = projectRaster(strat, crs = utm_proj); plot(strat)
+crs(depth) = default_proj; depth = projectRaster(depth, crs = utm_proj); plot(depth)
+
 survey_grid_kt = stack(cell, division, strat, depth)
 
 sp::spplot(survey_grid) #SimSurvey example
 sp::spplot(survey_grid_kt)
-
-crs(survey_grid_kt) = crs(survey_grid)
 
 p <- raster::rasterToPolygons(survey_grid$strat, dissolve = TRUE)
 sp::plot(p)
