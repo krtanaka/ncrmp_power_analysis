@@ -38,11 +38,11 @@ long_diffused <- sim_abundance(ages = 1:500,
                                          phi_age = 0.1,
                                          phi_year = 0.1)) %>% 
   sim_distribution(grid = survey_grid_kt,
-                   ays_covar = sim_ays_covar(range = 100, 
+                   ays_covar = sim_ays_covar(range = 300, 
                                              phi_age = 0.9, 
                                              phi_year = 0.9),
                    depth_par = sim_parabola(mu = 10, 
-                                            sigma = 10)) %>% 
+                                            sigma = 10))%>% 
   sim_survey(n_sims = 1, 
              min_sets = 20, 
              ages_cap = 10,
@@ -59,16 +59,11 @@ short_clustered <- sim_abundance(ages = 1:5,
                                            log_sd = 0.1),
                                  Z = sim_Z(log_mean = log(0.8))) %>%
   sim_distribution(grid = survey_grid_kt,
-                   ays_covar = sim_ays_covar(range = 10, 
+                   ays_covar = sim_ays_covar(range = 300, 
                                              phi_year = 0.2,
                                              phi_age = 0.2),
                    depth_par = sim_parabola(mu = 10, sigma = 10)) %>% 
-  sim_survey(n_sims = 5, 
-             min_sets = 5, 
-             ages_cap = 2,
-             lengths_cap = 2,
-             set_den = 2/1000, 
-             trawl_dim = c(0.01, 0.01))
+sim_survey_rea()
 
 plot_survey(short_clustered, which_year = 2000)
 

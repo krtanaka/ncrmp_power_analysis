@@ -23,7 +23,7 @@ long_diffused <- sim_abundance(ages = 1:500,
                                          phi_age = 0.1,
                                          phi_year = 0.1)) %>% 
   sim_distribution(grid = survey_grid_kt,
-                   ays_covar = sim_ays_covar(range = 100, 
+                   ays_covar = sim_ays_covar(range = 300, 
                                              phi_age = 0.9, 
                                              phi_year = 0.9),
                    depth_par = sim_parabola(mu = 10, 
@@ -37,7 +37,7 @@ short_clustered <- sim_abundance(ages = 1:5,
                                            log_sd = 0.1),
                                  Z = sim_Z(log_mean = log(0.8))) %>%
   sim_distribution(grid = survey_grid_kt,
-                   ays_covar = sim_ays_covar(range = 10, 
+                   ays_covar = sim_ays_covar(range = 50, 
                                              phi_year = 0.2,
                                              phi_age = 0.2),
                    depth_par = sim_parabola(mu = 10, sigma = 10))
@@ -45,19 +45,20 @@ short_clustered <- sim_abundance(ages = 1:5,
 sim = long_diffused
 sim = short_clustered
 
-
 head(sim$sp_N)
 head(sim$grid_xy)
 
 df = merge(sim$sp_N, sim$grid_xy)
 df = df %>% group_by(x, y, year) %>% summarise(n = mean(N))
 
-space = df %>% 
+space =
+  df %>% 
   ggplot(aes(x, y, fill = n, color = n)) + 
-  geom_tile(aes(width = 0.03, height = 0.03)) +
+  # geom_tile() +
+  geom_point(size = 1.5, alpha = 0.8) +
   facet_wrap(~year) + 
-  scale_fill_viridis_c("g/sq.m") +
-  scale_color_viridis_c("g/sq.m") + 
+  scale_fill_viridis_c("g/sq.m", limits = c(0,  quantile(df$n, prob = 0.9))) +
+  scale_color_viridis_c("g/sq.m", limits = c(0,  quantile(df$n, prob = 0.9))) +
   coord_fixed() + 
   ggdark::dark_theme_void()
 
@@ -66,7 +67,7 @@ time = sim$sp_N %>%
   summarise(n = sum(N)) %>% 
   ggplot(aes(year, n, color = n)) + 
   geom_line() + 
-  geom_point(size = 2) + 
+  geom_point(size = 5) + 
   scale_color_viridis_c("")+ 
   ggdark::dark_theme_classic()
 
@@ -76,7 +77,7 @@ depth = cbind(depth, c(0:30))
 colnames(depth) = c("response", "depth")
 response = depth %>% 
   ggplot(aes(depth, response, color = response)) + 
-  geom_point() + 
+  geom_point(size = 5) + 
   scale_color_viridis_c("")+ 
   ggdark::dark_theme_classic()
 
