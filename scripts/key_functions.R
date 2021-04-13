@@ -1,126 +1,3 @@
-# plot_survey = function (sim, which_year = 1, which_sim = 1) {
-#   
-#   xax <- list(title = "", 
-#               zeroline = FALSE, 
-#               showline = FALSE, 
-#               showticklabels = FALSE, 
-#               showgrid = FALSE,
-#               ticks = "")
-#   
-#   yax <- c(scaleanchor = "x", xax)
-#   
-#   sp_strat <- raster::rasterToPolygons(sim$grid$strat, dissolve = TRUE)
-#   
-#   df_strat <- suppressMessages(ggplot2::fortify(sp_strat) %>% group_by(.data$group))
-#   
-#   setdet <- sim$setdet
-#   setdet <- setdet[setdet$year == which_year & setdet$sim == which_sim, ]
-#   
-#   samp <- sim$samp
-#   samp <- samp[samp$set %in% setdet$set, ]
-#   samp <- merge(setdet[, c("year", "sim", "set", "x", "y")], samp, by = "set", all = TRUE)
-#   
-#   l <- sim$I_at_length[, as.character(which_year)]
-#   l <- (l/sum(l)) * 100
-#   
-#   true_length <- data.frame(length = as.numeric(names(l)), 
-#                             percent = l)
-#   a <- sim$I[, as.character(which_year)]
-#   a <- (a/sum(a)) * 100
-#   
-#   true_age <- data.frame(age = as.numeric(names(a)), percent = a)
-#   length_group <- get("length_group", envir = environment(sim$sim_length))
-#   
-#   d <- crosstalk::SharedData$new(samp, ~set)
-#   
-#   base <- plot_ly(data = d)
-#   
-#   sp_p <- base %>% 
-#     group_by(set) %>% 
-#     summarise(x = unique(.data$x), 
-#               y = unique(.data$y), 
-#               n = sum(!is.na(.data$measured))) %>% 
-#     add_markers(x = ~x, 
-#                 y = ~y, 
-#                 text = ~n, 
-#                 color = ~n, 
-#                 name = "n", 
-#                 showlegend = FALSE,
-#                 marker = list(size = ~.scale_between(n, 2, 600), sizemode = "area")) %>% 
-#     add_paths(data = df_strat,
-#               x = ~long, 
-#               y = ~lat, color = I("black"), 
-#               hoverinfo = "none", 
-#               size = I(0.5), showlegend = FALSE, alpha = 0.1) %>%
-#     layout(xaxis = xax, 
-#            yaxis = yax, 
-#            margin = list(t = 0, r = 0, l = 0, b = 0, pad = 0))
-#   
-#   hist_base <- base %>%
-#     mutate(length = group_lengths(length, length_group)) %>%
-#     group_by(set) %>% 
-#     filter(!is.na(.data$measured)) %>% 
-#     slice(rep(1:length(.data$measured), each = 2)) %>% 
-#     mutate(lab = rep(c("caught", "sampled"), times = length(.data$measured)/2))
-#   
-#   lf_p <- hist_base %>% 
-#     filter(.data$measured & .data$lab == "sampled" | .data$lab == "caught") %>%
-#     add_histogram(x = ~length, 
-#                   color = ~lab, 
-#                   histnorm = "percent", 
-#                   colors = c("#FDE725FF", "#21908CFF"), 
-#                   legendgroup = ~lab) %>% 
-#     add_lines(data = true_length, 
-#               x = ~length, 
-#               y = ~percent, 
-#               color = I("#440154FF"), 
-#               fill = "tozeroy", 
-#               name = "true", 
-#               fillcolor = "#44015433", 
-#               legendgroup = "true") %>% 
-#     layout(xaxis = list(title = "Length", 
-#                         range = grDevices::extendrange(range(samp$length, na.rm = TRUE))), 
-#            yaxis = list(title = "Percent", ticksuffix = "%"))
-#   
-#   af_p <- hist_base %>% 
-#     filter(.data$aged & 
-#              .data$lab == "sampled" | 
-#              .data$lab == "caught") %>% 
-#     add_histogram(x = ~age, 
-#                   color = ~lab, 
-#                   histnorm = "percent",
-#                   colors = c("#FDE725FF", "#21908CFF"), 
-#                   legendgroup = ~lab, 
-#                   showlegend = FALSE) %>% 
-#     add_lines(data = true_age, 
-#               x = ~age, 
-#               y = ~percent, 
-#               color = I("#440154FF"), 
-#               fill = "tozeroy", 
-#               name = "true",
-#               fillcolor = "#44015433", 
-#               legendgroup = "true", 
-#               showlegend = FALSE) %>% 
-#     layout(xaxis = list(title = "Age", 
-#                         range = grDevices::extendrange(range(samp$age, na.rm = TRUE))), 
-#            yaxis = list(title = "Percent",
-#                         ticksuffix = "%"))
-#   
-#   subplot(sp_p, subplot(lf_p, 
-#                         af_p, 
-#                         nrows = 2, 
-#                         titleX = TRUE, 
-#                         titleY = TRUE,
-#                         margin = 0.1), 
-#           nrows = 1, 
-#           margin = c(0, 0.2, 0, 0), 
-#           widths = c(0.75, 0.25), 
-#           titleX = TRUE, 
-#           titleY = TRUE) %>% 
-#     colorbar(x = 0.52, y = 1) %>% 
-#     layout(legend = list(x = 1, y = 0.95))
-# }
-
 sim_sets_rea = function (sim, 
                          n_sims = 1, 
                          trawl_dim = c(0.01, 0.005), 
@@ -128,33 +5,59 @@ sim_sets_rea = function (sim,
                          set_den = 2/1000, 
                          resample_cells = FALSE) {
   
+  # sim = sim
+  # 
+  # # sim <- sim_abundance(ages = 1:5, years = 1:5) %>% sim_distribution(grid = make_grid(res = c(10, 10)))
+  # 
+  # n_sims = 1 
+  # q = sim_logistic()
+  #  trawl_dim = c(0.01, 0.005)
+  # resample_cells = FALSE
+  # binom_error = TRUE
+  # min_sets = 2 
+  # set_den = 2/1000 
+  # lengths_cap = 500
+  # ages_cap = 10 
+  # age_sampling = "stratified" 
+  # age_length_group = 1 
+  # age_space_group = "division" 
+  # light = TRUE
+  
   strat_sets <- cell_sets <- NULL
   cells <- data.table(rasterToPoints(sim$grid))
   
-  cells$strat = ifelse(cells$depth >= 0 & cells$depth <= 6, 1, cells$strat)
-  cells$strat = ifelse(cells$depth > 6 & cells$depth <= 18, 2, cells$strat)
-  cells$strat = ifelse(cells$depth > 18 & cells$depth <= 30, 3, cells$strat)
+  cells$strat = round(cells$strat, 0)
   
-  strat_det <- cells[, list(strat_cells = .N), by = "strat"]
-  strat_det$tow_area <- prod(trawl_dim)
-  strat_det$cell_area <- prod(res(sim$grid))
-  strat_det$strat_area <- strat_det$strat_cells * prod(res(sim$grid))
-  strat_det$strat_sets <- round(strat_det$strat_area * set_den)
-  strat_det$strat_sets[strat_det$strat_sets < min_sets] <- min_sets
-  cells <- merge(cells, strat_det, by = c("strat"))
-  i <- rep(seq(nrow(cells)), times = length(sim$years))
-  y <- rep(sim$years, each = nrow(cells))
-  cells <- cells[i, ]
-  cells$year <- y
-  i <- rep(seq(nrow(cells)), times = n_sims)
-  s <- rep(seq(n_sims), each = nrow(cells))
-  cells <- cells[i, ]
-  cells$sim <- s
-  sets <- cells[, .SD[sample(.N, strat_sets, replace = resample_cells)], 
-                by = c("sim", "year", "strat")]
+  # cells$strat = ifelse(cells$depth >= -1 & cells$depth <= 6, 1, cells$strat)
+  # cells$strat = ifelse(cells$depth > 6 & cells$depth <= 18, 2, cells$strat)
+  # cells$strat = ifelse(cells$depth > 18 & cells$depth <= 31, 3, cells$strat)
   
-  sets[, `:=`(cell_sets, .N), by = c("sim", "year", "cell")]
-  sets$set <- seq(nrow(sets))
+  cells
+  
+  strat_det <- cells[, list(strat_cells = .N), by = "strat"]; strat_det
+  strat_det$tow_area <- prod(trawl_dim); strat_det
+  strat_det$cell_area <- prod(res(sim$grid)); strat_det
+  strat_det$strat_area <- strat_det$strat_cells * prod(res(sim$grid)); strat_det
+  strat_det$strat_sets <- round(strat_det$strat_area * set_den); strat_det
+  strat_det$strat_sets[strat_det$strat_sets < min_sets] <- min_sets; strat_det
+  cells <- merge(cells, strat_det, by = c("strat")); cells
+  
+  i <- rep(seq(nrow(cells)), times = length(sim$years)); i
+  y <- rep(sim$years, each = nrow(cells)); y
+  
+  cells <- cells[i, ]; cells
+  cells$year <- y; cells
+  
+  i <- rep(seq(nrow(cells)), times = n_sims); i
+  s <- rep(seq(n_sims), each = nrow(cells)); s
+  
+  cells <- cells[i, ]; cells
+  cells$sim <- s; cells
+  
+  sets <- cells[, .SD[sample(.N, strat_sets, replace = resample_cells)], by = c("sim", "year", "strat")]; sets
+  
+  sets[, `:=`(cell_sets, .N), by = c("sim", "year", "cell")]; sets
+  sets$set <- seq(nrow(sets)); sets
   sets
   
 }
@@ -173,6 +76,21 @@ sim_survey_rea = function (sim,
                            age_length_group = 1, 
                            age_space_group = "division", 
                            light = TRUE) {
+  
+  # sim = sim
+  # n_sims = 1 
+  # q = sim_logistic()
+  # trawl_dim = c(0.01, 0.005) 
+  # resample_cells = FALSE
+  # binom_error = TRUE
+  # min_sets = 2 
+  # set_den = 2/1000 
+  # lengths_cap = 500
+  # ages_cap = 10 
+  # age_sampling = "stratified" 
+  # age_length_group = 1 
+  # age_space_group = "division" 
+  # light = TRUE
   
   n <- age <- id <- division <- strat <- N <- n_measured <- n_aged <- NULL
   

@@ -60,8 +60,11 @@ load("data/Topography_NOAA_CRM_vol10.RData")
 
 df = topo
 
-df$longitude = round(df$x, digits = 2) 
-df$latitude = round(df$y, digits = 2) 
+df$longitude = round(df$x, digits = 2)
+df$latitude = round(df$y, digits = 2)
+
+# df$longitude = round(df$x, digits = 3) 
+# df$latitude = round(df$y, digits = 3) 
 
 df = df %>% 
   group_by(longitude, latitude) %>% 
@@ -76,7 +79,7 @@ df$strat = ifelse(df$Topography < -18 & df$Topography >= -30, 3, df$strat)
 df$strat = as.numeric(df$strat)
 df$depth = as.numeric(df$Topography*-1)
 
-df <- df %>% subset(longitude < -154.8 & longitude > -156.2 & latitude > 18.8 & latitude < 20.4)
+# df <- df %>% subset(longitude < -154.8 & longitude > -156.2 & latitude > 18.8 & latitude < 20.4)
 # df <- df %>% subset(longitude < -157.5 & longitude > -158.5 & latitude > 21 & latitude < 22)
  
 depth = df %>% 
@@ -107,8 +110,8 @@ default_proj = "+init=epsg:4326 +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs
 ## UTM projection for Hawaii = 5, for Kauai-Maui = 4
 ## http://www.gdsihawaii.com/hawpacgis/docs/HawaiiCooSys.pdf
 # utm_proj <- "+proj=utm +ellps=WGS84 +datum=WGS84 +units=km +no_defs"
-# utm_proj <- "+proj=utm +zone=4 +ellps=WGS84 +datum=WGS84 +units=km +no_defs"
-utm_proj <- "+proj=utm +zone=5 +ellps=WGS84 +datum=WGS84 +units=km +no_defs"
+utm_proj <- "+proj=utm +zone=4 +ellps=WGS84 +datum=WGS84 +units=km +no_defs"
+# utm_proj <- "+proj=utm +zone=5 +ellps=WGS84 +datum=WGS84 +units=km +no_defs"
 
 crs(cell) = default_proj; cell = projectRaster(cell, crs = utm_proj); plot(cell)
 crs(division) = default_proj; division = projectRaster(division, crs = utm_proj); plot(division)
