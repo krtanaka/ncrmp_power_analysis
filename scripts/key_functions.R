@@ -205,3 +205,72 @@ sim_survey_rea = function (sim,
   sim$samp_totals <- samp_totals
   sim
 }
+
+sim_distribution_rea = function (sim, 
+                                 grid = make_grid(), 
+                                 ays_covar = sim_ays_covar(), 
+                                 depth_par = sim_parabola()) {
+  
+  grid_dat <- data.table::data.table(raster::rasterToPoints(grid))
+  
+  if(max(grid_dat$depth) == 30){
+    
+    grid_dat$strat = round(grid_dat$strat, digits = 0)
+    grid_dat$strat = ifelse(grid_dat$depth >= 0 & grid_dat$depth <= 6, 1, grid_dat$strat)
+    grid_dat$strat = ifelse(grid_dat$depth > 6 & grid_dat$depth <= 18, 2, grid_dat$strat)
+    grid_dat$strat = ifelse(grid_dat$depth > 18 & grid_dat$depth <= 30, 3, grid_dat$strat)
+    
+  }
+  
+  setkeyv(grid_dat, "cell")
+  
+  xy <- grid_dat[, c("x", "y")]
+  
+  error <- ays_covar(x = xy, 
+                     ages = sim$ages,
+                     years = sim$years, 
+                     cells = grid_dat$cell)
+  
+  grid_edat <- grid_dat
+  i <- rep(seq(nrow(grid_edat)), times = length(sim$ages))
+  a <- rep(sim$ages, each = nrow(grid_edat))
+  
+  grid_edat <- grid_edat[i]
+  grid_edat$age <- a
+  
+  i <- rep(seq(nrow(grid_edat)), times = length(sim$years))
+  y <- rep(sim$years, each = nrow(grid_edat))
+  
+  grid_edat <- grid_edat[i]
+  grid_edat$year <- y
+  grid_edat <- grid_edat[order(grid_edat$cell, 
+                               grid_edat$year, 
+                               grid_edat$age), ]
+  
+  depth <- depth_par(x = grid_edat$depth, age = grid_edat$age)
+  depth <- array(depth, dim = dim(error), dimnames = dimnames(error))
+  prob <- exp(depth + error)
+  
+  prob <- apply(prob, c(1, 2), function(x) {
+    x/sum(x)
+  })
+  
+  prob <- aperm(prob, c(2, 3, 1))
+  N <- replicate(nrow(grid_dat), sim$N)
+  dimnames(N) <- dimnames(prob)
+  N <- N * prob
+  
+  df_N <- as.data.frame.table(prob, 
+                              responseName = "prob", 
+                              stringsAsFactors = FALSE)
+  
+  df_N <- data.table::data.table(df_N, N = c(N))
+  df_N$year <- as.numeric(df_N$year)
+  df_N$age <- as.numeric(df_N$age)
+  df_N$cell <- as.numeric(df_N$cell)
+  df_N$prob <- NULL
+  
+  setkeyv(df_N, "cell")
+  c(sim, list(grid = grid, grid_xy = grid_dat, sp_N = df_N))
+  
+}
