@@ -4,6 +4,7 @@ library(ggplot2)
 library(dplyr)
 library(maps)
 library(ggdark)
+library(sdmTMB)
 
 load("data/HAW_Grid.RData")
 grid = Hawaii_Survey_Grid

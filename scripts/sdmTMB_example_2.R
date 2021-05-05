@@ -1,3 +1,5 @@
+library(sdmTMB)
+
 d <- subset(pcod, year >= 2011) # subset for example speed
 pcod_spde <- make_mesh(d, c("X", "Y"), cutoff = 30) # a coarse mesh for example speed
 plot(pcod_spde)

@@ -1,3 +1,5 @@
+library(dplyr)
+
 load("data/ALL_REA_FISH_RAW.rdata")
 
 df = df %>% 
@@ -7,4 +9,4 @@ df = df %>%
   arrange(desc(freq)) %>% 
   mutate(cumsum = cumsum(freq)) %>% 
   subset(cumsum < 0.5)
-
+df
