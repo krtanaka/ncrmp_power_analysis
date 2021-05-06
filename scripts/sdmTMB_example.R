@@ -6,7 +6,7 @@ library(ggplot2)
 d <- pcod
 pcod_spde <- make_mesh(d, c("X", "Y"), cutoff = 30) # a coarse mesh for example speed
 m <- sdmTMB(
-  data = d, formula = present ~ 0 + as.factor(year) + depth_scaled + depth_scaled2,
+  data = d, formula = density ~ 0 + as.factor(year) + depth_scaled + depth_scaled2,
   silent = F, 
   time = "year", spde = pcod_spde, family = tweedie(link = "log")
 )
