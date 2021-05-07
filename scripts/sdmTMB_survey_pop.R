@@ -7,39 +7,38 @@ rm(list = ls())
 load("data/ALL_REA_FISH_RAW.rdata")
 
 df = df %>% 
-  # subset(REGION == "MHI") %>%
-  # subset(OBS_YEAR >= 2015)
-  subset(ISLAND == "Hawaii")
+  subset(REGION == "MHI") %>% 
+  mutate(density = COUNT)
 
-sp = df %>% 
+df %>% 
   group_by(TAXONNAME) %>% 
-  summarise(n = sum(BIOMASS_G_M2, na.rm = T)) %>% 
+  # summarise(n = sum(BIOMASS_G_M2, na.rm = T)) %>% 
+  summarise(n = sum(density, na.rm = T)) %>% 
   mutate(freq = n/sum(n)) %>% 
-  mutate(cumsum = cumsum(freq)) %>% 
   arrange(desc(freq))
 
-sp
+# df$BIOMASS_G_M2 = ifelse(df$TAXONNAME == "Aprion virescens", df$BIOMASS_G_M2, 0)
+df$density = ifelse(df$TAXONNAME == "Chromis vanderbilti", df$density, 0)
 
-df$BIOMASS_G_M2 = ifelse(df$TAXONNAME == "Aprion virescens", df$BIOMASS_G_M2, 0)
+df %>% 
+  group_by(ISLAND) %>% 
+  summarise(n = mean(density, na.rm = T))
 
 df = df %>% 
+  subset(ISLAND == "Oahu") %>% 
   group_by(LONGITUDE, LATITUDE, OBS_YEAR, DEPTH) %>% 
-  summarise(density = mean(BIOMASS_G_M2, na.rm = T))
+  summarise(density = mean(density, na.rm = T))
 
 qplot(df$DEPTH, df$density, color = df$density) + scale_color_viridis_c() + ggdark::dark_theme_minimal()
 hist(df$density)
 summary(df$density)
 
 zone <- (floor((df$LONGITUDE[1] + 180)/6) %% 60) + 1
-
-xy_utm = as.data.frame(cbind(utm = project(as.matrix(df[, c("LONGITUDE", "LATITUDE")]),
-                                           paste0("+proj=utm +zone=", zone))))
-
+xy_utm = as.data.frame(cbind(utm = project(as.matrix(df[, c("LONGITUDE", "LATITUDE")]), paste0("+proj=utm +zone=", zone))))
 colnames(xy_utm) = c("X", "Y"); plot(xy_utm, pch = ".", bty = 'n')
-
 df = cbind(df, xy_utm)
 
-rea_spde <- make_mesh(df, c("X", "Y"), cutoff = 100) # a coarse mesh for speed
+rea_spde <- make_mesh(df, c("X", "Y"), n_knots = 100, type = "cutoff_search") # a coarse mesh for speed
 
 plot(rea_spde, pch = "."); axis(1); axis(2)
 
@@ -50,7 +49,9 @@ df$depth_scaled = as.numeric(scale(log(df$depth+1)))
 # alt model 1, includes a single intercept spatial random field and another random field for spatially varying slopes the represent trends over time in space. Just estimates and intercept and accounts for all other variation through the random effects
 m1 <- sdmTMB(
   data = df, 
-  formula = density ~ 1,
+  # formula = density ~ 1,
+  # formula = density ~ 1 + depth,
+  formula = density ~ 1 + depth_scaled,
   silent = F, 
   spatial_trend = T, 
   spatial_only = T, 
@@ -62,7 +63,9 @@ m1 <- sdmTMB(
 # alt model 2, add independent spatiotemporal random fields for each year
 m2 <- sdmTMB(
   data = df, 
-  formula = density ~ 1,
+  # formula = density ~ 1,
+  # formula = density ~ 1 + depth,
+  formula = density ~ 1 + depth_scaled,
   silent = F, 
   spatial_trend = T, 
   spatial_only = F, 
@@ -74,7 +77,9 @@ m2 <- sdmTMB(
 # alt model 3, make the spatiotemporal random fields follow an AR1 process
 m3 <- sdmTMB(
   data = df,
-  formula = density ~ 1,
+  # formula = density ~ 1,
+  # formula = density ~ 1 + depth,
+  formula = density ~ 1 + depth_scaled,
   silent = F, 
   spatial_trend = T, 
   spatial_only = F, 
@@ -99,10 +104,25 @@ qqnorm(df$residuals1, ylim = c(-5, 5), xlim = c(-5, 5));abline(a = 0, b = 1)
 qqnorm(df$residuals2, ylim = c(-5, 5), xlim = c(-5, 5));abline(a = 0, b = 1)
 qqnorm(df$residuals3, ylim = c(-5, 5), xlim = c(-5, 5));abline(a = 0, b = 1)
 
+m1_p <- predict(m1); m1_p$model = "m1"; m1_p = m1_p[,c("density", "est", "model")]
+m2_p <- predict(m2); m2_p$model = "m2"; m2_p = m2_p[,c("density", "est", "model")]
+m3_p <- predict(m3); m3_p$model = "m3"; m3_p = m3_p[,c("density", "est", "model")]
+
+rbind(m1_p, m2_p, m3_p) %>% 
+  ggplot(aes(density, exp(est), color = model)) + 
+  geom_point(alpha = 0.2) + 
+  ylim(0,8) + 
+  xlim(0,8) + 
+  coord_fixed() + 
+  geom_abline(intercept = 0, slope = 1) + 
+  geom_smooth(method = "lm", se = F) + 
+  # facet_grid(~model) + 
+  ggdark::dark_theme_minimal()
+
 plot_map_point <- function(dat, column = "est") {
   ggplot(dat, aes_string("X", "Y", colour = column)) +
     geom_point(alpha = 0.5, size = 5) +
-    facet_wrap(~year) +
+    # facet_wrap(~year) +
     coord_fixed() + 
     ggdark::dark_theme_void()
 }
@@ -129,11 +149,10 @@ load("data/Topography_NOAA_CRM_vol10.RData")
 
 grid = topo
 
-# grid$longitude = round(grid$x, digits = 2)
-# grid$latitude = round(grid$y, digits = 2)
+res = 3
 
-# grid$longitude = round(grid$x, digits = 4)
-# grid$latitude = round(grid$y, digits = 4)
+grid$longitude = round(grid$x, digits = res)
+grid$latitude = round(grid$y, digits = res)
 
 grid$longitude = grid$x
 grid$latitude = grid$y
@@ -176,12 +195,15 @@ p2 <- predict(m2, newdata = grid_year)
 p3 <- predict(m3, newdata = grid_year)
 
 plot_map_raster <- function(dat, column = "est") {
+  
   ggplot(dat, aes_string("X", "Y", fill = column)) +
-    geom_tile(aes(height = 800, width = 800)) +
+    geom_tile(aes(height = 500, width = 500)) +
     facet_wrap(~year) +
     coord_fixed() +
-    scale_fill_viridis_c() + 
+    # scale_fill_viridis_c() + 
+    scale_fill_gradientn(colours = matlab.like(10)) + 
     ggdark::dark_theme_void()
+  
 }
 
 # pick out a single year to plot since they should all be the same for the slopes. Note that these are in log space.
@@ -190,9 +212,9 @@ plot_map_raster(filter(p2, year == 2015), "zeta_s")
 plot_map_raster(filter(p3, year == 2015), "zeta_s")
 
 #predictions including all fixed and random effects plotted in log space.
-plot_map_raster(p1, "est")
-plot_map_raster(p2, "est")
-plot_map_raster(p3, "est")
+plot_map_raster(p1, "exp(est)")
+plot_map_raster(p2, "exp(est)")
+plot_map_raster(p3, "exp(est)")
 
 # look at just the spatiotemporal random effects for models 2 and 3:
 plot_map_raster(p2, "est_rf") + scale_fill_gradient2()
@@ -222,80 +244,12 @@ index2$model = "m2"
 index3$model = "m3"
 
 rbind(index1, index2, index3) %>% 
-  subset(model != "m1") %>% 
+  # subset(model != "m1") %>%
   ggplot(aes(year, est, color = model, fill = model)) + 
   geom_line() +
   geom_point() +
   geom_ribbon(aes(ymin = lwr, ymax = upr), alpha = 0.4, colour = NA) +
   xlab('Year') + 
   ylab('Biomass estimate (metric tonnes)') + 
-  # facet_wrap(~model, scales = "free_y") + 
+  facet_wrap(~model, scales = "free_y") +
   ggdark::dark_theme_minimal()
-
-
-# default model 
-m0 <- sdmTMB(
-  data = df, 
-  formula = density ~ 0 + as.factor(year) + depth + depth_scaled,
-  silent = F, 
-  time = "year", 
-  spde = rea_spde,
-  family = tweedie(link = "log")
-)
-
-predictions <- predict(m, newdata = grid_year, return_tmb_object = TRUE, area = 4)
-
-# predictions <- predict(m)
-# head(predictions)
-# 
-# predictions$resids <- residuals(m) # randomized quantile residuals
-# 
-# ggplot(predictions, aes(X, Y, col = resids)) + 
-#   scale_colour_gradient2() +
-#   geom_point() + 
-#   facet_wrap(~year)
-# 
-# hist(predictions$resids)
-# 
-# qqnorm(predictions$resids);abline(a = 0, b = 1)
-
-# m1 <- run_extra_optimization(m, nlminb_loops = 0, newton_steps = 1)
-# max(m1$gradients)
-
-plot_map <- function(dat, column) {
-  
-  ggplot(dat, aes_string("X", "Y", fill = column)) +
-    geom_tile(aes(height = 500, width = 500)) +
-    facet_wrap(~year) +
-    coord_fixed() + 
-    ggdark::dark_theme_void()
-  
-}
-
-
-plot_map(predictions$data, "exp(est)") +
-  scale_fill_viridis_c(trans = "sqrt") +
-  ggtitle("Prediction (fixed effects + all random effects)")
-
-plot_map(predictions$data, "exp(est_non_rf)") +
-  ggtitle("Prediction (fixed effects only)") +
-  scale_fill_viridis_c(trans = "sqrt")
-
-plot_map(predictions$data, "omega_s") +
-  ggtitle("Spatial random effects only") +
-  scale_fill_gradient2()
-
-plot_map(predictions$data, "epsilon_st") +
-  ggtitle("Spatiotemporal random effects only") +
-  scale_fill_gradient2()
-
-# not bias correcting for vignette-building speed:
-index <- get_index(predictions, bias_correct = FALSE)
-
-ggplot(index, aes(year, est)) + geom_line() +
-  geom_ribbon(aes(ymin = lwr, ymax = upr), alpha = 0.4) +
-  xlab('Year') + ylab('Biomass estimate (metric tonnes)')
-
-mutate(index, cv = sqrt(exp(se^2) - 1)) %>% 
-  select(-log_est, -max_gradient, -bad_eig, -se) %>%
-  knitr::kable(format = "pandoc", digits = c(0, 0, 0, 0, 2))
