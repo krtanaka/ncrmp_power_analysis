@@ -25,7 +25,7 @@ df %>%
   summarise(n = mean(density, na.rm = T))
 
 df = df %>% 
-  subset(ISLAND == "Oahu") %>% 
+  subset(ISLAND == "Maui") %>% 
   group_by(LONGITUDE, LATITUDE, OBS_YEAR, DEPTH) %>% 
   summarise(density = mean(density, na.rm = T))
 
@@ -46,6 +46,11 @@ df$year = df$OBS_YEAR
 df$depth = df$DEPTH
 df$depth_scaled = as.numeric(scale(log(df$depth+1)))
 
+obs_year = unique(df$year)
+full_year = seq(min(df$year), max(df$year), by = 1)
+missing_year = setdiff(full_year, obs_year)
+missing_year = as.integer(missing_year)
+
 # alt model 1, includes a single intercept spatial random field and another random field for spatially varying slopes the represent trends over time in space. Just estimates and intercept and accounts for all other variation through the random effects
 m1 <- sdmTMB(
   data = df, 
@@ -53,6 +58,7 @@ m1 <- sdmTMB(
   # formula = density ~ 1 + depth,
   formula = density ~ 1 + depth_scaled,
   silent = F, 
+  extra_time = missing_year, 
   spatial_trend = T, 
   spatial_only = T, 
   time = "year", 
@@ -67,6 +73,7 @@ m2 <- sdmTMB(
   # formula = density ~ 1 + depth,
   formula = density ~ 1 + depth_scaled,
   silent = F, 
+  extra_time = missing_year, 
   spatial_trend = T, 
   spatial_only = F, 
   time = "year", 
@@ -81,6 +88,7 @@ m3 <- sdmTMB(
   # formula = density ~ 1 + depth,
   formula = density ~ 1 + depth_scaled,
   silent = F, 
+  extra_time = missing_year, 
   spatial_trend = T, 
   spatial_only = F, 
   ar1_fields = T,
@@ -154,8 +162,8 @@ res = 3
 grid$longitude = round(grid$x, digits = res)
 grid$latitude = round(grid$y, digits = res)
 
-grid$longitude = grid$x
-grid$latitude = grid$y
+# grid$longitude = grid$x
+# grid$latitude = grid$y
 
 grid = grid %>% 
   group_by(longitude, latitude) %>% 
@@ -189,6 +197,21 @@ for (y in 1:length(year)) {
 }
 
 grid_year$depth_scaled = as.numeric(scale(log(grid_year$depth+1)))
+
+grid_year_missing = NULL
+
+for (y in 1:length(missing_year)) {
+  
+  # y = 1
+  
+  # Add missing years to our grid:
+  grid_from_missing_yr <- grid_year[grid_year$year ==  missing_year[[y]]-1, ]
+  grid_from_missing_yr$year <-  missing_year[[y]] # `L` because `year` is an integer in the data
+  grid_year_missing <- rbind(grid_year_missing, grid_from_missing_yr)
+  
+}
+
+grid_year = rbind(grid_year, grid_year_missing)
 
 p1 <- predict(m1, newdata = grid_year)
 p2 <- predict(m2, newdata = grid_year)
