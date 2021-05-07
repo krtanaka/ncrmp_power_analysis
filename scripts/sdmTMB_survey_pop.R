@@ -7,7 +7,8 @@ rm(list = ls())
 load("data/ALL_REA_FISH_RAW.rdata")
 
 df = df %>% 
-  subset(REGION == "MHI") %>%
+  # subset(REGION == "MHI") 
+# %>%
   # subset(OBS_YEAR >= 2015)
   subset(ISLAND == "Oahu")
 
@@ -26,7 +27,7 @@ df = df %>%
   group_by(LONGITUDE, LATITUDE, OBS_YEAR, DEPTH) %>% 
   summarise(density = mean(BIOMASS_G_M2, na.rm = T))
 
-plot(df$density, df$DEPTH)
+qplot(df$DEPTH, df$density, color = df$density) + scale_color_viridis_c() + ggdark::dark_theme_minimal()
 hist(df$density)
 summary(df$density)
 
@@ -133,6 +134,9 @@ grid = topo
 grid$longitude = round(grid$x, digits = 4)
 grid$latitude = round(grid$y, digits = 4)
 
+grid$longitude = grid$x
+grid$latitude = grid$y
+
 grid = grid %>% 
   group_by(longitude, latitude) %>% 
   subset(longitude > range(df$LONGITUDE)[1]) %>% 
@@ -172,11 +176,11 @@ p3 <- predict(m3, newdata = grid_year)
 
 plot_map_raster <- function(dat, column = "est") {
   ggplot(dat, aes_string("X", "Y", fill = column)) +
-    geom_tile(aes(height = 500, width = 500)) +
+    geom_tile(aes(height = 800, width = 800)) +
     facet_wrap(~year) +
     coord_fixed() +
     scale_fill_viridis_c() + 
-    ggdark::dark_theme_minimal()
+    ggdark::dark_theme_void()
 }
 
 # pick out a single year to plot since they should all be the same for the slopes. Note that these are in log space.
@@ -221,7 +225,7 @@ index = rbind(index1, index2, index3)
 ggplot(index, aes(year, est, color = model, fill = model)) + 
   geom_line() +
   geom_point() +
-  geom_ribbon(aes(ymin = lwr, ymax = upr), alpha = 0.4) +
+  geom_ribbon(aes(ymin = lwr, ymax = upr), alpha = 0.4, colour = NA) +
   xlab('Year') + 
   ylab('Biomass estimate (metric tonnes)') + 
   facet_wrap(~model, scales = "free_y") + 
