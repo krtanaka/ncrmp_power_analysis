@@ -23,7 +23,10 @@ SM = SM[complete.cases(SM[,c("X", "Y")]), ]
 SM_sp = SM; SM_sp = as.data.frame(SM_sp)
 coordinates(SM_sp) = ~X + Y
 
+#strm15
 this_r = raster("M:/Environmental Data Summary/DataDownload/Bathymetry_SRTM15/Bathymetry_SRTM15_Bathy_M_AllIslands.nc")
+
+#crm, this is better
 this_r = raster("G:/GIS/usgsCeCrm10.nc")
 
 e <- extent(range(pretty(SM$X))[1] , 

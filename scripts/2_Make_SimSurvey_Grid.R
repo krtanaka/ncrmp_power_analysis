@@ -60,14 +60,17 @@ load("data/Topography_NOAA_CRM_vol10.RData")
 
 df = topo
 
+# df$longitude = df$x
+# df$latitude = df$y
+
 df$longitude = round(df$x, digits = 2)
 df$latitude = round(df$y, digits = 2)
 
 # df$longitude = round(df$x, digits = 3) 
 # df$latitude = round(df$y, digits = 3) 
 
-df = df %>% 
-  group_by(longitude, latitude) %>% 
+df = df %>%
+  group_by(longitude, latitude) %>%
   summarise(Topography = mean(Topography, na.rm = T))
 
 df$cell = 1:dim(df)[1]; df$cell = as.numeric(df$cell)
