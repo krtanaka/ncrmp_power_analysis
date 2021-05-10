@@ -1,6 +1,8 @@
 library(sdmTMB)
 library(dplyr)
 library(ggplot2)
+library(rgdal)
+library(colorRamps)
 
 rm(list = ls())
 
@@ -25,7 +27,7 @@ df %>%
   summarise(n = mean(density, na.rm = T))
 
 df = df %>% 
-  subset(ISLAND == "Maui") %>% 
+  subset(ISLAND == "Oahu") %>% 
   group_by(LONGITUDE, LATITUDE, OBS_YEAR, DEPTH) %>% 
   summarise(density = mean(density, na.rm = T))
 
@@ -58,7 +60,7 @@ m1 <- sdmTMB(
   # formula = density ~ 1 + depth,
   formula = density ~ 1 + depth_scaled,
   silent = F, 
-  extra_time = missing_year, 
+  # extra_time = missing_year, 
   spatial_trend = T, 
   spatial_only = T, 
   time = "year", 
@@ -73,7 +75,7 @@ m2 <- sdmTMB(
   # formula = density ~ 1 + depth,
   formula = density ~ 1 + depth_scaled,
   silent = F, 
-  extra_time = missing_year, 
+  # extra_time = missing_year, 
   spatial_trend = T, 
   spatial_only = F, 
   time = "year", 
@@ -88,7 +90,7 @@ m3 <- sdmTMB(
   # formula = density ~ 1 + depth,
   formula = density ~ 1 + depth_scaled,
   silent = F, 
-  extra_time = missing_year, 
+  # extra_time = missing_year, 
   spatial_trend = T, 
   spatial_only = F, 
   ar1_fields = T,
@@ -235,9 +237,9 @@ plot_map_raster(filter(p2, year == 2015), "zeta_s")
 plot_map_raster(filter(p3, year == 2015), "zeta_s")
 
 #predictions including all fixed and random effects plotted in log space.
-plot_map_raster(p1, "exp(est)")
-plot_map_raster(p2, "exp(est)")
-plot_map_raster(p3, "exp(est)")
+plot_map_raster(p1, "exp(est)") + ggtitle("Prediction (fixed effects + all random effects)")
+plot_map_raster(p2, "exp(est)") + ggtitle("Prediction (fixed effects + all random effects)")
+plot_map_raster(p3, "exp(est)") + ggtitle("Prediction (fixed effects + all random effects)")
 
 # look at just the spatiotemporal random effects for models 2 and 3:
 plot_map_raster(p2, "est_rf") + scale_fill_gradient2()
@@ -267,7 +269,7 @@ index2$model = "m2"
 index3$model = "m3"
 
 rbind(index1, index2, index3) %>% 
-  # subset(model != "m1") %>%
+  subset(model == "m2") %>%
   ggplot(aes(year, est, color = model, fill = model)) + 
   geom_line() +
   geom_point() +
