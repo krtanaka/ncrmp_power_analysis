@@ -38,14 +38,14 @@ islands = c("Kauai", #1
             "Lanai", #8
             "Molokini", #9
             "Kahoolawe", #10
-            "Hawaii")[1:5]
+            "Hawaii")[1:11]
 
 df = df %>% 
   subset(ISLAND %in% islands) %>% 
   group_by(LONGITUDE, LATITUDE, OBS_YEAR, DEPTH) %>% 
   summarise(density = mean(density, na.rm = T))
 
-qplot(df$DEPTH, df$density, color = df$density) + scale_color_viridis_c() + ggdark::dark_theme_minimal()
+qplot(df$DEPTH, df$density, color = df$density)
 hist(df$density)
 summary(df$density)
 
@@ -54,7 +54,7 @@ xy_utm = as.data.frame(cbind(utm = project(as.matrix(df[, c("LONGITUDE", "LATITU
 colnames(xy_utm) = c("X", "Y"); plot(xy_utm, pch = ".", bty = 'n')
 df = cbind(df, xy_utm)
 
-rea_spde <- make_mesh(df, c("X", "Y"), n_knots = 150, type = "cutoff_search") # a coarse mesh for speed
+rea_spde <- make_mesh(df, c("X", "Y"), n_knots = 500, type = "cutoff_search") # a coarse mesh for speed
 
 plot(rea_spde, pch = "."); axis(1); axis(2)
 
@@ -247,7 +247,7 @@ for (y in 1:length(missing_year)) {
   
 }
 
-grid_year = rbind(grid_year, grid_year_missing)
+# grid_year = rbind(grid_year, grid_year_missing)
 
 p1 <- predict(m1, newdata = grid_year)
 p2 <- predict(m2, newdata = grid_year)
@@ -319,7 +319,7 @@ rbind(index1, index2, index3) %>%
   geom_point() +
   geom_ribbon(aes(ymin = lwr, ymax = upr), alpha = 0.2, colour = NA) +
   xlab('Year') + 
-  ylab('Biomass estimate (metric tonnes)') 
+  ylab('Biomass estimate (metric tonnes)') + 
 facet_wrap(~model, scales = "free_y") 
 # ggdark::dark_theme_minimal()
 
