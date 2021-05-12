@@ -1,8 +1,9 @@
-rm(list =)
+rm(list = ls())
 
 library(readr)
 library(dplyr)
 library(ggplot2)
+library(raster)
 
 # df <- read_csv("data/jplmursst_strm15.csv")
 # df$bathymetry_m = ifelse(df$bathymetry_m %in% c(-30:0), df$bathymetry_m, NA)

@@ -9,6 +9,7 @@ library(ggplot2)
 library(stringr)
 
 load("data/SURVEY MASTER.RData"); df = SURVEY_MASTER
+
 df <- df %>% subset(ISLAND == "Hawaii")
 
 df %>% group_by(
