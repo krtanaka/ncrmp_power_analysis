@@ -54,7 +54,7 @@ xy_utm = as.data.frame(cbind(utm = project(as.matrix(df[, c("LONGITUDE", "LATITU
 colnames(xy_utm) = c("X", "Y"); plot(xy_utm, pch = ".", bty = 'n')
 df = cbind(df, xy_utm)
 
-rea_spde <- make_mesh(df, c("X", "Y"), n_knots = 500, type = "cutoff_search") # a coarse mesh for speed
+rea_spde <- make_mesh(df, c("X", "Y"), n_knots = 800, type = "cutoff_search") # a coarse mesh for speed
 
 plot(rea_spde, pch = "."); axis(1); axis(2)
 
@@ -78,6 +78,7 @@ m1 <- sdmTMB(
   # formula = density ~ 1 + depth_scaled,
   # formula = density ~ 1 + depth + depth_scaled,
   formula = density ~ 0 + as.factor(year) + depth_scaled,
+
   
   silent = F, 
   # extra_time = missing_year,
@@ -100,7 +101,7 @@ m2 <- sdmTMB(
   # formula = density ~ 1 + depth_scaled,
   # formula = density ~ 1 + depth + depth_scaled,
   formula = density ~ 0 + as.factor(year) + depth_scaled,
-  
+
   silent = F, 
   # extra_time = missing_year,
   spatial_trend = T, 
@@ -121,7 +122,7 @@ m3 <- sdmTMB(
   # formula = density ~ 1 + depth_scaled,
   # formula = density ~ 1 + depth + depth_scaled,
   formula = density ~ 0 + as.factor(year) + depth_scaled,
-  
+
   silent = F, 
   # extra_time = missing_year,
   spatial_trend = T, 
@@ -157,7 +158,7 @@ rbind(m1_p, m2_p, m3_p) %>%
   geom_point(alpha = 0.2) + 
   # ylim(0,8) + 
   # xlim(0,8) + 
-  # coord_fixed() + 
+  coord_fixed() +
   geom_abline(intercept = 0, slope = 1) + 
   geom_smooth(method = "lm", se = F) + 
   # facet_grid(~model) + 
@@ -193,7 +194,7 @@ load("data/Topography_NOAA_CRM_vol10.RData")
 
 grid = topo
 
-res = 4
+res = 5
 
 grid$longitude = round(grid$x, digits = res)
 grid$latitude = round(grid$y, digits = res)
@@ -249,9 +250,15 @@ for (y in 1:length(missing_year)) {
 
 # grid_year = rbind(grid_year, grid_year_missing)
 
-p1 <- predict(m1, newdata = grid_year)
-p2 <- predict(m2, newdata = grid_year)
-p3 <- predict(m3, newdata = grid_year)
+p1 <- predict(m1, 
+              newdata = grid_year, 
+              return_tmb_object = T)
+p2 <- predict(m2, 
+              newdata = grid_year, 
+              return_tmb_object = T)
+p3 <- predict(m3, 
+              newdata = grid_year, 
+              return_tmb_object = T)
 
 plot_map_raster <- function(dat, column = "est") {
   
@@ -259,50 +266,41 @@ plot_map_raster <- function(dat, column = "est") {
     geom_tile(aes(height = 500, width = 500)) +
     facet_wrap(~year) +
     coord_fixed() +
-    # scale_fill_viridis_c() +
-    scale_fill_gradientn(colours = matlab.like(10), limits = c(0, 4)) + 
+    scale_fill_viridis_c() +
+    # scale_fill_gradientn(colours = matlab.like(10), limits = c(0, 4)) + 
     ggdark::dark_theme_void()
+  
 }
 
 # pick out a single year to plot since they should all be the same for the slopes. Note that these are in log space.
-plot_map_raster(filter(p1, year == 2015), "zeta_s")
-plot_map_raster(filter(p2, year == 2015), "zeta_s")
-plot_map_raster(filter(p3, year == 2015), "zeta_s")
+plot_map_raster(filter(p1$data, year == 2015), "zeta_s")
+plot_map_raster(filter(p2$data, year == 2015), "zeta_s")
+plot_map_raster(filter(p3$data, year == 2015), "zeta_s")
 
 #predictions including all fixed and random effects plotted in log space.
-plot_map_raster(p1, "exp(est)") + ggtitle("Prediction (fixed effects + all random effects)")
-plot_map_raster(p1, "exp(est_non_rf)") + ggtitle("Prediction (fixed effects only)")
-plot_map_raster(p1, "omega_s") + ggtitle("Spatial random effects only")
-plot_map_raster(p1, "epsilon_st") + ggtitle("Spatiotemporal random effects only")
+plot_map_raster(p1$data, "exp(est)") + ggtitle("Prediction (fixed effects + all random effects)")
+plot_map_raster(p1$data, "exp(est_non_rf)") + ggtitle("Prediction (fixed effects only)")
+plot_map_raster(p1$data, "omega_s") + ggtitle("Spatial random effects only")
+plot_map_raster(p1$data, "epsilon_st") + ggtitle("Spatiotemporal random effects only")
 
-plot_map_raster(p2, "exp(est)") + ggtitle("Prediction (fixed effects + all random effects)")
-plot_map_raster(p2, "exp(est_non_rf)") + ggtitle("Prediction (fixed effects only)")
-plot_map_raster(p2, "omega_s") + ggtitle("Spatial random effects only")
-plot_map_raster(p2, "epsilon_st") + ggtitle("Spatiotemporal random effects only")
+plot_map_raster(p2$data, "exp(est)") + ggtitle("Prediction (fixed effects + all random effects)")
+plot_map_raster(p2$data, "exp(est_non_rf)") + ggtitle("Prediction (fixed effects only)")
+plot_map_raster(p2$data, "omega_s") + ggtitle("Spatial random effects only")
+plot_map_raster(p2$data, "epsilon_st") + ggtitle("Spatiotemporal random effects only")
 
-plot_map_raster(p3, "exp(est)") + ggtitle("Prediction (fixed effects + all random effects)")
-plot_map_raster(p3, "exp(est_non_rf)") + ggtitle("Prediction (fixed effects only)")
-plot_map_raster(p3, "exp(omega_s)") + ggtitle("Spatial random effects only")
-plot_map_raster(p3, "exp(epsilon_st)") + ggtitle("Spatiotemporal random effects only")
+plot_map_raster(p3$data, "exp(est)") + ggtitle("Prediction (fixed effects + all random effects)")
+plot_map_raster(p3$data, "exp(est_non_rf)") + ggtitle("Prediction (fixed effects only)")
+plot_map_raster(p3$data, "exp(omega_s)") + ggtitle("Spatial random effects only")
+plot_map_raster(p3$data, "exp(epsilon_st)") + ggtitle("Spatiotemporal random effects only")
 
 # look at just the spatiotemporal random effects for models 2 and 3:
-plot_map_raster(p2, "est_rf") + scale_fill_gradient2()
-plot_map_raster(p3, "est_rf") + scale_fill_gradient2()
+plot_map_raster(p2$data, "est_rf") + scale_fill_gradient2()
+plot_map_raster(p3$data, "est_rf") + scale_fill_gradient2()
 
 # single spatial random effects for all three models
-plot_map_raster(filter(p1, year == 2015), "omega_s")
-plot_map_raster(filter(p2, year == 2015), "omega_s")
-plot_map_raster(filter(p3, year == 2015), "omega_s")
-
-p1 <- predict(m1, 
-              newdata = grid_year, 
-              return_tmb_object = TRUE)
-p2 <- predict(m2, 
-              newdata = grid_year, 
-              return_tmb_object = TRUE)
-p3 <- predict(m3, 
-              newdata = grid_year, 
-              return_tmb_object = TRUE)
+plot_map_raster(filter(p1$data, year == 2015), "omega_s")
+plot_map_raster(filter(p2$data, year == 2015), "omega_s")
+plot_map_raster(filter(p3$data, year == 2015), "omega_s")
 
 index1 <- get_index(p1, bias_correct = F)
 index2 <- get_index(p2, bias_correct = F)
@@ -320,8 +318,7 @@ rbind(index1, index2, index3) %>%
   geom_ribbon(aes(ymin = lwr, ymax = upr), alpha = 0.2, colour = NA) +
   xlab('Year') + 
   ylab('Biomass estimate (metric tonnes)') + 
-facet_wrap(~model, scales = "free_y") 
-# ggdark::dark_theme_minimal()
+  facet_wrap(~model, scales = "free_y") 
 
 rbind(index1, index2, index3) %>% 
   mutate(cv = sqrt(exp(se^2) - 1)) %>% 
