@@ -19,8 +19,8 @@ df %>%
   mutate(freq = n/sum(n)) %>% 
   arrange(desc(freq))
 
-# df$density = ifelse(df$TAXONNAME == "Aprion virescens", df$density, 0)
-df$density = ifelse(df$TAXONNAME == "Chromis vanderbilti", df$density, 0)
+df$density = ifelse(df$TAXONNAME == "Aprion virescens", df$density, 0)
+# df$density = ifelse(df$TAXONNAME == "Chromis vanderbilti", df$density, 0)
 
 df %>% 
   group_by(ISLAND) %>% 
@@ -45,7 +45,6 @@ df = df %>%
   group_by(LONGITUDE, LATITUDE, OBS_YEAR, DEPTH) %>% 
   summarise(density = mean(density, na.rm = T))
 
-qplot(df$DEPTH, df$density, color = df$density)
 hist(df$density)
 summary(df$density)
 
@@ -54,13 +53,17 @@ xy_utm = as.data.frame(cbind(utm = project(as.matrix(df[, c("LONGITUDE", "LATITU
 colnames(xy_utm) = c("X", "Y"); plot(xy_utm, pch = ".", bty = 'n')
 df = cbind(df, xy_utm)
 
-rea_spde <- make_mesh(df, c("X", "Y"), n_knots = 800, type = "cutoff_search") # a coarse mesh for speed
+rea_spde <- make_mesh(df, c("X", "Y"), n_knots = 500, type = "cutoff_search") # a coarse mesh for speed
 
 plot(rea_spde, pch = "."); axis(1); axis(2)
 
 df$year = df$OBS_YEAR
 df$depth = df$DEPTH
-df$depth_scaled = as.numeric(scale(log(df$depth+1)))
+df$depth_scaled = scale(log(df$depth))
+df$depth_scaled2 = df$depth_scaled ^ 2
+
+qplot(df$depth, df$density, color = df$density)
+plot(df[9:11])
 
 obs_year = unique(df$year)
 full_year = seq(min(df$year), max(df$year), by = 1)
@@ -76,9 +79,8 @@ m1 <- sdmTMB(
   # formula = density ~ depth,
   # formula = density ~ 1 + depth,
   # formula = density ~ 1 + depth_scaled,
-  # formula = density ~ 1 + depth + depth_scaled,
-  formula = density ~ 0 + as.factor(year) + depth_scaled,
-
+  # formula = density ~ 1 + as.factor(year) + s(depth, k = 5),
+  formula = density ~ as.factor(year) + depth_scaled + depth_scaled2,
   
   silent = F, 
   # extra_time = missing_year,
@@ -86,7 +88,9 @@ m1 <- sdmTMB(
   spatial_only = T, 
   time = "year", 
   spde = rea_spde, 
-  family = tweedie(link = "log")
+  anisotropy = T,
+  family = tweedie(link = "log"),
+  control = sdmTMBcontrol(step.min = 0.01, step.max = 1)
   
 )
 
@@ -99,16 +103,18 @@ m2 <- sdmTMB(
   # formula = density ~ depth,
   # formula = density ~ 1 + depth,
   # formula = density ~ 1 + depth_scaled,
-  # formula = density ~ 1 + depth + depth_scaled,
-  formula = density ~ 0 + as.factor(year) + depth_scaled,
-
+  # formula = density ~ 1 + as.factor(year) + s(depth, k = 5),
+  formula = density ~ as.factor(year) + depth_scaled + depth_scaled2,
+  
   silent = F, 
   # extra_time = missing_year,
   spatial_trend = T, 
   spatial_only = F, 
   time = "year", 
   spde = rea_spde, 
-  family = tweedie(link = "log")
+  anisotropy = T,
+  family = tweedie(link = "log"),
+  control = sdmTMBcontrol(step.min = 0.01, step.max = 1)
   
 )
 
@@ -118,11 +124,12 @@ m3 <- sdmTMB(
   data = df,
   
   # formula = density ~ 1,
+  # formula = density ~ depth,
   # formula = density ~ 1 + depth,
   # formula = density ~ 1 + depth_scaled,
-  # formula = density ~ 1 + depth + depth_scaled,
-  formula = density ~ 0 + as.factor(year) + depth_scaled,
-
+  # formula = density ~ 1 + as.factor(year) + s(depth, k = 5),
+  formula = density ~ as.factor(year) + depth_scaled + depth_scaled2,
+  
   silent = F, 
   # extra_time = missing_year,
   spatial_trend = T, 
@@ -130,9 +137,12 @@ m3 <- sdmTMB(
   ar1_fields = T,
   time = "year", 
   spde = rea_spde, 
-  family = tweedie(link = "log")
+  anisotropy = T,
+  family = tweedie(link = "log"),
+  control = sdmTMBcontrol(step.min = 0.01, step.max = 1)
   
 )
+
 
 # look at gradients
 max(m1$gradients)
@@ -166,7 +176,7 @@ rbind(m1_p, m2_p, m3_p) %>%
 
 plot_map_point <- function(dat, column = "est") {
   ggplot(dat, aes_string("X", "Y", colour = column)) +
-    geom_point(alpha = 0.5, size = 5) +
+    geom_point(alpha = 0.5, size = 2) +
     # facet_wrap(~year) +
     coord_fixed() + 
     ggdark::dark_theme_void()
@@ -194,7 +204,7 @@ load("data/Topography_NOAA_CRM_vol10.RData")
 
 grid = topo
 
-res = 5
+res = 6
 
 grid$longitude = round(grid$x, digits = res)
 grid$latitude = round(grid$y, digits = res)
@@ -233,7 +243,8 @@ for (y in 1:length(year)) {
   
 }
 
-grid_year$depth_scaled = as.numeric(scale(log(grid_year$depth+1)))
+grid_year$depth_scaled = scale(log(grid_year$depth+0.0001))
+grid_year$depth_scaled2 = grid_year$depth_scaled ^ 2
 
 grid_year_missing = NULL
 
@@ -266,8 +277,8 @@ plot_map_raster <- function(dat, column = "est") {
     geom_tile(aes(height = 500, width = 500)) +
     facet_wrap(~year) +
     coord_fixed() +
-    scale_fill_viridis_c() +
-    # scale_fill_gradientn(colours = matlab.like(10), limits = c(0, 4)) + 
+    # scale_fill_viridis_c() +
+    scale_fill_gradientn(colours = matlab.like(10)) +
     ggdark::dark_theme_void()
   
 }
@@ -297,11 +308,6 @@ plot_map_raster(p3$data, "exp(epsilon_st)") + ggtitle("Spatiotemporal random eff
 plot_map_raster(p2$data, "est_rf") + scale_fill_gradient2()
 plot_map_raster(p3$data, "est_rf") + scale_fill_gradient2()
 
-# single spatial random effects for all three models
-plot_map_raster(filter(p1$data, year == 2015), "omega_s")
-plot_map_raster(filter(p2$data, year == 2015), "omega_s")
-plot_map_raster(filter(p3$data, year == 2015), "omega_s")
-
 index1 <- get_index(p1, bias_correct = F)
 index2 <- get_index(p2, bias_correct = F)
 index3 <- get_index(p3, bias_correct = F)
@@ -324,3 +330,26 @@ rbind(index1, index2, index3) %>%
   mutate(cv = sqrt(exp(se^2) - 1)) %>% 
   select(-log_est, -max_gradient, -bad_eig, -se) %>%
   knitr::kable(format = "pandoc", digits = c(0, 0, 0, 0, 2))
+
+# Calculate centre of gravity for latitude and longitude
+
+cog1 <- get_cog(p1) # calculate centre of gravity for each data point
+cog2 <- get_cog(p2) # calculate centre of gravity for each data point
+cog3 <- get_cog(p3) # calculate centre of gravity for each data point
+
+cog1$model = "m1"
+cog2$model = "m2"
+cog3$model = "m3"
+
+cog = rbind(cog1, cog2, cog3)
+
+ggplot(cog, aes(year, est, ymin = lwr, ymax = upr, col = model, fill = model)) +
+  geom_ribbon(alpha = 0.2) +
+  geom_line() + 
+  facet_wrap(~coord, scales = "free_y") 
+
+
+# table of COG by latitude
+data.frame(Y = p2$data$Y, est = exp(p2$data$est), year = p2$data$year) %>%
+  group_by(year) %>% summarize(cog = sum(Y * est) / sum(est))
+
