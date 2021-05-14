@@ -76,9 +76,9 @@ df = df %>%
 df$cell = 1:dim(df)[1]; df$cell = as.numeric(df$cell)
 df$division = as.numeric(1)
 df$strat = ""
-df$strat = ifelse(df$Topography <= 0 & df$Topography >= -6, 1, df$strat)
-df$strat = ifelse(df$Topography < -6 & df$Topography >= -18, 2, df$strat)
-df$strat = ifelse(df$Topography < -18 & df$Topography >= -30, 3, df$strat)
+df$strat = ifelse(df$Topography <= 0 & df$Topography >= -6, 1L, df$strat)
+df$strat = ifelse(df$Topography < -6 & df$Topography >= -18, 2L, df$strat)
+df$strat = ifelse(df$Topography < -18 & df$Topography >= -30, 3L, df$strat)
 df$strat = as.numeric(df$strat)
 df$depth = as.numeric(df$Topography*-1)
 
@@ -103,6 +103,8 @@ strat = df %>%
 
 depth + strat
 
+df = as.data.frame(df)
+
 cell = rasterFromXYZ(df[,c("longitude", "latitude", "cell")]); plot(cell)
 division = rasterFromXYZ(df[,c("longitude", "latitude", "division")]); plot(division)
 strat = rasterFromXYZ(df[,c("longitude", "latitude", "strat")]); plot(strat)
@@ -111,6 +113,8 @@ depth = rasterFromXYZ(df[,c("longitude", "latitude", "depth")]); plot(depth)
 default_proj = "+init=epsg:4326 +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +towgs84=0,0,0"
 
 ## UTM projection for Hawaii = 5, for Kauai-Maui = 4
+zone <- (floor((df$longitude[1] + 180)/6) %% 60) + 1
+
 ## http://www.gdsihawaii.com/hawpacgis/docs/HawaiiCooSys.pdf
 # utm_proj <- "+proj=utm +ellps=WGS84 +datum=WGS84 +units=km +no_defs"
 utm_proj <- "+proj=utm +zone=4 +ellps=WGS84 +datum=WGS84 +units=km +no_defs"
@@ -122,9 +126,20 @@ crs(strat) = default_proj; strat = projectRaster(strat, crs = utm_proj); plot(st
 crs(depth) = default_proj; depth = projectRaster(depth, crs = utm_proj); plot(depth)
 
 survey_grid_kt = stack(cell, division, strat, depth)
+survey_grid_kt$strat = round(survey_grid_kt$strat, digits = 0)
+values(survey_grid_kt$division) = ifelse(is.na(values(survey_grid_kt$division)), NA, 1)
 
-sp::spplot(survey_grid) #SimSurvey example
-sp::spplot(survey_grid_kt)
+sp::spplot(survey_grid$cell) #SimSurvey example
+sp::spplot(survey_grid_kt$cell)
+
+sp::spplot(survey_grid$division) #SimSurvey example
+sp::spplot(survey_grid_kt$division)
+
+sp::spplot(survey_grid$strat) #SimSurvey example
+sp::spplot(survey_grid_kt$strat)
+
+sp::spplot(survey_grid$depth) #SimSurvey example
+sp::spplot(survey_grid_kt$depth)
 
 p <- raster::rasterToPolygons(survey_grid$strat, dissolve = TRUE)
 sp::plot(p)

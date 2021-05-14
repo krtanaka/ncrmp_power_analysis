@@ -94,23 +94,16 @@ sim3b = sim2b %>%
 sim3a$samp
 sim3b$samp
 
-sim3a$samp
-sim3b$samp
-
-sim3a$samp
-sim3b$samp
-
-sim3a$samp
-sim3b$samp
+sim3a %>% strat_error()
+sim3b %>% strat_error()
 
 
-sim %>% strat_error()
 
-pop = sim_abundance() %>% sim_distribution()
+pop = sim_abundance() %>% sim_distribution_rea(grid = survey_grid)
 surveys = expand_surveys(set_den = c(0.5, 1)/1000,
                          lengths_cap = c(5, 10),
                          ages_cap = c(2, 5))
-tests = test_surveys(pop, surveys = surveys, n_sims = 1, n_loops = 10)
+tests = test_surveys(pop, surveys = surveys, n_sims = 1, n_loops = 10, cores = 4)
 plot_total_strat_fan(tests)
 plot_length_strat_fan(tests, years = 1:5, lengths = 1:100)
 plot_survey_rank(tests)
