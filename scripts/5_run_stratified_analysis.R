@@ -20,35 +20,15 @@ set.seed(438)
 plot(survey_grid)
 plot(survey_grid_kt)
 
-
-
-
-R_fun <- sim_R(log_mean = log(c(30000000, 27000000, 24000000, 21000000, 18000000)), 
+R_fun <- sim_R(log_mean = log(c(10000000, 2000000, 100000, 10000000, 50000)), 
                log_sd = 0, random_walk = T, plot = TRUE)
-
 R_fun(years = 1:5)
-
-N0_fun <- sim_N0(N0 = c(500000, 100000, 10000, 5000, 1000), plot = TRUE)
-
-N0_fun(R0 = 1000, ages = 1:6)
-
-
-
-
-
-
-R_fun <- sim_R(log_mean = log(c(1000, 200, 10, 1000, 5)), 
-               log_sd = 0, random_walk = FALSE, plot = TRUE)
-R_fun(years = 1:5)
-N0_fun <- sim_N0(N0 = c(500, 100, 10, 5, 1), plot = TRUE)
-N0_fun(R0 = 1000, ages = 1:6)
+N0_fun <- sim_N0(N0 = c(50000, 10000, 1000, 500, 100), plot = TRUE)
+N0_fun(R0 = 100000, ages = 1:6)
 
 pop <- sim_abundance(ages = 1:6, years = 1:5,
                      R = R_fun, N0 = N0_fun)
 pop$N
-
-
-
 
 pop <- sim_abundance(ages = 1:6, 
                      years = 2016:2020,

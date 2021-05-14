@@ -20,7 +20,7 @@ df %>%
   arrange(desc(freq))
 
 df$density = ifelse(df$TAXONNAME == "Aprion virescens", df$density, 0)
-# df$density = ifelse(df$TAXONNAME == "Chromis vanderbilti", df$density, 0)
+# df$density = ifelse(df$TAXONNAME == "Chromis vanderbilti", df$density, 0) # most abundant in MHI
 
 df %>% 
   group_by(ISLAND) %>% 
@@ -53,7 +53,7 @@ xy_utm = as.data.frame(cbind(utm = project(as.matrix(df[, c("LONGITUDE", "LATITU
 colnames(xy_utm) = c("X", "Y"); plot(xy_utm, pch = ".", bty = 'n')
 df = cbind(df, xy_utm)
 
-rea_spde <- make_mesh(df, c("X", "Y"), n_knots = 500, type = "cutoff_search") # a coarse mesh for speed
+rea_spde <- make_mesh(df, c("X", "Y"), n_knots = 100, type = "cutoff_search") # a coarse mesh for speed
 
 plot(rea_spde, pch = "."); axis(1); axis(2)
 
@@ -105,11 +105,9 @@ m_p  %>%
 plot_map_point <- function(dat, column = "est") {
   ggplot(dat, aes_string("X", "Y", color = column)) +
     geom_point(alpha = 0.2, size = 2) +
-    # facet_wrap(~year) +
     coord_fixed() +
     xlab("Eastings") +
-    ylab("Northings") + 
-    ggdark::dark_theme_light()
+    ylab("Northings") #+ ggdark::dark_theme_light()
 }
 
 plot_map_point(df, "residuals") + scale_color_gradient2()
@@ -120,6 +118,7 @@ r <- density_model$tmb_obj$report()
 
 # prediction onto new data grid
 load("data/Topography_NOAA_CRM_vol10.RData")
+
 
 grid = topo
 
@@ -182,8 +181,7 @@ for (y in 1:length(missing_year)) {
 
 p <- predict(density_model, 
              newdata = grid_year, 
-             return_tmb_object = T, 
-             area = 0.25)
+             return_tmb_object = T) # area = 2.5)
 
 plot_map_raster <- function(dat, column = "est") {
   
@@ -192,31 +190,43 @@ plot_map_raster <- function(dat, column = "est") {
     # geom_point() +
     facet_wrap(~year) +
     coord_fixed() +
+    xlab("Eastings") +
+    ylab("Northings") + 
     # scale_fill_viridis_c() +
-    scale_fill_gradientn(colours = matlab.like(100)) +
-    ggdark::dark_theme_void()
+    scale_fill_gradientn(colours = matlab.like(100)) #+ ggdark::dark_theme_void()
   
 }
 
 # pick out a single year to plot since they should all be the same for the slopes. Note that these are in log space.
 plot_map_raster(filter(p$data, year == 2015), "zeta_s")
-plot_map_raster(p$data, "exp(est)") + ggtitle("Predicted density (fixed effects + all random effects)")
+plot_map_raster(p$data, "exp(est)") + ggtitle("Predicted density (g/sq.m) (fixed effects + all random effects)")
 plot_map_raster(p$data, "exp(est_non_rf)") + ggtitle("Prediction (fixed effects only)")
 plot_map_raster(p$data, "omega_s") + ggtitle("Spatial random effects only")
 plot_map_raster(p$data, "epsilon_st") + ggtitle("Spatiotemporal random effects only")
 
-# look at just the spatiotemporal random effects for models 2 and 3:
-plot_map_raster(p2$data, "est_rf") + scale_fill_gradient2()
+# look at just the spatiotemporal random effects:
+plot_map_raster(p$data, "est_rf") + scale_fill_gradient2()
 
-index <- get_index(p, bias_correct = F)
+density_map = ggplot(p$data, aes_string("X", "Y", fill = "est")) +
+  geom_tile(aes(height = 500, width = 500)) +
+  # geom_point() +
+  facet_wrap(~year) +
+  coord_fixed() +
+  xlab("Eastings") +
+  ylab("Northings") + 
+  scale_fill_viridis_c("log(g/sq.m)") + 
+  ggtitle("Predicted density (g/sq.m) (fixed effects + all random effects)")
 
-index %>%
-  ggplot(aes(year, est, color = "red", fill = "red")) + 
+index <- get_index(p, bias_correct = T)
+
+relative_biomass = index %>%
+  ggplot(aes(year, est)) + 
   geom_line() +
   geom_point() +
   geom_ribbon(aes(ymin = lwr, ymax = upr), alpha = 0.2, colour = NA) +
   xlab('Year') + 
-  ylab('Biomass estimate (metric tonnes)')
+  ylab('metric tonnes') + 
+  ggtitle("Biomass estimate")
 
 index %>% 
   mutate(cv = sqrt(exp(se^2) - 1)) %>% 
@@ -227,13 +237,16 @@ index %>%
 
 cog <- get_cog(p) # calculate centre of gravity for each data point
 
-ggplot(cog, aes(year, est, ymin = lwr, ymax = upr, col = "model", fill = "model")) +
+density_cog = ggplot(cog, aes(year, est, ymin = lwr, ymax = upr)) +
   geom_ribbon(alpha = 0.2) +
   geom_line() + 
-  facet_wrap(~coord, scales = "free_y") 
-
+  facet_wrap(~coord, scales = "free_y") + 
+  ggtitle("center of gravity (lat and lon)")
 
 # table of COG by latitude
-data.frame(Y = p$data$Y, est = exp(p$data$est), year = p$data$year) %>%
-  group_by(year) %>% summarize(cog = sum(Y * est) / sum(est))
+plot(data.frame(Y = p$data$Y, est = exp(p$data$est), year = p$data$year) %>%
+  group_by(year) %>% summarize(cog = sum(Y * est) / sum(est)), type = "b")
 
+library(patchwork)
+
+density_map / (relative_biomass + density_cog)
