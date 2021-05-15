@@ -27,7 +27,7 @@ pop = sim_abundance() %>%
 # Set-up a series of surveys from all combinations of settings supplied
 surveys = expand_surveys(
   
-  set_den = c(1, 100, 500) / 1000,
+  set_den = c(1, 500) / 1000,
   lengths_cap = c(100, 500),
   ages_cap = c(5, 20)
   
@@ -37,7 +37,7 @@ surveys = expand_surveys(
 ## population, and then runs a stratified analysis and compares true vs
 ## estimated values. It may take a while to run.
 
-tests = test_surveys(pop, surveys = surveys, n_sims = 1, n_loops = 2, cores = 8)
+tests = test_surveys(pop, surveys = surveys, n_sims = 1, n_loops = 2, cores = 16)
 doParallel::stopImplicitCluster()
 
 plot_total_strat_fan(tests)
