@@ -83,7 +83,7 @@ df$strat = as.numeric(df$strat)
 df$depth = as.numeric(df$Topography*-1)
 
 # df <- df %>% subset(longitude < -154.8 & longitude > -156.2 & latitude > 18.8 & latitude < 20.4)
-# df <- df %>% subset(longitude < -157.5 & longitude > -158.5 & latitude > 21 & latitude < 22)
+df <- df %>% subset(longitude < -157.5 & longitude > -158.5 & latitude > 21 & latitude < 22)
  
 depth = df %>% 
   ggplot( aes(longitude, latitude, fill = depth)) + 

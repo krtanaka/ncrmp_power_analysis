@@ -12,8 +12,7 @@ load("data/survey_grid_kt.RData")
 
 source('scripts/key_functions.R')
 
-options(scipen = 999)
-options(digits = 2)
+options(scipen = 999, digits = 2)
 
 set.seed(438)
 
