@@ -98,15 +98,10 @@ sets
 
 setkeyv(sets, c("sim", "year", "cell"))
 
-ggplot() +
-  geom_tile(data = cells, aes(x, y, fill = depth), alpha = 0.5) +
-  geom_point(data = sets, aes(x, y, color = factor(strat))) + 
-  facet_wrap(.~year) + 
-  scale_fill_viridis_c() + 
-  ggdark::dark_theme_void()
-
 # true abundance & age data
 sp_I <- data.table(sim$sp_N[, c("cell", "age", "year", "N")])
+sp_I$N = round(sp_I$N/300, digits = 0)
+hist(sp_I$N)
 
 i <- rep(seq(nrow(sp_I)), times = n_sims) # number of rows in true abundance data * number of simulations
 s <- rep(seq(n_sims), each = nrow(sp_I))
@@ -165,6 +160,17 @@ sample = sample %>%
 true$ts = "true"
 sample$ts = "survey"
 
-rbind(true, sample) %>% 
+m = ggplot() +
+  geom_tile(data = cells, aes(x, y, fill = depth), alpha = 0.8) +
+  geom_point(data = sets, aes(x, y, color = factor(strat))) + 
+  facet_wrap(.~year) + 
+  scale_fill_viridis_c() + 
+  ggdark::dark_theme_void()
+
+t = rbind(true, sample) %>% 
   ggplot(aes(year, n, color = ts)) + 
-  geom_line()
+  geom_line() + 
+  ggdark::dark_theme_minimal()
+
+library(patchwork)
+m + t

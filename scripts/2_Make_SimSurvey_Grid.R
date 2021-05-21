@@ -32,6 +32,11 @@ Hawaii_Survey_Grid %>%
   ggdark::dark_theme_minimal() + 
   theme(axis.title = element_blank())
 
+
+
+
+
+
 #############################################################################
 ### Topography, NOAA Coastal Relief Model, 3 arc second, Vol. 10 (Hawaii) ###
 ### https://coastwatch.pfeg.noaa.gov/erddap/griddap/usgsCeCrm10.html      ###
@@ -60,11 +65,11 @@ load("data/Topography_NOAA_CRM_vol10.RData")
 
 df = topo
 
-df$longitude = df$x
-df$latitude = df$y
+# df$longitude = df$x
+# df$latitude = df$y
 
-# df$longitude = round(df$x, digits = 2)
-# df$latitude = round(df$y, digits = 2)
+df$longitude = round(df$x, digits = 2)
+df$latitude = round(df$y, digits = 2)
 
 # df$longitude = round(df$x, digits = 3) 
 # df$latitude = round(df$y, digits = 3) 
