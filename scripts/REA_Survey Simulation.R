@@ -12,7 +12,7 @@ load("data/survey_grid_kt.RData")
 
 options(scipen = 999, digits = 2)
 
-sim <- sim_abundance(ages = 1:2, years = 1:5) %>%
+sim <- sim_abundance(ages = 1:2, years = 1:10) %>%
   sim_distribution(grid = survey_grid_kt)
 
 sim = sim
@@ -21,30 +21,12 @@ qq = sim_logistic() # simulating catchability at age
 trawl_dim = c(0.01, 0.005) # 50 sq.m
 resample_cells = FALSE
 binom_error = TRUE
-min_sets = 10        # minimum number of sets per strat
-set_den = 2/100    # number of sets per [grid unit] squared)
-lengths_cap = 500   # maximum number of lengths measured per set
-ages_cap = 10
-age_sampling = "stratified"
-age_length_group = 1
-age_space_group = "division"
-light = TRUE
+min_sets = 5        # minimum number of sets per strat
+set_den = 2/1000    # number of sets per [grid unit] squared)
 
 options(scipen = 999, digits = 3)
 
 n <- age <- id <- division <- strat <- N <- n_measured <- n_aged <- NULL
-
-if (!age_sampling %in% c("stratified", "random")) {
-  stop("age_sampling must be either \"stratified\" or \"random\". Other options have yet to be implemented.")
-}
-
-if (age_sampling == "random" && ages_cap > lengths_cap) {
-  stop("When age_sampling = \"random\", ages_cap cannot exceed lengths_cap.")
-}
-
-if (!age_space_group %in% c("division", "strat", "set")) {
-  stop("age_space_group must be either \"division\", \"strat\" or \"set\". Other options have yet to be implemented.")
-}
 
 sim <- round_sim(sim)
 
@@ -79,7 +61,7 @@ strat_det$tow_area <- prod(trawl_dim); strat_det
 strat_det$cell_area <- prod(res(sim$grid)); strat_det
 strat_det$strat_area <- strat_det$strat_cells * prod(res(sim$grid)); strat_det
 strat_det$strat_sets <- round(strat_det$strat_area * set_den); strat_det
-strat_det$strat_sets[strat_det$strat_sets < min_sets] <- min_sets #make sure minimum number of sets per strat is not 0 or 1
+strat_det$strat_sets[strat_det$strat_sets < min_sets] <- min_sets; strat_det #make sure minimum number of sets per strat is not 0 or 1
 
 cells <- merge(cells, strat_det, by = c("strat")) # add "strat" "strat_cells" "tow_area" ...
 
@@ -117,8 +99,10 @@ sets
 setkeyv(sets, c("sim", "year", "cell"))
 
 ggplot() +
-  geom_tile(data = cells, aes(x, y, fill = depth), alpha = 0.1) +
-  geom_point(data = sets, aes(x, y, color = factor(year))) + 
+  geom_tile(data = cells, aes(x, y, fill = depth), alpha = 0.5) +
+  geom_point(data = sets, aes(x, y, color = factor(strat))) + 
+  facet_wrap(.~year) + 
+  scale_fill_viridis_c() + 
   ggdark::dark_theme_void()
 
 # true abundance & age data
