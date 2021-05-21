@@ -119,6 +119,7 @@ r <- density_model$tmb_obj$report()
 # prediction onto new data grid
 load("data/Topography_NOAA_CRM_vol10.RData")
 
+topo <- topo %>% subset(x < -157.5 & x > -158.5 & y > 21 & y < 22)
 
 grid = topo
 
@@ -249,4 +250,5 @@ plot(data.frame(Y = p$data$Y, est = exp(p$data$est), year = p$data$year) %>%
 
 library(patchwork)
 
-density_map / (relative_biomass + density_cog)
+density_map + (relative_biomass / density_cog)
+
