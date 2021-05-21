@@ -21,7 +21,7 @@ qq = sim_logistic() # simulating catchability at age
 trawl_dim = c(0.01, 0.005) # 50 sq.m
 resample_cells = FALSE
 binom_error = TRUE
-min_sets = 5        # minimum number of sets per strat
+min_sets = 2        # minimum number of sets per strat
 set_den = 2/1000    # number of sets per [grid unit] squared)
 
 options(scipen = 999, digits = 3)
@@ -163,7 +163,7 @@ sample = sample %>%
   summarise(n = mean(scale_n, na.rm = T))
 
 true$ts = "true"
-sample$ts = "sample"
+sample$ts = "survey"
 
 rbind(true, sample) %>% 
   ggplot(aes(year, n, color = ts)) + 
