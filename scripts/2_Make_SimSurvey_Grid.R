@@ -32,6 +32,11 @@ Hawaii_Survey_Grid %>%
   ggdark::dark_theme_minimal() + 
   theme(axis.title = element_blank())
 
+
+
+
+
+
 #############################################################################
 ### Topography, NOAA Coastal Relief Model, 3 arc second, Vol. 10 (Hawaii) ###
 ### https://coastwatch.pfeg.noaa.gov/erddap/griddap/usgsCeCrm10.html      ###
@@ -78,25 +83,26 @@ df$division = as.numeric(1)
 df$strat = ""
 df$strat = ifelse(df$Topography <= 0 & df$Topography >= -6, 1L, df$strat)
 df$strat = ifelse(df$Topography < -6 & df$Topography >= -18, 2L, df$strat)
-df$strat = ifelse(df$Topography < -18 & df$Topography >= -30, 3L, df$strat)
+df$strat = ifelse(df$Topography < -18, 3L, df$strat)
 df$strat = as.numeric(df$strat)
 df$depth = as.numeric(df$Topography*-1)
 
 # df <- df %>% subset(longitude < -154.8 & longitude > -156.2 & latitude > 18.8 & latitude < 20.4)
-# df <- df %>% subset(longitude < -157.5 & longitude > -158.5 & latitude > 21 & latitude < 22)
+df <- df %>% subset(longitude < -157.5 & longitude > -158.5 & latitude > 21 & latitude < 22)
  
 depth = df %>% 
   ggplot( aes(longitude, latitude, fill = depth)) + 
-  geom_tile(aes(width = 0.01, height = 0.01)) +
-  scale_fill_viridis_c("") +
+  geom_tile(aes(width = 0.005, height = 0.005)) +
+  # scale_fill_viridis_c("") +
+  scale_fill_gradientn(colours = colorRamps::matlab.like(100), "Bathymetry(m)") + 
   coord_fixed() +
   ggdark::dark_theme_minimal() + 
   theme(axis.title = element_blank())
 
 strat = df %>% 
   ggplot( aes(longitude, latitude, fill = as.factor(strat))) + 
-  geom_tile(aes(width = 0.01, height = 0.01)) +
-  scale_fill_viridis_d("") +
+  geom_tile(aes(width = 0.005, height = 0.005)) +
+  scale_fill_viridis_d("Strata") +
   coord_fixed() +
   ggdark::dark_theme_minimal() + 
   theme(axis.title = element_blank())
@@ -127,6 +133,7 @@ crs(depth) = default_proj; depth = projectRaster(depth, crs = utm_proj); plot(de
 
 survey_grid_kt = stack(cell, division, strat, depth)
 survey_grid_kt$strat = round(survey_grid_kt$strat, digits = 0)
+# values(survey_grid_kt$strat) = ifelse(values(survey_grid_kt$strat) > 3, 3, values(survey_grid_kt$strat))
 values(survey_grid_kt$division) = ifelse(is.na(values(survey_grid_kt$division)), NA, 1)
 
 sp::spplot(survey_grid$cell) #SimSurvey example
