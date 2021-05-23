@@ -5,6 +5,7 @@
 library(SimSurvey)
 library(raster)
 library(data.table)
+library(ggplot2)
 
 rm(list = ls())
 
@@ -16,15 +17,13 @@ sim <- sim_abundance(ages = 1:2, years = 1:10) %>%
   sim_distribution(grid = survey_grid_kt)
 
 sim = sim
-n_sims = 1
+n_sims = 2
 qq = sim_logistic() # simulating catchability at age 
 trawl_dim = c(0.01, 0.005) # 50 sq.m
 resample_cells = FALSE
 binom_error = TRUE
 min_sets = 2        # minimum number of sets per strat
 set_den = 2/1000    # number of sets per [grid unit] squared)
-
-options(scipen = 999, digits = 3)
 
 n <- age <- id <- division <- strat <- N <- n_measured <- n_aged <- NULL
 
@@ -55,7 +54,7 @@ round(I_at_length, digits = 0)
 
 strat_sets <- cell_sets <- NULL
 
-cells <- data.table(rasterToPoints(sim$grid)); cells %>% ggplot(aes(x, y, fill = strat )) + geom_tile()
+cells <- data.table(rasterToPoints(sim$grid)); cells %>% ggplot(aes(x, y, fill = strat )) + geom_tile(aes(width = 0.5, height = 0.5))
 strat_det <- cells[, list(strat_cells = .N), by = "strat"]; strat_det
 strat_det$tow_area <- prod(trawl_dim); strat_det
 strat_det$cell_area <- prod(res(sim$grid)); strat_det
@@ -161,10 +160,11 @@ true$ts = "true"
 sample$ts = "survey"
 
 m = ggplot() +
-  geom_tile(data = cells, aes(x, y, fill = depth), alpha = 0.8) +
+  geom_tile(data = cells, aes(x, y, fill = depth, 
+                              width = 0.5, height = 0.5), alpha = 0.1) +
   geom_point(data = sets, aes(x, y, color = factor(strat))) + 
   facet_wrap(.~year) + 
-  scale_fill_viridis_c() + 
+  # scale_fill_viridis_c() + 
   ggdark::dark_theme_void()
 
 t = rbind(true, sample) %>% 

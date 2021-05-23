@@ -62,13 +62,13 @@ rm(Hawaii_Survey_Grid)
 load("data/Topography_NOAA_CRM_vol10.RData")
 
 df = topo; rm(topo)
-res = 2
 
-# df$longitude = df$x
-# df$latitude = df$y
+df$longitude = df$x
+df$latitude = df$y
 
-df$longitude = round(df$x, digits = res)
-df$latitude = round(df$y, digits = res)
+# res = 2
+# df$longitude = round(df$x, digits = res)
+# df$latitude = round(df$y, digits = res)
 
 # df <- df %>% subset(longitude < -154.8 & longitude > -156.2 & latitude > 18.8 & latitude < 20.4)
 df <- df %>% subset(longitude < -157.5 & longitude > -158.5 & latitude > 21 & latitude < 22)
@@ -86,26 +86,42 @@ df$division = as.numeric(1)
 ###################################################
 load("data/oah_hs_biogeo/oah_hs_biogeo_shp.RData")
 utmcoor <- SpatialPoints(cbind(bottom_type$X, bottom_type$Y), proj4string = CRS("+proj=utm +zone=4"))
-longlatcoor<-spTransform(utmcoor,CRS("+proj=longlat"))
+longlatcoor <- spTransform(utmcoor,CRS("+proj=longlat"))
 bottom_type$lon <- coordinates(longlatcoor)[,1]
 bottom_type$lat <- coordinates(longlatcoor)[,2]
-bottom_type = bottom_type %>% filter(!HardSoft %in% c("Unknown", "Land", "Other"))
+rm(longlatcoor, utmcoor)
+# bottom_type = bottom_type %>% filter(!HardSoft %in% c("Unknown", "Land", "Other"))
+bottom_type = bottom_type %>% filter(!HardSoft %in% c("Land"))
 bottom_type$HS = ifelse(bottom_type$HardSoft == "Hard", 1, 2)
 bottom_type = as.matrix(bottom_type[,c("lon", "lat", "HS")])
 e = extent(bottom_type[,1:2])
-r <- raster(e, ncol = 50, nrow = 50)
-bottom_type <- rasterize(bottom_type[, 1:2], r, bottom_type[,3], fun = mean); plot(bottom_type)
+
+crm_res = rasterFromXYZ(df[,c("longitude", "latitude", "cell")])
+plot(crm_res)
+dim(crm_res)
+crm_res
+
+r <- raster(e, ncol = round((dim(crm_res)[2]/10), digits = 0), nrow = round(dim(crm_res)[1]/10, digits = 0))
+bottom_type <- rasterize(bottom_type[, 1:2], r, bottom_type[,3], fun = mean)
+plot(bottom_type)
+dim(bottom_type)
+bottom_type
 default_proj = "+init=epsg:4326 +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +towgs84=0,0,0"
-crs(bottom_type) = default_proj; plot(bottom_type)
-crm_res = rasterFromXYZ(df[,c("longitude", "latitude", "cell")]); plot(crm_res)
+crs(bottom_type) = default_proj
+plot(bottom_type)
+
 bottom_type = resample(bottom_type, crm_res, method = "bilinear") 
+
 crm_res = as.data.frame(rasterToPoints(crm_res))
 bottom_type = as.data.frame(rasterToPoints(bottom_type))
 bottom_type = left_join(crm_res, bottom_type)
 colnames(bottom_type) = c("longitude", "latitude", "cell", "substrate")
 summary(bottom_type)
+
 qplot(bottom_type$longitude, bottom_type$latitude, color = bottom_type$substrate)
+
 df = merge(df, bottom_type, by = "cell")
+
 df$substrate = round(df$substrate, digits = 0)
 df = df[!is.na(df$substrate), ]
 
