@@ -99,7 +99,7 @@ setkeyv(sets, c("sim", "year", "cell"))
 
 # true abundance & age data
 sp_I <- data.table(sim$sp_N[, c("cell", "age", "year", "N")])
-sp_I$N = round(sp_I$N/300, digits = 0)
+sp_I$N = round(sp_I$N/1000, digits = 0)
 hist(sp_I$N)
 
 i <- rep(seq(nrow(sp_I)), times = n_sims) # number of rows in true abundance data * number of simulations
