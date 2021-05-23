@@ -12,6 +12,7 @@ library(rgdal)
 library(tidyr)
 library(patchwork)
 library(SimSurvey)
+library(sf)
 
 ########################
 ### see raw GIS data ###
@@ -32,10 +33,7 @@ Hawaii_Survey_Grid %>%
   ggdark::dark_theme_minimal() + 
   theme(axis.title = element_blank())
 
-
-
-
-
+rm(Hawaii_Survey_Grid)
 
 #############################################################################
 ### Topography, NOAA Coastal Relief Model, 3 arc second, Vol. 10 (Hawaii) ###
@@ -63,16 +61,17 @@ Hawaii_Survey_Grid %>%
 
 load("data/Topography_NOAA_CRM_vol10.RData")
 
-df = topo
+df = topo; rm(topo)
+res = 2
 
 # df$longitude = df$x
 # df$latitude = df$y
 
-df$longitude = round(df$x, digits = 2)
-df$latitude = round(df$y, digits = 2)
+df$longitude = round(df$x, digits = res)
+df$latitude = round(df$y, digits = res)
 
-# df$longitude = round(df$x, digits = 3) 
-# df$latitude = round(df$y, digits = 3) 
+# df <- df %>% subset(longitude < -154.8 & longitude > -156.2 & latitude > 18.8 & latitude < 20.4)
+df <- df %>% subset(longitude < -157.5 & longitude > -158.5 & latitude > 21 & latitude < 22)
 
 df = df %>%
   group_by(longitude, latitude) %>%
@@ -80,34 +79,81 @@ df = df %>%
 
 df$cell = 1:dim(df)[1]; df$cell = as.numeric(df$cell)
 df$division = as.numeric(1)
+
+###################################################
+### import hard/soft bottom substrate shapefile ###
+### adjust resolutions and merge with crm data  ###
+###################################################
+load("data/oah_hs_biogeo/oah_hs_biogeo_shp.RData")
+utmcoor <- SpatialPoints(cbind(bottom_type$X, bottom_type$Y), proj4string = CRS("+proj=utm +zone=4"))
+longlatcoor<-spTransform(utmcoor,CRS("+proj=longlat"))
+bottom_type$lon <- coordinates(longlatcoor)[,1]
+bottom_type$lat <- coordinates(longlatcoor)[,2]
+bottom_type = bottom_type %>% filter(!HardSoft %in% c("Unknown", "Land", "Other"))
+bottom_type$HS = ifelse(bottom_type$HardSoft == "Hard", 1, 2)
+bottom_type = as.matrix(bottom_type[,c("lon", "lat", "HS")])
+e = extent(bottom_type[,1:2])
+r <- raster(e, ncol = 50, nrow = 50)
+bottom_type <- rasterize(bottom_type[, 1:2], r, bottom_type[,3], fun = mean); plot(bottom_type)
+default_proj = "+init=epsg:4326 +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +towgs84=0,0,0"
+crs(bottom_type) = default_proj; plot(bottom_type)
+crm_res = rasterFromXYZ(df[,c("longitude", "latitude", "cell")]); plot(crm_res)
+bottom_type = resample(bottom_type, crm_res, method = "bilinear") 
+crm_res = as.data.frame(rasterToPoints(crm_res))
+bottom_type = as.data.frame(rasterToPoints(bottom_type))
+bottom_type = left_join(crm_res, bottom_type)
+colnames(bottom_type) = c("longitude", "latitude", "cell", "substrate")
+summary(bottom_type)
+qplot(bottom_type$longitude, bottom_type$latitude, color = bottom_type$substrate)
+df = merge(df, bottom_type, by = "cell")
+df$substrate = round(df$substrate, digits = 0)
+df = df[!is.na(df$substrate), ]
+
+# make strata by depth * bottom type
 df$strat = ""
-df$strat = ifelse(df$Topography <= 0 & df$Topography >= -6, 1L, df$strat)
-df$strat = ifelse(df$Topography < -6 & df$Topography >= -18, 2L, df$strat)
-df$strat = ifelse(df$Topography < -18, 3L, df$strat)
+df$strat = ifelse(df$Topography <= 0  & df$Topography >= -6  & df$substrate == 1, 1L, df$strat) # shallow & hard
+df$strat = ifelse(df$Topography < -6  & df$Topography >= -18 & df$substrate == 1, 2L, df$strat) # mid & hard
+df$strat = ifelse(df$Topography < -18 &                        df$substrate == 1, 3L, df$strat) # deep & hard
+df$strat = ifelse(df$Topography <= 0  & df$Topography >= -6  & df$substrate == 2, 4L, df$strat) # shallow & soft
+df$strat = ifelse(df$Topography < -6  & df$Topography >= -18 & df$substrate == 2, 5L, df$strat) # mid & soft
+df$strat = ifelse(df$Topography < -18 &                        df$substrate == 2, 6L, df$strat) # deep & soft
 df$strat = as.numeric(df$strat)
 df$depth = as.numeric(df$Topography*-1)
 
-# df <- df %>% subset(longitude < -154.8 & longitude > -156.2 & latitude > 18.8 & latitude < 20.4)
-df <- df %>% subset(longitude < -157.5 & longitude > -158.5 & latitude > 21 & latitude < 22)
- 
+colnames(df)[2:3] = c("longitude", "latitude")
+
 depth = df %>% 
   ggplot( aes(longitude, latitude, fill = depth)) + 
   geom_tile(aes(width = 0.005, height = 0.005)) +
   # scale_fill_viridis_c("") +
-  scale_fill_gradientn(colours = colorRamps::matlab.like(100), "Bathymetry(m)") + 
+  scale_fill_gradientn(colours = colorRamps::matlab.like(100), "Bathymetry(m)") +
   coord_fixed() +
   ggdark::dark_theme_minimal() + 
-  theme(axis.title = element_blank())
+  theme(axis.title = element_blank(),
+        legend.position = "bottom")
+
+substrate = df %>% 
+  ggplot( aes(longitude, latitude, fill = factor(substrate))) + 
+  geom_tile(aes(width = 0.005, height = 0.005)) +
+  scale_fill_discrete("Bottom type") +
+  # scale_fill_gradientn(colours = colorRamps::matlab.like(100), "Bathymetry(m)") + 
+  coord_fixed() +
+  ggdark::dark_theme_minimal() + 
+  theme(axis.title = element_blank(),
+        legend.position = "bottom")
 
 strat = df %>% 
   ggplot( aes(longitude, latitude, fill = as.factor(strat))) + 
   geom_tile(aes(width = 0.005, height = 0.005)) +
-  scale_fill_viridis_d("Strata") +
+  # scale_fill_viridis_d("Strata") +
+  # scale_fill_gradientn(colours = colorRamps::matlab.like(6), "Strata") + 
+  scale_fill_discrete("Strata") +
   coord_fixed() +
   ggdark::dark_theme_minimal() + 
-  theme(axis.title = element_blank())
+  theme(axis.title = element_blank(),
+        legend.position = "bottom")
 
-depth + strat
+depth + substrate + strat
 
 df = as.data.frame(df)
 
