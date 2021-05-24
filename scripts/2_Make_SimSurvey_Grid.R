@@ -169,7 +169,9 @@ strat = df %>%
   theme(axis.title = element_blank(),
         legend.position = "bottom")
 
+png(paste0("/Users/Kisei.Tanaka/Desktop/strata.png"), res = 100, height = 5, width = 10, units = "in")
 depth + substrate + strat
+dev.off()
 
 df = as.data.frame(df)
 
