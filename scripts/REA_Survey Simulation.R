@@ -54,7 +54,8 @@ round(I_at_length, digits = 0)
 
 strat_sets <- cell_sets <- NULL
 
-cells <- data.table(rasterToPoints(sim$grid)); cells %>% ggplot(aes(x, y, fill = strat )) + geom_tile(aes(width = 0.5, height = 0.5))
+cells <- data.table(rasterToPoints(sim$grid))
+# cells %>% ggplot(aes(x, y, fill = strat )) + geom_tile(aes(width = 0.5, height = 0.5))
 strat_det <- cells[, list(strat_cells = .N), by = "strat"]; strat_det
 strat_det$tow_area <- prod(trawl_dim); strat_det
 strat_det$cell_area <- prod(res(sim$grid)); strat_det
@@ -100,7 +101,7 @@ setkeyv(sets, c("sim", "year", "cell"))
 # true abundance & age data
 sp_I <- data.table(sim$sp_N[, c("cell", "age", "year", "N")])
 sp_I$N = round(sp_I$N/1000, digits = 0)
-hist(sp_I$N)
+# hist(sp_I$N)
 
 i <- rep(seq(nrow(sp_I)), times = n_sims) # number of rows in true abundance data * number of simulations
 s <- rep(seq(n_sims), each = nrow(sp_I))

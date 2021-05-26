@@ -19,8 +19,8 @@ df %>%
   mutate(freq = n/sum(n)) %>% 
   arrange(desc(freq))
 
-# df$density = ifelse(df$TAXONNAME == "Aprion virescens", df$density, 0)
-df$density = ifelse(df$TAXONNAME == "Chromis vanderbilti", df$density, 0) # most abundant in MHI
+df$density = ifelse(df$TAXONNAME == "Aprion virescens", df$density, 0)
+# df$density = ifelse(df$TAXONNAME == "Chromis vanderbilti", df$density, 0) # most abundant in MHI
 
 df %>% 
   group_by(ISLAND) %>% 
@@ -38,7 +38,7 @@ islands = c("Kauai", #1
             "Lanai", #8
             "Molokini", #9
             "Kahoolawe", #10
-            "Hawaii")[11]
+            "Hawaii")[1:11]
 
 df = df %>% 
   subset(ISLAND %in% islands) %>% 
@@ -53,7 +53,7 @@ xy_utm = as.data.frame(cbind(utm = project(as.matrix(df[, c("LONGITUDE", "LATITU
 colnames(xy_utm) = c("X", "Y"); plot(xy_utm, pch = ".", bty = 'n')
 df = cbind(df, xy_utm)
 
-rea_spde <- make_mesh(df, c("X", "Y"), n_knots = 300, type = "cutoff_search") # a coarse mesh for speed
+rea_spde <- make_mesh(df, c("X", "Y"), n_knots = 100, type = "cutoff_search") # a coarse mesh for speed
 
 plot(rea_spde, pch = "."); axis(1); axis(2)
 
@@ -124,10 +124,10 @@ topo <- topo %>% subset(x < -154.8 & x > -156.2 & y > 18.8 & y < 20.4) #hawaii
 
 grid = topo
 
-res = 5
+res = 2
 
-# grid$longitude = round(grid$x, digits = res)
-# grid$latitude = round(grid$y, digits = res)
+grid$longitude = round(grid$x, digits = res)
+grid$latitude = round(grid$y, digits = res)
 
 grid$longitude = grid$x
 grid$latitude = grid$y
@@ -212,21 +212,23 @@ plot_map_raster(p$data, "est_rf") + scale_fill_gradient2()
 density_map = ggplot(p$data, aes_string("X", "Y", fill = "est", color = "est")) +
   geom_tile(aes(height = 500, width = 500)) +
   # geom_point() +
-  facet_wrap(~year) +
+  facet_wrap(~year, ncol = 2) +
   coord_fixed() +
   xlab("Eastings") +
   ylab("Northings") + 
   scale_fill_viridis_c("log(g/sq.m)") + 
   scale_color_viridis_c("log(g/sq.m)") + 
-  ggtitle("Predicted density (g/sq.m) (fixed effects + all random effects)") + 
-  theme_minimal()
+  ggtitle("Uku predicted density (fixed effects + random effects)") + 
+  theme(legend.position = "bottom") + 
+  theme_minimal() + 
+  theme(axis.text = element_blank())
 
-index <- get_index(p, bias_correct = T)
+index <- get_index(p, bias_correct = F)
 
 relative_biomass = index %>%
   ggplot(aes(year, est)) + 
   geom_line() +
-  geom_point() +
+  geom_point(size = 3) +
   geom_ribbon(aes(ymin = lwr, ymax = upr), alpha = 0.2, colour = NA) +
   xlab('Year') + 
   ylab('metric tonnes') + 
@@ -241,13 +243,14 @@ index %>%
 # Calculate centre of gravity for latitude and longitude
 
 cog <- get_cog(p) # calculate centre of gravity for each data point
+cog$utm = ifelse(cog$coord == "X", "Eastings", "Northings")
 
 density_cog = ggplot(cog, aes(year, est, ymin = lwr, ymax = upr)) +
   geom_ribbon(alpha = 0.2) +
   geom_line() + 
-  geom_point() + 
-  facet_wrap(~coord, scales = "free_y") + 
-  ggtitle("center of gravity (lat and lon)") + 
+  geom_point(size = 3) +
+  facet_wrap(~utm, scales = "free_y") + 
+  ggtitle("Center of gravity (lat and lon)") + 
   theme_minimal()
 
 # table of COG by latitude
@@ -256,5 +259,8 @@ plot(data.frame(Y = p$data$Y, est = exp(p$data$est), year = p$data$year) %>%
 
 library(patchwork)
 
-density_map + (relative_biomass / density_cog)
+png(paste0("/Users/Kisei.Tanaka/Desktop/efh_uku.png"), res = 100, height = 8, width = 11, units = "in")
 
+density_map + (relative_biomass/density_cog)
+
+dev.off()
