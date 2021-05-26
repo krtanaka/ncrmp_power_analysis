@@ -90,20 +90,37 @@ longlatcoor <- spTransform(utmcoor,CRS("+proj=longlat"))
 bottom_type$lon <- coordinates(longlatcoor)[,1]
 bottom_type$lat <- coordinates(longlatcoor)[,2]
 rm(longlatcoor, utmcoor)
-# bottom_type = bottom_type %>% filter(!HardSoft %in% c("Unknown", "Land", "Other"))
-bottom_type = bottom_type %>% filter(!HardSoft %in% c("Land"))
-bottom_type$HS = ifelse(bottom_type$HardSoft == "Hard", 1, 2)
-bottom_type = as.matrix(bottom_type[,c("lon", "lat", "HS")])
+bottom_type = bottom_type %>% filter(!HardSoft %in% c("Unknown", "Land", "Other"))
+# bottom_type = bottom_type %>% filter(!HardSoft %in% c("Land"))
+bottom_type$hs = ifelse(bottom_type$HardSoft == "Hard", 1, 2)
+bottom_type = as.matrix(bottom_type[,c("lon", "lat", "hs")])
 e = extent(bottom_type[,1:2])
 
 crm_res = rasterFromXYZ(df[,c("longitude", "latitude", "cell")])
-plot(crm_res)
+# plot(crm_res, col = rainbow(100))
+crm_res %>% 
+  rasterToPoints(spatial = T) %>% 
+  as.data.frame() %>% 
+  ggplot(aes(x, y, fill = cell)) + 
+  geom_raster() + 
+  coord_fixed() + 
+  scale_fill_viridis_b() + 
+  ggdark::dark_mode()
 dim(crm_res)
 crm_res
 
-r <- raster(e, ncol = round((dim(crm_res)[2]/10), digits = 0), nrow = round(dim(crm_res)[1]/10, digits = 0))
+# rasterize it, but be careful with resolutions
+res = 10
+r <- raster(e, ncol = round((dim(crm_res)[2]/res), digits = 0), nrow = round(dim(crm_res)[1]/res, digits = 0))
 bottom_type <- rasterize(bottom_type[, 1:2], r, bottom_type[,3], fun = mean)
-plot(bottom_type)
+bottom_type %>% 
+  rasterToPoints(spatial = T) %>% 
+  as.data.frame() %>% 
+  ggplot(aes(x, y, fill = layer)) + 
+  geom_raster() + 
+  coord_fixed() + 
+  scale_fill_viridis_b("hard_soft") + 
+  ggdark::dark_mode()
 dim(bottom_type)
 bottom_type
 default_proj = "+init=epsg:4326 +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +towgs84=0,0,0"
@@ -114,11 +131,18 @@ bottom_type = resample(bottom_type, crm_res, method = "bilinear")
 
 crm_res = as.data.frame(rasterToPoints(crm_res))
 bottom_type = as.data.frame(rasterToPoints(bottom_type))
+
 bottom_type = left_join(crm_res, bottom_type)
 colnames(bottom_type) = c("longitude", "latitude", "cell", "substrate")
 summary(bottom_type)
 
 qplot(bottom_type$longitude, bottom_type$latitude, color = bottom_type$substrate)
+bottom_type %>% 
+  ggplot(aes(longitude, latitude, fill = substrate)) + 
+  geom_raster(interpolate = T) + 
+  coord_fixed() + 
+  scale_fill_viridis_b("hard_soft") + 
+  ggdark::dark_mode()
 
 df = merge(df, bottom_type, by = "cell")
 
@@ -144,7 +168,8 @@ depth = df %>%
   # scale_fill_viridis_c("") +
   scale_fill_gradientn(colours = colorRamps::matlab.like(100), "Bathymetry(m)") +
   coord_fixed() +
-  ggdark::dark_theme_minimal() + 
+  theme_minimal() + 
+  # ggdark::dark_theme_minimal() + 
   theme(axis.title = element_blank(),
         legend.position = "bottom")
 
@@ -154,7 +179,8 @@ substrate = df %>%
   scale_fill_discrete("Bottom type") +
   # scale_fill_gradientn(colours = colorRamps::matlab.like(100), "Bathymetry(m)") + 
   coord_fixed() +
-  ggdark::dark_theme_minimal() + 
+  theme_minimal() + 
+  # ggdark::dark_theme_minimal() + 
   theme(axis.title = element_blank(),
         legend.position = "bottom")
 
@@ -165,7 +191,8 @@ strat = df %>%
   # scale_fill_gradientn(colours = colorRamps::matlab.like(6), "Strata") + 
   scale_fill_discrete("Strata") +
   coord_fixed() +
-  ggdark::dark_theme_minimal() + 
+  theme_minimal() + 
+  # ggdark::dark_theme_minimal() + 
   theme(axis.title = element_blank(),
         legend.position = "bottom")
 

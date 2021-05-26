@@ -161,25 +161,31 @@ true$ts = "true"
 sample$ts = "survey"
 
 m = ggplot() +
-  geom_tile(data = cells, aes(x, y, fill = depth, 
-                              width = 0.5, height = 0.5), 
+  geom_tile(data = cells, aes(x, y, fill = depth,
+                              width = 0.5, height = 0.5),
             alpha = 0.1,
             show.legend = F) +
   geom_point(data = sets, aes(x, y, color = factor(strat)), size = 2) + 
   facet_wrap(.~year, ncol = 3) + 
   scale_color_discrete("Survey efforts") + 
   # scale_fill_viridis_c() +
-  ggdark::dark_theme_void()
+  # ggdark::dark_theme_void() + 
+  theme_minimal() + 
+  theme(axis.title = element_blank(),
+        axis.ticks = element_blank())
 
 t = rbind(true, sample) %>% 
   ggplot(aes(year, n, color = ts)) + 
   geom_line() + 
   geom_point(size = 3) + 
   scale_color_discrete("") + 
-  ggdark::dark_theme_minimal() + 
-  ggtitle("Sample simulation output")
+  # ggdark::dark_theme_minimal() + 
+  ggtitle("Sample simulation output") + 
+  theme_minimal() + 
+  theme(legend.position = c(1,1),
+        legend.justification = c(1,1))
 
 library(patchwork)
-png(paste0("/Users/Kisei.Tanaka/Desktop/sim.png"), res = 100, height = 5, width = 10, units = "in")
+png(paste0("/Users/Kisei.Tanaka/Desktop/sim.png"), res = 100, height = 6, width = 10, units = "in")
 t + m
 dev.off()
