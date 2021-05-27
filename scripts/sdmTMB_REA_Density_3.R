@@ -38,7 +38,7 @@ islands = c("Kauai", #1
             "Lanai", #8
             "Molokini", #9
             "Kahoolawe", #10
-            "Hawaii")[11]
+            "Hawaii")[1:11]
 
 df = df %>% 
   subset(ISLAND %in% islands) %>% 
@@ -49,18 +49,9 @@ hist(df$density)
 summary(df$density)
 
 zone <- (floor((df$LONGITUDE[1] + 180)/6) %% 60) + 1
-xy_utm = as.data.frame(cbind(utm = project(as.matrix(df[, c("LONGITUDE", "LATITUDE")]), paste0("+proj=utm +zone=", zone))))
+xy_utm = as.data.frame(cbind(utm = project(as.matrix(df[, c("LONGITUDE", "LATITUDE")]), paste0("+proj=utm +units=km +zone=", zone))))
 colnames(xy_utm) = c("X", "Y"); plot(xy_utm, pch = ".", bty = 'n')
-
-# Warning message:
-# The x or y column values are fairly large.
-# This can cause estimation problems since the spatial range
-# is dependent on the scale of the coordinates.
-# Consider scaling the x and y coordinates.
-# For example, try working in UTM km instead of UTM m by divided by 1000. 
-
-# df = cbind(df, xy_utm)
-df = cbind(df, xy_utm/1000)
+df = cbind(df, xy_utm)
 
 rea_spde <- make_mesh(df, c("X", "Y"), n_knots = 100, type = "cutoff_search") # a coarse mesh for speed
 
@@ -128,8 +119,8 @@ r <- density_model$tmb_obj$report()
 # prediction onto new data grid
 load("data/Topography_NOAA_CRM_vol10.RData")
 
-# topo <- topo %>% subset(x < -157.5 & x > -158.5 & y > 21 & y < 22) #oahu
-topo <- topo %>% subset(x < -154.8 & x > -156.2 & y > 18.8 & y < 20.4) #hawaii
+topo <- topo %>% subset(x < -157.5 & x > -158.5 & y > 21 & y < 22) #oahu
+# topo <- topo %>% subset(x < -154.8 & x > -156.2 & y > 18.8 & y < 20.4) #hawaii
 
 grid = topo
 
@@ -151,11 +142,11 @@ grid = grid %>%
 
 zone <- (floor((grid$longitude[1] + 180)/6) %% 60) + 1
 xy_utm = as.data.frame(cbind(utm = project(as.matrix(grid[, c("longitude", "latitude")]),
-                                           paste0("+proj=utm +zone=", zone))))
+                                           paste0("+proj=utm +units=km +zone=", zone))))
 
 colnames(xy_utm) = c("X", "Y"); plot(xy_utm, pch = ".")
 
-grid = cbind(grid, xy_utm/1000)
+grid = cbind(grid, xy_utm)
 
 grid_year = NULL
 
@@ -218,7 +209,7 @@ plot_map_raster(p$data, "epsilon_st") + ggtitle("Spatiotemporal random effects o
 # look at just the spatiotemporal random effects:
 plot_map_raster(p$data, "est_rf") + scale_fill_gradient2()
 
-density_map = ggplot(p$data, aes_string("X", "Y", fill = "est", color = "est")) +
+density_map = ggplot(p$data, aes_string("X", "Y", fill = "exp(est)", color = "exp(est)")) +
   geom_tile(aes(height = 0.5, width = 0.5)) +
   # geom_point() +
   facet_wrap(~year) +
@@ -269,8 +260,7 @@ plot(data.frame(Y = p$data$Y, est = exp(p$data$est), year = p$data$year) %>%
 
 library(patchwork)
 
-png(paste0("/Users/Kisei.Tanaka/Desktop/efh_uku.png"), res = 100, height = 8, width = 11, units = "in")
-
-density_map + (relative_biomass/density_cog)
+density_map
+relative_biomass/density_cog
 
 dev.off()
