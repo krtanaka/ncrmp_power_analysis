@@ -195,7 +195,7 @@ plot_map_raster <- function(dat, column = "est") {
     xlab("Eastings") +
     ylab("Northings") + 
     # scale_fill_viridis_c() +
-    scale_fill_gradientn(colours = matlab.like(100)) #+ ggdark::dark_theme_void()
+    scale_fill_gradientn(colours = matlab.like(100)) + ggdark::dark_theme_void()
   
 }
 
@@ -226,6 +226,8 @@ density_map = ggplot(p$data, aes_string("X", "Y", fill = "exp(est)", color = "ex
 
 index <- get_index(p, bias_correct = F)
 
+ggdark::invert_geom_defaults()
+
 relative_biomass = index %>%
   ggplot(aes(year, est)) + 
   geom_line() +
@@ -234,7 +236,7 @@ relative_biomass = index %>%
   xlab('Year') + 
   ylab('metric tonnes') + 
   ggtitle("Biomass estimate") + 
-  theme_minimal()
+  theme_minimal() 
 
 index %>% 
   mutate(cv = sqrt(exp(se^2) - 1)) %>% 
