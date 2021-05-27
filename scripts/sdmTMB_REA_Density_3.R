@@ -38,7 +38,7 @@ islands = c("Kauai", #1
             "Lanai", #8
             "Molokini", #9
             "Kahoolawe", #10
-            "Hawaii")[1:11]
+            "Hawaii")[11]
 
 df = df %>% 
   subset(ISLAND %in% islands) %>% 
@@ -51,7 +51,16 @@ summary(df$density)
 zone <- (floor((df$LONGITUDE[1] + 180)/6) %% 60) + 1
 xy_utm = as.data.frame(cbind(utm = project(as.matrix(df[, c("LONGITUDE", "LATITUDE")]), paste0("+proj=utm +zone=", zone))))
 colnames(xy_utm) = c("X", "Y"); plot(xy_utm, pch = ".", bty = 'n')
-df = cbind(df, xy_utm)
+
+# Warning message:
+# The x or y column values are fairly large.
+# This can cause estimation problems since the spatial range
+# is dependent on the scale of the coordinates.
+# Consider scaling the x and y coordinates.
+# For example, try working in UTM km instead of UTM m by divided by 1000. 
+
+# df = cbind(df, xy_utm)
+df = cbind(df, xy_utm/1000)
 
 rea_spde <- make_mesh(df, c("X", "Y"), n_knots = 100, type = "cutoff_search") # a coarse mesh for speed
 
@@ -146,7 +155,7 @@ xy_utm = as.data.frame(cbind(utm = project(as.matrix(grid[, c("longitude", "lati
 
 colnames(xy_utm) = c("X", "Y"); plot(xy_utm, pch = ".")
 
-grid = cbind(grid, xy_utm)
+grid = cbind(grid, xy_utm/1000)
 
 grid_year = NULL
 
@@ -188,7 +197,7 @@ p <- predict(density_model,
 plot_map_raster <- function(dat, column = "est") {
   
   ggplot(dat, aes_string("X", "Y", fill = column)) +
-    geom_tile(aes(height = 500, width = 500)) +
+    geom_tile(aes(height = 0.5, width = 0.5)) +
     # geom_point() +
     facet_wrap(~year) +
     coord_fixed() +
@@ -210,9 +219,9 @@ plot_map_raster(p$data, "epsilon_st") + ggtitle("Spatiotemporal random effects o
 plot_map_raster(p$data, "est_rf") + scale_fill_gradient2()
 
 density_map = ggplot(p$data, aes_string("X", "Y", fill = "est", color = "est")) +
-  geom_tile(aes(height = 500, width = 500)) +
+  geom_tile(aes(height = 0.5, width = 0.5)) +
   # geom_point() +
-  facet_wrap(~year, ncol = 2) +
+  facet_wrap(~year) +
   coord_fixed() +
   xlab("Eastings") +
   ylab("Northings") + 
@@ -221,7 +230,8 @@ density_map = ggplot(p$data, aes_string("X", "Y", fill = "est", color = "est")) 
   ggtitle("Uku predicted density (fixed effects + random effects)") + 
   theme(legend.position = "bottom") + 
   theme_minimal() + 
-  theme(axis.text = element_blank())
+  theme(axis.text = element_blank(),
+        panel.grid = element_blank())
 
 index <- get_index(p, bias_correct = F)
 
