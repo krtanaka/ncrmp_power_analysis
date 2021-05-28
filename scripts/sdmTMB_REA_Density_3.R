@@ -53,7 +53,7 @@ xy_utm = as.data.frame(cbind(utm = project(as.matrix(df[, c("LONGITUDE", "LATITU
 colnames(xy_utm) = c("X", "Y"); plot(xy_utm, pch = ".", bty = 'n')
 df = cbind(df, xy_utm)
 
-rea_spde <- make_mesh(df, c("X", "Y"), n_knots = 100, type = "cutoff_search") # a coarse mesh for speed
+rea_spde <- make_mesh(df, c("X", "Y"), n_knots = 200, type = "cutoff_search") # a coarse mesh for speed
 
 plot(rea_spde, pch = "."); axis(1); axis(2)
 
@@ -68,7 +68,7 @@ plot(df[9:11])
 obs_year = unique(df$year)
 full_year = seq(min(df$year), max(df$year), by = 1)
 missing_year = setdiff(full_year, obs_year)
-missing_year = as.integer(missing_year)
+missing_year = as.integer(missing_year);missing_year
 
 density_model <- sdmTMB(
   
@@ -119,8 +119,8 @@ r <- density_model$tmb_obj$report()
 # prediction onto new data grid
 load("data/Topography_NOAA_CRM_vol10.RData")
 
-topo <- topo %>% subset(x < -157.5 & x > -158.5 & y > 21 & y < 22) #oahu
-# topo <- topo %>% subset(x < -154.8 & x > -156.2 & y > 18.8 & y < 20.4) #hawaii
+# topo <- topo %>% subset(x < -157.5 & x > -158.5 & y > 21 & y < 22) #oahu
+topo <- topo %>% subset(x < -154.8 & x > -156.2 & y > 18.8 & y < 20.4) #hawaii
 
 grid = topo
 
@@ -189,13 +189,12 @@ plot_map_raster <- function(dat, column = "est") {
   
   ggplot(dat, aes_string("X", "Y", fill = column)) +
     geom_tile(aes(height = 0.5, width = 0.5)) +
-    # geom_point() +
     facet_wrap(~year) +
     coord_fixed() +
-    xlab("Eastings") +
-    ylab("Northings") + 
-    # scale_fill_viridis_c() +
-    scale_fill_gradientn(colours = matlab.like(100)) + ggdark::dark_theme_void()
+    xlab("Eastings (km)") +
+    ylab("Northings (km)") + 
+    scale_fill_gradientn(colours = matlab.like(100), "") +
+    ggdark::dark_theme_minimal()
   
 }
 
@@ -211,7 +210,6 @@ plot_map_raster(p$data, "est_rf") + scale_fill_gradient2()
 
 density_map = ggplot(p$data, aes_string("X", "Y", fill = "exp(est)", color = "exp(est)")) +
   geom_tile(aes(height = 0.5, width = 0.5)) +
-  # geom_point() +
   facet_wrap(~year) +
   coord_fixed() +
   xlab("Eastings") +
@@ -219,10 +217,9 @@ density_map = ggplot(p$data, aes_string("X", "Y", fill = "exp(est)", color = "ex
   scale_fill_viridis_c("log(g/sq.m)") + 
   scale_color_viridis_c("log(g/sq.m)") + 
   ggtitle("Uku predicted density (fixed effects + random effects)") + 
-  theme(legend.position = "bottom") + 
-  theme_minimal() + 
-  theme(axis.text = element_blank(),
-        panel.grid = element_blank())
+  ggdark::dark_theme_minimal() + 
+# theme_pubr()
+theme(legend.position = "right")
 
 index <- get_index(p, bias_correct = F)
 
@@ -236,8 +233,9 @@ relative_biomass = index %>%
   xlab('Year') + 
   ylab('metric tonnes') + 
   ggtitle("Biomass estimate") + 
-  theme_minimal() 
-
+  ggdark::dark_theme_minimal()
+  # theme_pubr()
+  
 index %>% 
   mutate(cv = sqrt(exp(se^2) - 1)) %>% 
   dplyr::select(-log_est, -max_gradient, -bad_eig, -se) %>%
@@ -254,15 +252,14 @@ density_cog = ggplot(cog, aes(year, est, ymin = lwr, ymax = upr)) +
   geom_point(size = 3) +
   facet_wrap(~utm, scales = "free_y") + 
   ggtitle("Center of gravity (lat and lon)") + 
-  theme_minimal()
+  ggdark::dark_theme_minimal()
+# theme_pubr()
 
 # table of COG by latitude
 plot(data.frame(Y = p$data$Y, est = exp(p$data$est), year = p$data$year) %>%
-  group_by(year) %>% summarize(cog = sum(Y * est) / sum(est)), type = "b")
+  group_by(year) %>% summarize(cog = sum(Y * est) / sum(est)), type = "b", bty = "l", ylab = "Northing")
 
 library(patchwork)
 
 density_map
 relative_biomass/density_cog
-
-dev.off()
