@@ -85,7 +85,7 @@ df$division = as.numeric(1)
 ### adjust resolutions and merge with crm data  ###
 ###################################################
 load("data/oah_hs_biogeo/oah_hs_biogeo_shp.RData")
-utmcoor <- SpatialPoints(cbind(bottom_type$X, bottom_type$Y), proj4string = CRS("+proj=utm +zone=4"))
+utmcoor <- SpatialPoints(cbind(bottom_type$X, bottom_type$Y), proj4string = CRS("+proj=utm +units=m +zone=4"))
 longlatcoor <- spTransform(utmcoor,CRS("+proj=longlat"))
 bottom_type$lon <- coordinates(longlatcoor)[,1]
 bottom_type$lat <- coordinates(longlatcoor)[,2]
@@ -196,9 +196,7 @@ strat = df %>%
   theme(axis.title = element_blank(),
         legend.position = "bottom")
 
-png(paste0("/Users/Kisei.Tanaka/Desktop/strata.png"), res = 100, height = 5, width = 10, units = "in")
 depth + substrate + strat
-dev.off()
 
 df = as.data.frame(df)
 
