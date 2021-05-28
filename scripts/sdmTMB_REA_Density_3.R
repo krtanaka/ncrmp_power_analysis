@@ -10,11 +10,11 @@ load("data/ALL_REA_FISH_RAW.rdata")
 
 df = df %>% 
   subset(REGION == "MHI") %>% 
-  mutate(density = COUNT)
+  # mutate(density = COUNT) %>% 
+  mutate(density = BIOMASS_G_M2*0.001)
 
 df %>% 
   group_by(TAXONNAME) %>% 
-  # summarise(n = sum(BIOMASS_G_M2, na.rm = T)) %>% 
   summarise(n = sum(density, na.rm = T)) %>% 
   mutate(freq = n/sum(n)) %>% 
   arrange(desc(freq))
@@ -42,7 +42,7 @@ islands = c("Kauai", #1
 
 df = df %>% 
   subset(ISLAND %in% islands) %>% 
-  group_by(LONGITUDE, LATITUDE, OBS_YEAR, DEPTH) %>% 
+  group_by(LONGITUDE, LATITUDE, OBS_YEAR, DEPTH, ISLAND) %>% 
   summarise(density = mean(density, na.rm = T))
 
 hist(df$density)
@@ -53,7 +53,7 @@ xy_utm = as.data.frame(cbind(utm = project(as.matrix(df[, c("LONGITUDE", "LATITU
 colnames(xy_utm) = c("X", "Y"); plot(xy_utm, pch = ".", bty = 'n')
 df = cbind(df, xy_utm)
 
-rea_spde <- make_mesh(df, c("X", "Y"), n_knots = 200, type = "cutoff_search") # a coarse mesh for speed
+rea_spde <- make_mesh(df, c("X", "Y"), n_knots = 300, type = "cutoff_search") # a coarse mesh for speed
 
 plot(rea_spde, pch = "."); axis(1); axis(2)
 
@@ -62,8 +62,8 @@ df$depth = df$DEPTH
 df$depth_scaled = scale(log(df$depth))
 df$depth_scaled2 = df$depth_scaled ^ 2
 
-qplot(df$depth, df$density, color = df$density)
-plot(df[9:11])
+plot(df$depth, df$density, pch = 20, bty = "n")
+plot(df[9:11], pch = ".")
 
 obs_year = unique(df$year)
 full_year = seq(min(df$year), max(df$year), by = 1)
@@ -90,27 +90,29 @@ density_model <- sdmTMB(
 max(density_model$gradients)
 
 df$residuals <- residuals(density_model)
-qqnorm(df$residuals, ylim = c(-5, 5), xlim = c(-5, 5), bty = "n");abline(a = 0, b = 1)
+qqnorm(df$residuals, ylim = c(-5, 5), xlim = c(-5, 5), bty = "n", pch = 20);abline(a = 0, b = 1)
 
 m_p <- predict(density_model); m_p = m_p[,c("density", "est")]
+
+ggdark::invert_geom_defaults()
 
 m_p  %>% 
   ggplot(aes(density, exp(est))) + 
   geom_point(alpha = 0.2) + 
-  coord_fixed() +
+  coord_fixed(ratio = 1) +
+  ylab("predicted_density") + 
+  xlab("observed_density") + 
   geom_abline(intercept = 0, slope = 1) +
-  geom_smooth(method = "lm", se = F) + 
+  geom_smooth(method = "lm", se = T)
+
+
+ggplot(df, aes_string("X", "Y", fill = "residuals")) +
+  geom_tile(aes(height = 0.5, width = 0.5)) +
+  facet_wrap(.~ISLAND, scales = "free") + 
+  xlab("Eastings") +
+  ylab("Northings") + 
+  scale_fill_gradient2() + 
   ggdark::dark_theme_minimal()
-
-plot_map_point <- function(dat, column = "est") {
-  ggplot(dat, aes_string("X", "Y", color = column)) +
-    geom_point(alpha = 0.2, size = 2) +
-    coord_fixed() +
-    xlab("Eastings") +
-    ylab("Northings") #+ ggdark::dark_theme_light()
-}
-
-plot_map_point(df, "residuals") + scale_color_gradient2()
 
 #  extract some parameter estimates
 sd <- as.data.frame(summary(TMB::sdreport(density_model$tmb_obj)))
@@ -119,8 +121,8 @@ r <- density_model$tmb_obj$report()
 # prediction onto new data grid
 load("data/Topography_NOAA_CRM_vol10.RData")
 
-# topo <- topo %>% subset(x < -157.5 & x > -158.5 & y > 21 & y < 22) #oahu
-topo <- topo %>% subset(x < -154.8 & x > -156.2 & y > 18.8 & y < 20.4) #hawaii
+topo <- topo %>% subset(x < -157.5 & x > -158.5 & y > 21 & y < 22) #oahu
+# topo <- topo %>% subset(x < -154.8 & x > -156.2 & y > 18.8 & y < 20.4) #hawaii
 
 grid = topo
 
@@ -208,18 +210,16 @@ plot_map_raster(p$data, "epsilon_st") + ggtitle("Spatiotemporal random effects o
 # look at just the spatiotemporal random effects:
 plot_map_raster(p$data, "est_rf") + scale_fill_gradient2()
 
-density_map = ggplot(p$data, aes_string("X", "Y", fill = "exp(est)", color = "exp(est)")) +
+density_map = ggplot(p$data, aes_string("X", "Y", fill = "exp(est)")) +
   geom_tile(aes(height = 0.5, width = 0.5)) +
   facet_wrap(~year) +
   coord_fixed() +
-  xlab("Eastings") +
-  ylab("Northings") + 
-  scale_fill_viridis_c("log(g/sq.m)") + 
-  scale_color_viridis_c("log(g/sq.m)") + 
+  xlab("Eastings (km)") +
+  ylab("Northings (km)") + 
+  scale_fill_gradientn(colours = matlab.like(100), "g/m^2") +
   ggtitle("Uku predicted density (fixed effects + random effects)") + 
   ggdark::dark_theme_minimal() + 
-# theme_pubr()
-theme(legend.position = "right")
+  theme(legend.position = "right")
 
 index <- get_index(p, bias_correct = F)
 
@@ -251,7 +251,7 @@ density_cog = ggplot(cog, aes(year, est, ymin = lwr, ymax = upr)) +
   geom_line() + 
   geom_point(size = 3) +
   facet_wrap(~utm, scales = "free_y") + 
-  ggtitle("Center of gravity (lat and lon)") + 
+  ggtitle("Center of gravity") + 
   ggdark::dark_theme_minimal()
 # theme_pubr()
 
@@ -262,4 +262,4 @@ plot(data.frame(Y = p$data$Y, est = exp(p$data$est), year = p$data$year) %>%
 library(patchwork)
 
 density_map
-relative_biomass/density_cog
+relative_biomass+density_cog
