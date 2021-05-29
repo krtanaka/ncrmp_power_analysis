@@ -19,7 +19,7 @@ sim <- sim_abundance(ages = 1:2, years = 2001:2010) %>%
 sim = sim
 n_sims = 5
 qq = sim_logistic() # simulating catchability at age 
-trawl_dim = c(0.01, 0.005) # 50 sq.m
+trawl_dim = c(0.01, 0.0353) # 0.000353 sq.km (353 sq.m) from two 15-m diameter survey cylinders
 resample_cells = FALSE
 binom_error = TRUE
 min_sets = 2        # minimum number of sets per strat
@@ -161,13 +161,13 @@ true$ts = "true"
 sample$ts = "survey"
 
 m = ggplot() +
-  geom_tile(data = cells, aes(x, y, fill = depth,
-                              width = 0.5, height = 0.5),
-            alpha = 0.1,
-            show.legend = F) +
+  # geom_tile(data = cells, aes(x, y, fill = depth,
+  #                             width = 0.5, height = 0.5),
+  #           alpha = 0.1,
+  #           show.legend = F) +
   geom_point(data = sets, aes(x, y, color = factor(strat)), size = 2) + 
   facet_wrap(.~year, ncol = 3) + 
-  scale_color_discrete("Survey efforts") + 
+  scale_color_discrete("strata") + 
   # scale_fill_viridis_c() +
   # ggdark::dark_theme_void() + 
   theme_minimal() + 
@@ -180,12 +180,9 @@ t = rbind(true, sample) %>%
   geom_point(size = 3) + 
   scale_color_discrete("") + 
   # ggdark::dark_theme_minimal() + 
-  ggtitle("Sample simulation output") + 
   theme_minimal() + 
   theme(legend.position = c(1,1),
         legend.justification = c(1,1))
 
 library(patchwork)
-png(paste0("/Users/Kisei.Tanaka/Desktop/sim.png"), res = 100, height = 6, width = 10, units = "in")
 t + m
-dev.off()
