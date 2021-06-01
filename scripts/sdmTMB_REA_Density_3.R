@@ -19,8 +19,8 @@ df %>%
   mutate(freq = n/sum(n)) %>% 
   arrange(desc(freq))
 
-df$density = ifelse(df$TAXONNAME == "Aprion virescens", df$density, 0)
-# df$density = ifelse(df$TAXONNAME == "Chromis vanderbilti", df$density, 0) # most abundant in MHI
+# df$density = ifelse(df$TAXONNAME == "Aprion virescens", df$density, 0)
+df$density = ifelse(df$TAXONNAME == "Chromis vanderbilti", df$density, 0) # most abundant in MHI
 
 df %>% 
   group_by(ISLAND) %>% 
@@ -38,7 +38,7 @@ islands = c("Kauai", #1
             "Lanai", #8
             "Molokini", #9
             "Kahoolawe", #10
-            "Hawaii")[1:11]
+            "Hawaii")[5]
 
 df = df %>% 
   subset(ISLAND %in% islands) %>% 
@@ -75,7 +75,7 @@ density_model <- sdmTMB(
   data = df, 
   formula = density ~ as.factor(year) + depth_scaled + depth_scaled2,
   silent = F, 
-  # extra_time = missing_year,
+  extra_time = missing_year,
   spatial_trend = T, 
   spatial_only = F, 
   time = "year", 
