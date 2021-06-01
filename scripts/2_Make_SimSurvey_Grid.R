@@ -104,7 +104,7 @@ crm_res %>%
   ggplot(aes(x, y, fill = cell)) + 
   geom_raster() + 
   coord_fixed() + 
-  scale_fill_viridis_b() + 
+  scale_fill_gradientn(colors = cm.colors(10)) + 
   ggdark::dark_mode()
 dim(crm_res)
 crm_res
@@ -137,6 +137,7 @@ colnames(bottom_type) = c("longitude", "latitude", "cell", "substrate")
 summary(bottom_type)
 
 qplot(bottom_type$longitude, bottom_type$latitude, color = bottom_type$substrate)
+
 bottom_type %>% 
   ggplot(aes(longitude, latitude, fill = substrate)) + 
   geom_raster(interpolate = T) + 

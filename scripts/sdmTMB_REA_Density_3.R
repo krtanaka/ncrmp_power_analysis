@@ -10,11 +10,11 @@ load("data/ALL_REA_FISH_RAW.rdata")
 
 df = df %>% 
   subset(REGION == "MHI") %>% 
-  mutate(density = COUNT)
+  # mutate(density = COUNT) %>% 
+  mutate(density = BIOMASS_G_M2*0.001)
 
 df %>% 
   group_by(TAXONNAME) %>% 
-  # summarise(n = sum(BIOMASS_G_M2, na.rm = T)) %>% 
   summarise(n = sum(density, na.rm = T)) %>% 
   mutate(freq = n/sum(n)) %>% 
   arrange(desc(freq))
@@ -42,7 +42,7 @@ islands = c("Kauai", #1
 
 df = df %>% 
   subset(ISLAND %in% islands) %>% 
-  group_by(LONGITUDE, LATITUDE, OBS_YEAR, DEPTH) %>% 
+  group_by(LONGITUDE, LATITUDE, OBS_YEAR, DEPTH, ISLAND) %>% 
   summarise(density = mean(density, na.rm = T))
 
 hist(df$density)
@@ -53,7 +53,7 @@ xy_utm = as.data.frame(cbind(utm = project(as.matrix(df[, c("LONGITUDE", "LATITU
 colnames(xy_utm) = c("X", "Y"); plot(xy_utm, pch = ".", bty = 'n')
 df = cbind(df, xy_utm)
 
-rea_spde <- make_mesh(df, c("X", "Y"), n_knots = 100, type = "cutoff_search") # a coarse mesh for speed
+rea_spde <- make_mesh(df, c("X", "Y"), n_knots = 300, type = "cutoff_search") # a coarse mesh for speed
 
 plot(rea_spde, pch = "."); axis(1); axis(2)
 
@@ -62,13 +62,13 @@ df$depth = df$DEPTH
 df$depth_scaled = scale(log(df$depth))
 df$depth_scaled2 = df$depth_scaled ^ 2
 
-qplot(df$depth, df$density, color = df$density)
-plot(df[9:11])
+plot(df$depth, df$density, pch = 20, bty = "n")
+plot(df[9:11], pch = ".")
 
 obs_year = unique(df$year)
 full_year = seq(min(df$year), max(df$year), by = 1)
 missing_year = setdiff(full_year, obs_year)
-missing_year = as.integer(missing_year)
+missing_year = as.integer(missing_year);missing_year
 
 density_model <- sdmTMB(
   
@@ -90,27 +90,29 @@ density_model <- sdmTMB(
 max(density_model$gradients)
 
 df$residuals <- residuals(density_model)
-qqnorm(df$residuals, ylim = c(-5, 5), xlim = c(-5, 5), bty = "n");abline(a = 0, b = 1)
+qqnorm(df$residuals, ylim = c(-5, 5), xlim = c(-5, 5), bty = "n", pch = 20);abline(a = 0, b = 1)
 
 m_p <- predict(density_model); m_p = m_p[,c("density", "est")]
+
+ggdark::invert_geom_defaults()
 
 m_p  %>% 
   ggplot(aes(density, exp(est))) + 
   geom_point(alpha = 0.2) + 
-  coord_fixed() +
+  coord_fixed(ratio = 1) +
+  ylab("predicted_density") + 
+  xlab("observed_density") + 
   geom_abline(intercept = 0, slope = 1) +
-  geom_smooth(method = "lm", se = F) + 
+  geom_smooth(method = "lm", se = T)
+
+
+ggplot(df, aes_string("X", "Y", fill = "residuals")) +
+  geom_tile(aes(height = 0.5, width = 0.5)) +
+  facet_wrap(.~ISLAND, scales = "free") + 
+  xlab("Eastings") +
+  ylab("Northings") + 
+  scale_fill_gradient2() + 
   ggdark::dark_theme_minimal()
-
-plot_map_point <- function(dat, column = "est") {
-  ggplot(dat, aes_string("X", "Y", color = column)) +
-    geom_point(alpha = 0.2, size = 2) +
-    coord_fixed() +
-    xlab("Eastings") +
-    ylab("Northings") #+ ggdark::dark_theme_light()
-}
-
-plot_map_point(df, "residuals") + scale_color_gradient2()
 
 #  extract some parameter estimates
 sd <- as.data.frame(summary(TMB::sdreport(density_model$tmb_obj)))
@@ -189,13 +191,12 @@ plot_map_raster <- function(dat, column = "est") {
   
   ggplot(dat, aes_string("X", "Y", fill = column)) +
     geom_tile(aes(height = 0.5, width = 0.5)) +
-    # geom_point() +
     facet_wrap(~year) +
     coord_fixed() +
-    xlab("Eastings") +
-    ylab("Northings") + 
-    # scale_fill_viridis_c() +
-    scale_fill_gradientn(colours = matlab.like(100)) + ggdark::dark_theme_void()
+    xlab("Eastings (km)") +
+    ylab("Northings (km)") + 
+    scale_fill_gradientn(colours = matlab.like(100), "") +
+    ggdark::dark_theme_minimal()
   
 }
 
@@ -209,20 +210,16 @@ plot_map_raster(p$data, "epsilon_st") + ggtitle("Spatiotemporal random effects o
 # look at just the spatiotemporal random effects:
 plot_map_raster(p$data, "est_rf") + scale_fill_gradient2()
 
-density_map = ggplot(p$data, aes_string("X", "Y", fill = "exp(est)", color = "exp(est)")) +
+density_map = ggplot(p$data, aes_string("X", "Y", fill = "exp(est)")) +
   geom_tile(aes(height = 0.5, width = 0.5)) +
-  # geom_point() +
   facet_wrap(~year) +
   coord_fixed() +
-  xlab("Eastings") +
-  ylab("Northings") + 
-  scale_fill_viridis_c("log(g/sq.m)") + 
-  scale_color_viridis_c("log(g/sq.m)") + 
+  xlab("Eastings (km)") +
+  ylab("Northings (km)") + 
+  scale_fill_gradientn(colours = matlab.like(100), "g/m^2") +
   ggtitle("Uku predicted density (fixed effects + random effects)") + 
-  theme(legend.position = "bottom") + 
-  theme_minimal() + 
-  theme(axis.text = element_blank(),
-        panel.grid = element_blank())
+  ggdark::dark_theme_minimal() + 
+  theme(legend.position = "right")
 
 index <- get_index(p, bias_correct = F)
 
@@ -236,8 +233,9 @@ relative_biomass = index %>%
   xlab('Year') + 
   ylab('metric tonnes') + 
   ggtitle("Biomass estimate") + 
-  theme_minimal() 
-
+  ggdark::dark_theme_minimal()
+  # theme_pubr()
+  
 index %>% 
   mutate(cv = sqrt(exp(se^2) - 1)) %>% 
   dplyr::select(-log_est, -max_gradient, -bad_eig, -se) %>%
@@ -253,16 +251,15 @@ density_cog = ggplot(cog, aes(year, est, ymin = lwr, ymax = upr)) +
   geom_line() + 
   geom_point(size = 3) +
   facet_wrap(~utm, scales = "free_y") + 
-  ggtitle("Center of gravity (lat and lon)") + 
-  theme_minimal()
+  ggtitle("Center of gravity") + 
+  ggdark::dark_theme_minimal()
+# theme_pubr()
 
 # table of COG by latitude
 plot(data.frame(Y = p$data$Y, est = exp(p$data$est), year = p$data$year) %>%
-  group_by(year) %>% summarize(cog = sum(Y * est) / sum(est)), type = "b")
+  group_by(year) %>% summarize(cog = sum(Y * est) / sum(est)), type = "b", bty = "l", ylab = "Northing")
 
 library(patchwork)
 
 density_map
-relative_biomass/density_cog
-
-dev.off()
+relative_biomass+density_cog
