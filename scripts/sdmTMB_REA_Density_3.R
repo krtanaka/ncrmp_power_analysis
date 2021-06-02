@@ -8,19 +8,23 @@ rm(list = ls())
 
 load("data/ALL_REA_FISH_RAW.rdata")
 
+
+# Total numerical density estimates (individuals per 100 m2) were obtained by dividing fish counts in each survey by the survey area (353 m2 from two 15-m diameter survey cylinders) and multiplying by 100. - Nadon et al. 2020
+
 df = df %>% 
   subset(REGION == "MHI") %>% 
-  # mutate(density = COUNT) %>% 
-  mutate(density = BIOMASS_G_M2*0.001)
+  mutate(density = COUNT*100) #%>% #
+  # mutate(density = BIOMASS_G_M2*0.001)
 
-df %>% 
+sp = df %>% 
   group_by(TAXONNAME) %>% 
   summarise(n = sum(density, na.rm = T)) %>% 
   mutate(freq = n/sum(n)) %>% 
-  arrange(desc(freq))
+  arrange(desc(freq)) %>% 
+  top_n(5) 
 
-# df$density = ifelse(df$TAXONNAME == "Aprion virescens", df$density, 0)
-df$density = ifelse(df$TAXONNAME == "Chromis vanderbilti", df$density, 0) # most abundant in MHI
+df$density = ifelse(df$TAXONNAME == "Aprion virescens", df$density, 0)
+# df$density = ifelse(df$TAXONNAME == "Acanthurus olivaceus", df$density, 0) # most abundant in MHI
 
 df %>% 
   group_by(ISLAND) %>% 
@@ -38,7 +42,7 @@ islands = c("Kauai", #1
             "Lanai", #8
             "Molokini", #9
             "Kahoolawe", #10
-            "Hawaii")[5]
+            "Hawaii")[1:11]
 
 df = df %>% 
   subset(ISLAND %in% islands) %>% 
@@ -63,7 +67,7 @@ df$depth_scaled = scale(log(df$depth))
 df$depth_scaled2 = df$depth_scaled ^ 2
 
 plot(df$depth, df$density, pch = 20, bty = "n")
-plot(df[9:11], pch = ".")
+plot(df[10:12], pch = ".")
 
 obs_year = unique(df$year)
 full_year = seq(min(df$year), max(df$year), by = 1)
@@ -75,7 +79,7 @@ density_model <- sdmTMB(
   data = df, 
   formula = density ~ as.factor(year) + depth_scaled + depth_scaled2,
   silent = F, 
-  extra_time = missing_year,
+  # extra_time = missing_year,
   spatial_trend = T, 
   spatial_only = F, 
   time = "year", 
@@ -117,6 +121,7 @@ ggplot(df, aes_string("X", "Y", fill = "residuals")) +
 #  extract some parameter estimates
 sd <- as.data.frame(summary(TMB::sdreport(density_model$tmb_obj)))
 r <- density_model$tmb_obj$report()
+r
 
 # prediction onto new data grid
 load("data/Topography_NOAA_CRM_vol10.RData")
