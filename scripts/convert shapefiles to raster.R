@@ -9,8 +9,8 @@ shp_list = list.files(path = "G:/GIS/hardsoft/MHI/", pattern = "shp.shp")
 
 for (shp_i in 1:length(shp_list)) {
   
-  shp_i = 8
-  
+  # shp_i = 1
+
   # Import shapefile
   sp_df <- readOGR(paste0("G:/GIS/hardsoft/MHI/", shp_list[shp_i]))[4]
 
@@ -23,7 +23,7 @@ for (shp_i in 1:length(shp_list)) {
   # Raster template 
   r <- raster(extent(sp_df))
   projection(r) <- proj4string(sp_df)
-  res(r) <- 5000 # spatial resolution in m
+  res(r) <- 100 # spatial resolution in m
   
   # Per pixel, identify ID covering largest area
   r_val_h <-  pbsapply(1:ncell(r), function(i) {
