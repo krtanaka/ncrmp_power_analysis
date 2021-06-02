@@ -16,10 +16,11 @@ for (shp_i in 1:length(shp_list)) {
   df <- readOGR(paste0("G:/GIS/hardsoft/MHI/", shp_list[shp_i]))[4]
   df@data
   table = data.frame(df@data, i = 1:length(df))
-  hard_i = unique(table[table$HardSoft == "Hard",]$i)
-  soft_i = unique(table[table$HardSoft == "Soft",]$i)
-  land_i = unique(table[table$HardSoft == "Land",]$i)
-  ukwn_i = unique(table[table$HardSoft == "Unknown",]$i)
+  hard_i = unique(table[table$HardSoft == "Hard",]$i); hard_i
+  soft_i = unique(table[table$HardSoft == "Soft",]$i); soft_i
+  land_i = unique(table[table$HardSoft == "Land",]$i); land_i
+  ukwn_i = unique(table[table$HardSoft == "Unknown",]$i); ukwn_i  
+  othr_i = unique(table[table$HardSoft == "Other",]$i); othr_i  
   
   # Raster template 
   r <- raster(extent(df))
@@ -61,6 +62,7 @@ for (shp_i in 1:length(shp_list)) {
   r_val = ifelse(r_val %in% soft_i, "2", r_val)
   r_val = ifelse(r_val %in% land_i, "3", r_val)
   r_val = ifelse(r_val %in% ukwn_i, "4", r_val)
+  r_val = ifelse(r_val %in% othr_i, "5", r_val)
   
   # Write ID values covering the largest area per pixel into raster template
   r[] <- as.numeric(r_val)
