@@ -64,6 +64,10 @@ for (shp_i in 1:length(shp_list)) {
   r_val = ifelse(r_val %in% ukwn_i, "4", r_val)
   r_val = ifelse(r_val %in% othr_i, "5", r_val)
   
+  r_val = gsub("3", NA, r_val)
+  r_val = gsub("4", NA, r_val)
+  r_val = gsub("5", NA, r_val)
+  
   # Write ID values covering the largest area per pixel into raster template
   r[] <- as.numeric(r_val)
   plot(r)
