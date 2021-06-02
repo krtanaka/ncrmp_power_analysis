@@ -3,25 +3,15 @@ library(rgdal)
 library(rgeos)
 library(pbapply)
 
-# p <- shapefile('N:/GIS/Projects/CommonMaps/01_Preprocess/MHI/HAW/hardsoft/biogeo/haw_hs_biogeo_shp.shp')
-# p
-# pgeo <- spTransform(p, CRS('+proj=longlat +datum=WGS84'))
-# 
-# ext <- floor(extent(pgeo))
-# rr <- raster(ext, res = 0.1)
-# rr <- rasterize(pgeo, rr, field = 1)
-# plot(rr)
-
-
 # Import shapefile
-sp_df <- readOGR('N:/GIS/Projects/CommonMaps/01_Preprocess/MHI/HAW/hardsoft/biogeo/haw_hs_biogeo_shp.shp') 
-sp_df <- readOGR('N:/GIS/Projects/CommonMaps/01_Preprocess/MHI/OAH/hardsoft/biogeo/oah_hs_biogeo_shp.shp') 
+sp_df <- readOGR('N:/GIS/Projects/CommonMaps/01_Preprocess/MHI/HAW/hardsoft/biogeo/haw_hs_biogeo_shp.shp') #Hawaii
+sp_df <- readOGR('N:/GIS/Projects/CommonMaps/01_Preprocess/MHI/OAH/hardsoft/biogeo/oah_hs_biogeo_shp.shp') #Oahu
 sp_df <- readOGR('N:/GIS/Projects/CommonMaps/01_Preprocess/MHI/KAH/hardsoft/biogeo/kah_hs_biogeo_shp.shp') 
 
 # Raster template 
 r <- raster(extent(sp_df))
 projection(r) <- proj4string(sp_df)
-res(r) <- 1000 # xxx m spatial resolution
+res(r) <- 50 # spatial resolution in m
 
 # Per pixel, identify ID covering largest area
 r_val <-  pbsapply(1:ncell(r), function(i) {
