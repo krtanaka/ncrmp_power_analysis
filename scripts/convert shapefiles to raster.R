@@ -12,12 +12,12 @@ for (shp_i in 1:length(shp_list)) {
   
   start = Sys.time()
   
-  # shp_i = 5
+  # shp_i = 8
   
   # Import shapefile
   df <- readOGR(paste0("G:/GIS/hardsoft/MHI/", shp_list[shp_i]))[4]
   df@data
-  table = data.frame(df@data, i = 1:length(df))
+  table = data.frame(df@data, i = 0:(length(df)-1)); table
   hard_i = unique(table[table$HardSoft == "Hard",]$i); hard_i
   soft_i = unique(table[table$HardSoft == "Soft",]$i); soft_i
   land_i = unique(table[table$HardSoft == "Land",]$i); land_i
@@ -72,7 +72,7 @@ for (shp_i in 1:length(shp_list)) {
   
   # Write ID values covering the largest area per pixel into raster template
   r[] <- as.numeric(r_val)
-  # plot(r)
+  # plot(r, col = topo.colors(2))
   # plot(df, border = "grey45", add = TRUE)
   
   island_name = substr(shp_list[shp_i],1,nchar(shp_list[shp_i])-18)
