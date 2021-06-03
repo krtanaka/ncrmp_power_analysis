@@ -8,4 +8,6 @@
 ~%2Fncrmp_power_analysis%2Fscripts%2Fattach_remote_bathy_data.R="98668116"
 ~%2Fncrmp_power_analysis%2Fscripts%2Fconvert%20shapefiles%20to%20raster.R="241486EA"
 ~%2Fncrmp_power_analysis%2Fscripts%2Fkey_functions.R="EB736E32"
+~%2Fncrmp_power_analysis%2Fscripts%2Fmake_SimSurvey_Grid.R="10774E6A"
+~%2Fncrmp_power_analysis%2Fscripts%2Fmake_bottom_substrate_raster.R="93117D19"
 ~%2Fncrmp_power_analysis%2Fscripts%2FsdmTMB_REA_Density_3.R="4BE8C15D"
