@@ -127,7 +127,7 @@ sim_distribution_rea = function (sim,
   df_N$prob <- NULL
   
   setkeyv(df_N, "cell")
-  c(sim, list(grid = grid, grid_xy = grid_dat, sp_N = df_N))i
+  c(sim, list(grid = grid, grid_xy = grid_dat, sp_N = df_N))
   
 }
 
