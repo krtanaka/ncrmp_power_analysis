@@ -74,4 +74,3 @@ plot_trend(sim)
 plot_surface(sim, mat = "N")
 plot_surface(sim, mat = "Z")
 plot_surface(sim, mat = "N_at_length", xlab = "Length", zlab = "N")
-
