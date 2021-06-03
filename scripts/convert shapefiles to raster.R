@@ -12,7 +12,7 @@ for (shp_i in 1:length(shp_list)) {
   
   start = Sys.time()
   
-  shp_i = 9
+  # shp_i = 5
   
   # Import shapefile
   df <- readOGR(paste0("G:/GIS/hardsoft/MHI/", shp_list[shp_i]))[4]
@@ -27,10 +27,10 @@ for (shp_i in 1:length(shp_list)) {
   # Raster template 
   r <- raster(extent(df))
   projection(r) <- proj4string(df)
-  res(r) <- 100 # spatial resolution in m
+  res(r) <- 500 # spatial resolution in m
   
   # Per pixel, identify ID covering largest area, try jubilee.mcsapply() or pbsapply()
-  r_val <-  pbsapply(1:ncell(r), function(i) {
+  r_val <-  jubilee.mcsapply(1:ncell(r), function(i) {
     
     r_dupl <- r
     r_dupl[i] <- 1
@@ -72,8 +72,8 @@ for (shp_i in 1:length(shp_list)) {
   
   # Write ID values covering the largest area per pixel into raster template
   r[] <- as.numeric(r_val)
-  plot(r)
-  plot(df, border = "grey45", add = TRUE)
+  # plot(r)
+  # plot(df, border = "grey45", add = TRUE)
   
   island_name = substr(shp_list[shp_i],1,nchar(shp_list[shp_i])-18)
   
