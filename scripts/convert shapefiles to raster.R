@@ -10,7 +10,9 @@ shp_list = list.files(path = "G:/GIS/hardsoft/MHI/", pattern = "shp.shp"); shp_l
 
 for (shp_i in 1:length(shp_list)) {
   
-  # shp_i = 3
+  start = Sys.time()
+  
+  shp_i = 9
   
   # Import shapefile
   df <- readOGR(paste0("G:/GIS/hardsoft/MHI/", shp_list[shp_i]))[4]
@@ -25,10 +27,10 @@ for (shp_i in 1:length(shp_list)) {
   # Raster template 
   r <- raster(extent(df))
   projection(r) <- proj4string(df)
-  res(r) <- 1000 # spatial resolution in m
+  res(r) <- 100 # spatial resolution in m
   
   # Per pixel, identify ID covering largest area, try jubilee.mcsapply() or pbsapply()
-  r_val <-  jubilee.mcsapply(1:ncell(r), function(i) {
+  r_val <-  pbsapply(1:ncell(r), function(i) {
     
     r_dupl <- r
     r_dupl[i] <- 1
@@ -78,5 +80,11 @@ for (shp_i in 1:length(shp_list)) {
   r = readAll(r)
   
   save(r, file = paste0("data/hardsoft_", island_name, ".RData"))
+  
+  end = Sys.time()
+  
+  time = end - start
+  
+  print(paste0(island_name, "...done...took ", time, "..."))
   
 }
