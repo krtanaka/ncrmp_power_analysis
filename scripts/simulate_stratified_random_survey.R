@@ -44,7 +44,7 @@ long_diffused <- sim_abundance(ages = 1:500,
                                              phi_age = 0.9, 
                                              phi_year = 0.9),
                    depth_par = sim_parabola(mu = 10, 
-                                            sigma = 10))%>% 
+                                            sigma = 10)) %>% 
   sim_survey_rea(n_sims = 1, 
                  min_sets = 20, 
                  ages_cap = 10,
