@@ -27,7 +27,7 @@ for (shp_i in 1:length(shp_list)) {
   # Raster template 
   r <- raster(extent(df))
   projection(r) <- proj4string(df)
-  res(r) <- 500 # spatial resolution in m
+  res(r) <- 50 # spatial resolution in m
   
   # Per pixel, identify ID covering largest area, try jubilee.mcsapply() or pbsapply()
   r_val <-  jubilee.mcsapply(1:ncell(r), function(i) {
