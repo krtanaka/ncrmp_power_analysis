@@ -3,17 +3,20 @@ library(rgdal)
 library(rgeos)
 library(pbapply)
 library(jubilee)
+library(future.apply)
 
 rm(list = ls())
 
 shp_list = list.files(path = "G:/GIS/hardsoft/MHI/", pattern = "shp.shp"); shp_list
 
+plan(multisession) 
+
 for (shp_i in 1:length(shp_list)) {
   
   start = Sys.time()
   
-  # shp_i = 8
-  
+  shp_i = 8
+
   # Import shapefile
   df <- readOGR(paste0("G:/GIS/hardsoft/MHI/", shp_list[shp_i]))[4]
   df@data
@@ -29,8 +32,8 @@ for (shp_i in 1:length(shp_list)) {
   projection(r) <- proj4string(df)
   res(r) <- 50 # spatial resolution in m
   
-  # Per pixel, identify ID covering largest area, try jubilee.mcsapply() or pbsapply()
-  r_val <-  jubilee.mcsapply(1:ncell(r), function(i) {
+  # Per pixel, identify ID covering largest area, try jubilee.mcsapply() or pbsapply(), or future_lapply()
+  r_val <-  simplify2array(future_lapply(1:ncell(r), function(i) {
     
     r_dupl <- r
     r_dupl[i] <- 1
@@ -58,7 +61,7 @@ for (shp_i in 1:length(shp_list)) {
       return(rownames(sp_df_crp@data)[index])
       
     }
-  })
+  }))
   
   r_val = ifelse(r_val %in% hard_i, "1", r_val)
   r_val = ifelse(r_val %in% soft_i, "2", r_val)
@@ -72,8 +75,8 @@ for (shp_i in 1:length(shp_list)) {
   
   # Write ID values covering the largest area per pixel into raster template
   r[] <- as.numeric(r_val)
-  # plot(r, col = topo.colors(2))
-  # plot(df, border = "grey45", add = TRUE)
+  plot(r, col = topo.colors(2))
+  plot(df, border = "grey45", add = TRUE)
   
   island_name = substr(shp_list[shp_i],1,nchar(shp_list[shp_i])-18)
   
