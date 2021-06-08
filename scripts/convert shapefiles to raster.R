@@ -15,8 +15,8 @@ for (shp_i in 1:length(shp_list)) {
   
   start = Sys.time()
   
-  shp_i = 8
-
+  # shp_i = 1
+  
   # Import shapefile
   df <- readOGR(paste0("G:/GIS/hardsoft/MHI/", shp_list[shp_i]))[4]
   df@data
@@ -30,7 +30,7 @@ for (shp_i in 1:length(shp_list)) {
   # Raster template 
   r <- raster(extent(df))
   projection(r) <- proj4string(df)
-  res(r) <- 50 # spatial resolution in m
+  res(r) <- 100 # spatial resolution in m
   
   # Per pixel, identify ID covering largest area, try jubilee.mcsapply() or pbsapply(), or future_lapply()
   r_val <-  simplify2array(future_lapply(1:ncell(r), function(i) {
@@ -63,20 +63,23 @@ for (shp_i in 1:length(shp_list)) {
     }
   }))
   
-  r_val = ifelse(r_val %in% hard_i, "1", r_val)
-  r_val = ifelse(r_val %in% soft_i, "2", r_val)
-  r_val = ifelse(r_val %in% land_i, "3", r_val)
-  r_val = ifelse(r_val %in% ukwn_i, "4", r_val)
-  r_val = ifelse(r_val %in% othr_i, "5", r_val)
+  r_val = ifelse(r_val %in% hard_i, "Hard", r_val)
+  r_val = ifelse(r_val %in% soft_i, "Soft", r_val)
+  r_val = ifelse(r_val %in% land_i, "Land", r_val)
+  r_val = ifelse(r_val %in% ukwn_i, "Unknown", r_val)
+  r_val = ifelse(r_val %in% othr_i, "Other", r_val)
   
-  r_val = gsub("3", NA, r_val)
-  r_val = gsub("4", NA, r_val)
-  r_val = gsub("5", NA, r_val)
+  r_val = gsub("Land", NA, r_val)
+  r_val = gsub("Unknown", NA, r_val)
+  r_val = gsub("Other", NA, r_val)
+  
+  r_val = gsub("Hard", 1, r_val)
+  r_val = gsub("Soft", 2, r_val)
   
   # Write ID values covering the largest area per pixel into raster template
   r[] <- as.numeric(r_val)
-  plot(r, col = topo.colors(2))
-  plot(df, border = "grey45", add = TRUE)
+  # plot(r, col = topo.colors(2))
+  # plot(df, border = "grey45", add = TRUE)
   
   island_name = substr(shp_list[shp_i],1,nchar(shp_list[shp_i])-18)
   
