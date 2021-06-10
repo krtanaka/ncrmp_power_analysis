@@ -16,7 +16,7 @@ for (shp_i in 1:length(shp_list)) {
   start = Sys.time()
   
   # shp_i = 1
-
+  
   # Import shapefile
   df <- readOGR(paste0("G:/GIS/hardsoft/MHI/", shp_list[shp_i]))[4]
   df@data
@@ -72,10 +72,7 @@ for (shp_i in 1:length(shp_list)) {
   r_val = gsub("Land", NA, r_val)
   r_val = gsub("Unknown", NA, r_val)
   r_val = gsub("Other", NA, r_val)
-  
-  r_val = gsub("Hard", 1, r_val)
-  r_val = gsub("Soft", 2, r_val)
-  
+
   # Write ID values covering the largest area per pixel into raster template
   r[] <- as.numeric(r_val)
   # plot(r, col = topo.colors(2))

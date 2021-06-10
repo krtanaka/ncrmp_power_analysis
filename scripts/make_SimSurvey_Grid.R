@@ -84,8 +84,8 @@ df$division = as.numeric(1)
 ### import hard/soft bottom substrate shapefile ###
 ### adjust resolutions and merge with crm data  ###
 ###################################################
-load("data/oah_hs_biogeo/oah_hs_biogeo_shp.RData")
-utmcoor <- SpatialPoints(cbind(bottom_type$X, bottom_type$Y), proj4string = CRS("+proj=utm +units=m +zone=4"))
+load("data/oah_hs_biogeo_shp.RData")
+utmcoor <- SpatialPoints(cbind(bottom_type$lon, bottom_type$lat), proj4string = CRS("+proj=utm +units=m +zone=4"))
 longlatcoor <- spTransform(utmcoor,CRS("+proj=longlat"))
 bottom_type$lon <- coordinates(longlatcoor)[,1]
 bottom_type$lat <- coordinates(longlatcoor)[,2]
@@ -98,7 +98,7 @@ e = extent(bottom_type[,1:2])
 
 crm_res = rasterFromXYZ(df[,c("longitude", "latitude", "cell")])
 # plot(crm_res, col = rainbow(100))
-crm_res %>% 
+crm_res %>%
   rasterToPoints(spatial = T) %>% 
   as.data.frame() %>% 
   ggplot(aes(x, y, fill = cell)) + 
