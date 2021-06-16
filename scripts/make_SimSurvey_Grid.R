@@ -66,9 +66,9 @@ df = topo; rm(topo)
 df$longitude = df$x
 df$latitude = df$y
 
-# res = 2
-# df$longitude = round(df$x, digits = res)
-# df$latitude = round(df$y, digits = res)
+res = 2
+df$longitude = round(df$x, digits = res)
+df$latitude = round(df$y, digits = res)
 
 # df <- df %>% subset(longitude < -154.8 & longitude > -156.2 & latitude > 18.8 & latitude < 20.4)
 df <- df %>% subset(longitude < -157.5 & longitude > -158.5 & latitude > 21 & latitude < 22)
