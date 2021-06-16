@@ -23,7 +23,7 @@ plot_survey(sim, which_year = 2, which_sim = 1)
 sim_abundance(years = 1:5, ages = 1:5) %>% 
   # sim_distribution(grid = make_grid(res = c(10, 10))) %>% 
   sim_distribution(grid = survey_grid_kt) %>% 
-  sim_survey(min_sets = 10, set_den = 2/1000) %>% 
+  sim_survey(trawl_dim = c(0.01, 0.0353) ) %>% 
   run_strat()
   
 
