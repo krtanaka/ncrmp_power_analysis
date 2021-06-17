@@ -5,18 +5,23 @@
 library(SimSurvey)
 library(raster)
 library(data.table)
+library(ggplot2)
 
 rm(list = ls())
 
 load("data/survey_grid_kt.RData")
 
+n_sims = 10
+min_sets = 10
+set_den = 5/1000
+
 options(scipen = 999, digits = 2)
-set.seed(438)
+set.seed(100)
 
 sim = sim_abundance(years = 1:10, ages = 1:5) %>% 
   # sim_distribution(grid = make_grid(res = c(100, 100))) %>%
   sim_distribution(grid = survey_grid_kt) %>%
-  sim_survey(trawl_dim = c(0.01, 0.0353), n_sims = 50, min_sets = 20, set_den = 2/100) %>% 
+  sim_survey(trawl_dim = c(0.01, 0.0353), n_sims = n_sims, min_sets = min_sets, set_den = set_den) %>% 
   run_strat() %>%
   strat_error()
 sim$total_strat_error_stats
@@ -25,14 +30,14 @@ df = sim$total_strat_error
 
 df %>% 
   ggplot() + 
-  geom_point(aes(year, I_hat, color = factor(sim)), show.legend = F) + 
-  geom_line(aes(year, I_hat, color = factor(sim)), show.legend = F) +
-  geom_point(aes(year, I)) + 
-  geom_line(aes(year, I))
+  # geom_point(aes(year, I_hat, color = factor(sim), alpha = 0.5), show.legend = F) + 
+  geom_line(aes(year, I_hat, color = factor(sim), alpha = 0.5), show.legend = F) +
+  geom_point(aes(year, I), size = 5) + 
+  geom_line(aes(year, I), size = 2) + 
+  scale_fill_viridis_d() + 
+  scale_color_viridis_d() +  
+  ggdark::dark_theme_classic()
   
-
-
-
 pop = sim_abundance(years = 1:5, ages = 1:5) %>% sim_distribution(grid = survey_grid_kt)
 
 surveys = expand_surveys(set_den = c(0.5, 1, 2, 5, 10, 50)/100,
