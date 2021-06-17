@@ -13,19 +13,24 @@ load("data/survey_grid_kt.RData")
 options(scipen = 999, digits = 2)
 set.seed(438)
 
-sim <- sim_abundance() %>%
-  sim_distribution(grid = make_grid(res = c(10, 10))) %>%
-  # sim_distribution(grid = survey_grid_kt) %>% 
-  sim_survey()
+sim = sim_abundance(years = 1:10, ages = 1:5) %>% 
+  # sim_distribution(grid = make_grid(res = c(100, 100))) %>%
+  sim_distribution(grid = survey_grid_kt) %>%
+  sim_survey(trawl_dim = c(0.01, 0.0353), n_sims = 50, min_sets = 20, set_den = 2/100) %>% 
+  run_strat() %>%
+  strat_error()
+sim$total_strat_error_stats
+sim$total_strat_error
+df = sim$total_strat_error
 
-plot_survey(sim, which_year = 2, which_sim = 1)
-
-sim_abundance(years = 1:5, ages = 1:5) %>% 
-  # sim_distribution(grid = make_grid(res = c(10, 10))) %>% 
-  sim_distribution(grid = survey_grid_kt) %>% 
-  sim_survey(trawl_dim = c(0.01, 0.0353) ) %>% 
-  run_strat()
+df %>% 
+  ggplot() + 
+  geom_point(aes(year, I_hat, color = factor(sim)), show.legend = F) + 
+  geom_line(aes(year, I_hat, color = factor(sim)), show.legend = F) +
+  geom_point(aes(year, I)) + 
+  geom_line(aes(year, I))
   
+
 
 
 pop = sim_abundance(years = 1:5, ages = 1:5) %>% sim_distribution(grid = survey_grid_kt)
