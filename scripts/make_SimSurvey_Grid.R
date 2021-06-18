@@ -18,22 +18,22 @@ library(sf)
 ### see raw GIS data ###
 ########################
 
-load("data/HAW_Grid.RData")
-
-Hawaii_Survey_Grid %>% 
-  group_by(X, Y) %>% 
-  summarise(X = mean(X),
-            Y = mean(Y),
-            depth = mean(DEPTH, na.rm = T)) %>% 
-  na_if(-9999) %>% 
-  ggplot( aes(X, Y, fill = depth)) + 
-  geom_tile(aes(width = 0.005, height = 0.005)) +
-  scale_fill_viridis_c("") +
-  coord_fixed() +
-  ggdark::dark_theme_minimal() + 
-  theme(axis.title = element_blank())
-
-rm(Hawaii_Survey_Grid)
+# load("data/HAW_Grid.RData")
+# 
+# Hawaii_Survey_Grid %>% 
+#   group_by(X, Y) %>% 
+#   summarise(X = mean(X),
+#             Y = mean(Y),
+#             depth = mean(DEPTH, na.rm = T)) %>% 
+#   na_if(-9999) %>% 
+#   ggplot( aes(X, Y, fill = depth)) + 
+#   geom_tile(aes(width = 0.005, height = 0.005)) +
+#   scale_fill_viridis_c("") +
+#   coord_fixed() +
+#   ggdark::dark_theme_minimal() + 
+#   theme(axis.title = element_blank())
+# 
+# rm(Hawaii_Survey_Grid)
 
 #############################################################################
 ### Topography, NOAA Coastal Relief Model, 3 arc second, Vol. 10 (Hawaii) ###
@@ -70,8 +70,20 @@ res = 2
 df$longitude = round(df$x, digits = res)
 df$latitude = round(df$y, digits = res)
 
-# df <- df %>% subset(longitude < -154.8 & longitude > -156.2 & latitude > 18.8 & latitude < 20.4)
-df <- df %>% subset(longitude < -157.5 & longitude > -158.5 & latitude > 21 & latitude < 22)
+MHI_extent = read.csv("data/MHI_Extents.csv")
+
+islands = MHI_extent$ISLAND
+islands = islands[! islands %in% c("Kaula", "Lehua", "Molokini")]
+
+island = islands[1]
+extent = subset(MHI_extent, ISLAND == island)
+
+df <- df %>% 
+  subset(
+    longitude < extent$LEFT_XMIN &
+      longitude > extent$RIGHT_XMAX &
+      latitude > extent$TOP_YMAX & 
+      latitude < extent$BOTTOM_YMIN) 
 
 df = df %>%
   group_by(longitude, latitude) %>%
@@ -80,11 +92,23 @@ df = df %>%
 df$cell = 1:dim(df)[1]; df$cell = as.numeric(df$cell)
 df$division = as.numeric(1)
 
+plot(df$longitude, df$latitude, pch = 20)
+
 ###################################################
 ### import hard/soft bottom substrate shapefile ###
 ### adjust resolutions and merge with crm data  ###
 ###################################################
-load("data/oah_hs_biogeo_shp.RData")
+if (island == "Hawaii") load("data/biogeo/haw_hs_biogeo_shp.RData")
+if (island == "Kahoolawe") load("data/biogeo/kah_hs_biogeo_shp.RData")
+if (island == "Kauai") load("data/biogeo/kau_hs_biogeo_shp.RData")
+if (island == "Lanai") load("data/biogeo/lan_hs_biogeo_shp.RData")
+if (island == "Maui") load("data/biogeo/mai_hs_biogeo_shp.RData")
+if (island == "Molokai") load("data/biogeo/mol_hs_biogeo_shp.RData")
+if (island == "Niihau") load("data/biogeo/nii_hs_biogeo_shp.RData")
+if (island == "Oahu") load("data/biogeo/oah_hs_biogeo_shp.RData")
+
+plot(bottom_type$lon, bottom_type$lat, pch = ".")
+
 utmcoor <- SpatialPoints(cbind(bottom_type$lon, bottom_type$lat), proj4string = CRS("+proj=utm +units=m +zone=4"))
 longlatcoor <- spTransform(utmcoor,CRS("+proj=longlat"))
 bottom_type$lon <- coordinates(longlatcoor)[,1]
@@ -99,7 +123,7 @@ e = extent(bottom_type[,1:2])
 crm_res = rasterFromXYZ(df[,c("longitude", "latitude", "cell")])
 # plot(crm_res, col = rainbow(100))
 crm_res %>%
-  rasterToPoints(spatial = T) %>% 
+  rasterToPoints(spatial = T) %>%
   as.data.frame() %>% 
   ggplot(aes(x, y, fill = cell)) + 
   geom_raster() + 
@@ -110,7 +134,7 @@ dim(crm_res)
 crm_res
 
 # rasterize it, but be careful with resolutions
-res = 10
+res = 1
 r <- raster(e, ncol = round((dim(crm_res)[2]/res), digits = 0), nrow = round(dim(crm_res)[1]/res, digits = 0))
 bottom_type <- rasterize(bottom_type[, 1:2], r, bottom_type[,3], fun = mean)
 bottom_type %>% 
@@ -118,7 +142,7 @@ bottom_type %>%
   as.data.frame() %>% 
   ggplot(aes(x, y, fill = layer)) + 
   geom_raster() + 
-  coord_fixed() + 
+  # coord_fixed() + 
   scale_fill_viridis_b("hard_soft") + 
   ggdark::dark_mode()
 dim(bottom_type)
@@ -140,7 +164,7 @@ qplot(bottom_type$longitude, bottom_type$latitude, color = bottom_type$substrate
 
 bottom_type %>% 
   ggplot(aes(longitude, latitude, fill = substrate)) + 
-  geom_raster(interpolate = T) + 
+  geom_raster(interpolate = F) + 
   coord_fixed() + 
   scale_fill_viridis_b("hard_soft") + 
   ggdark::dark_mode()
@@ -246,3 +270,4 @@ sp::plot(p)
 
 survey_grid_kt = readAll(survey_grid_kt)
 save(survey_grid_kt, file = "data/survey_grid_kt.RData")
+
