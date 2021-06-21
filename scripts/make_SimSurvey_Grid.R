@@ -75,7 +75,7 @@ MHI_extent = read.csv("data/MHI_Extents.csv")
 islands = MHI_extent$ISLAND
 islands = islands[! islands %in% c("Kaula", "Lehua", "Molokini")]
 
-island = islands[1]
+island = islands[3]
 extent = subset(MHI_extent, ISLAND == island)
 
 df <- df %>% 
