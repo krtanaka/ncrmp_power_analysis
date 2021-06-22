@@ -9,10 +9,10 @@ library(ggplot2)
 
 rm(list = ls())
 
-load("data/survey_grid_Kauai.RData")
+load("data/survey_grid_Niihau.RData")
 
-n_sims = 10
-min_sets = 3
+n_sims = 30
+min_sets = 5
 set_den = 2/1000
 
 options(scipen = 999, digits = 2)
