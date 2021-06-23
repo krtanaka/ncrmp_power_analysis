@@ -10,17 +10,17 @@ library(dplyr)
 
 rm(list = ls())
 
-islands = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[4]
+islands = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:8, 1)]
 
-load("data/survey_grid_Niihau.RData")
+load(paste0("data/survey_grid_", islands, ".RData"))
+plot(survey_grid_kt, col = topo.colors(100))
 
 # options(scipen = 999, digits = 2)
 
 sim <- sim_abundance(years = 2010:2020, ages = 1:5) %>%
   sim_distribution(grid = survey_grid_kt)
 
-sim = sim
-n_sims = 10
+n_sims = 10 #number of simulations
 qq = sim_logistic() # simulating catchability at age 
 trawl_dim = c(0.01, 0.0353) # 0.000353 sq.km (353 sq.m) from two 15-m diameter survey cylinders
 resample_cells = FALSE
@@ -103,8 +103,8 @@ setkeyv(sets, c("sim", "year", "cell"))
 
 # true abundance & age data
 sp_I <- data.table(sim$sp_N[, c("cell", "age", "year", "N")])
-sp_I$N = round(sp_I$N/1000, digits = 0)
-# hist(sp_I$N)
+sp_I$N = round(sp_I$N/5000, digits = 0)
+hist(sp_I$N)
 
 i <- rep(seq(nrow(sp_I)), times = n_sims) # number of rows in true abundance data * number of simulations
 s <- rep(seq(n_sims), each = nrow(sp_I))
@@ -167,27 +167,35 @@ sample = sample %>%
 true$ts = "true"
 sample$ts = "survey"
 
-m = ggplot() +
-  # geom_tile(data = cells, aes(x, y, fill = depth,
-  #                             width = 0.5, height = 0.5),
-  #           alpha = 0.1,
-  #           show.legend = F) +
-  geom_point(data = sets, aes(x, y, color = factor(strat)), size = 2) + 
-  facet_wrap(.~year, ncol = 3) + 
-  scale_color_discrete("strata") + 
-  # scale_fill_viridis_c() +
-  # ggdark::dark_theme_void() + 
-  theme_minimal() + 
+true_pop = setdet %>% 
+  group_by(x, y) %>% 
+  summarise(N = mean(N))
+
+d = ggplot() +
+  geom_tile(data = cells, aes(x, y, fill = depth, width = 1, height = 1),
+            alpha = 0.5,
+            show.legend = F) + 
+  geom_point(data = true_pop, aes(x, y, color = N))
+  ggdark::dark_theme_void() +
   theme(axis.title = element_blank(),
         axis.ticks = element_blank())
+
+m = ggplot() +
+  geom_point(data = sets, aes(x, y, color = factor(strat)), size = 2) +
+  facet_wrap(.~year, ncol = 3) + 
+  scale_color_discrete("strata") + 
+  ggdark::dark_theme_void() +
+  theme(axis.title = element_blank(),
+        axis.ticks = element_blank())
+
 
 t = rbind(true, sample) %>% 
   ggplot(aes(year, n, color = ts)) + 
   geom_line() + 
   geom_point(size = 3) + 
   scale_color_discrete("") + 
-  # ggdark::dark_theme_minimal() + 
-  theme_minimal() + 
+  ggdark::dark_theme_minimal() +
+  # theme_minimal() + 
   theme(legend.position = c(1,1),
         legend.justification = c(1,1))
 
