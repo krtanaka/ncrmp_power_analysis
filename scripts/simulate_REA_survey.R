@@ -10,15 +10,15 @@ library(dplyr)
 
 rm(list = ls())
 
-load("data/survey_grid_kt.RData")
+load("data/survey_grid_Hawaii.RData")
 
 options(scipen = 999, digits = 2)
 
-sim <- sim_abundance(ages = 1:2, years = 2001:2010) %>%
+sim <- sim_abundance(years = 2010:2020, ages = 1:5) %>%
   sim_distribution(grid = survey_grid_kt)
 
 sim = sim
-n_sims = 1
+n_sims = 10
 qq = sim_logistic() # simulating catchability at age 
 trawl_dim = c(0.01, 0.0353) # 0.000353 sq.km (353 sq.m) from two 15-m diameter survey cylinders
 resample_cells = FALSE
