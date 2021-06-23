@@ -10,9 +10,11 @@ library(dplyr)
 
 rm(list = ls())
 
-load("data/survey_grid_Hawaii.RData")
+islands = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[4]
 
-options(scipen = 999, digits = 2)
+load("data/survey_grid_Niihau.RData")
+
+# options(scipen = 999, digits = 2)
 
 sim <- sim_abundance(years = 2010:2020, ages = 1:5) %>%
   sim_distribution(grid = survey_grid_kt)
@@ -26,7 +28,7 @@ binom_error = TRUE
 min_sets = 2        # minimum number of sets per strat
 set_den = 2/1000    # number of sets per [grid unit] squared)
 
-n <- age <- id <- division <- strat <- N <- n_measured <- n_aged <- NULL
+n <- age <- id <- division <- strat <- N <- NULL
 
 sim <- round_sim(sim)
 
