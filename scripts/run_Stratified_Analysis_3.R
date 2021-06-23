@@ -9,10 +9,12 @@ library(ggplot2)
 
 rm(list = ls())
 
-load("data/survey_grid_Niihau.RData")
 
-n_sims = 30
-min_sets = 5
+load("data/survey_grid_Oahu.RData")
+plot(survey_grid_kt)
+
+n_sims = 10
+min_sets = 20
 set_den = 2/1000
 
 options(scipen = 999, digits = 2)
@@ -21,62 +23,77 @@ set.seed(300)
 sim = sim_abundance(years = 2010:2020, 
                     ages = 1:5) %>% 
   sim_distribution(grid = survey_grid_kt) %>% 
-    sim_survey(trawl_dim = c(0.01, 0.0353), 
-               n_sims = n_sims, 
-               min_sets = min_sets, 
-               set_den = set_den)
+  sim_survey(trawl_dim = c(0.01, 0.0353), 
+             n_sims = n_sims, 
+             min_sets = min_sets, 
+             set_den = set_den)
 
 sim = sim 
-length_group = "inherit"
-alk_scale = "division"
 
-strat_data_fun = strat_data
-strat_means_fun = strat_means
+setdet <- sim$setdet
 
-sim_length_group <- get("length_group", envir = environment(sim$sim_length))
+data = list(setdet = setdet)
 
-if (is.character(length_group) && length_group == "inherit") {
-  length_group <- sim_length_group
-} else {
-  if (length_group != sim_length_group) {
-    warning(paste0("length_group value should be set to ", 
-                   sim_length_group, " to match the length group defined inside sim_abundance using sim_length", 
-                   "; a mismatch in length groupings will cause issues with strat_error", 
-                   " as true vs. estimated length groupings will be mismatched."))
-  }
-}
+data$setdet <- data$setdet[, c("sim", 
+                               "year", 
+                               "division",
+                               "strat",
+                               "strat_area", 
+                               "tow_area",
+                               "set",
+                               "n"), 
+                           with = FALSE]
+data = data$setdet
+# data$n = round(data$n*0.1, digits = 0)
+metric = "n"
+strat_groups = c("sim", "year", "division", "strat", "strat_area", "tow_area")
+survey_groups = c("sim", "year")
+confidence = 95
 
-data <- strat_data_fun(sim, length_group = length_group, 
-                       alk_scale = alk_scale)
+Nh <- strat_area <- tow_area <- Wh <- total <- sumYh <- nh <- gh <- meanYh <- varYh <- meanYst_lcl <- meanYst <- varYst <- df <- meanYst_ucl <- sumYst <- N <- sumYst_lcl <- sumYst_ucl <- NULL
 
-data$setdet <- data$setdet[, c("sim", "year", 
-                               "division", "strat", "strat_area", 
-                               "tow_area", "set", "n"), with = FALSE]
+lc <- (100 - confidence)/200
+uc <- (100 - confidence)/200 + (confidence/100)
+d <- copy(data)
+d <- d[, c(strat_groups, metric), with = FALSE]
+setnames(d, names(d), c(strat_groups, "metric"))
+setkeyv(d, strat_groups)
+strat_tab <- d[, list(sumYh = sum(metric),
+                      meanYh = mean(metric), 
+                      varYh = stats::var(metric), 
+                      nh = .N),
+               by = strat_groups]
+strat_tab[, `:=`(Nh, strat_area/tow_area)]
+strat_tab[, `:=`(Wh, Nh/sum(Nh)), by = survey_groups]
+strat_tab[, `:=`(total, Nh * sumYh/nh)]
+strat_tab[, `:=`(gh, Nh * (Nh - nh)/nh)]
 
-data$lf <- merge(data$setdet[, setdiff(names(data$setdet), 
-                                       "n"), with = FALSE], data$lf, by = "set", 
-                 all = TRUE)
+survey_tab <- strat_tab[, list(n = sum(nh),
+                               N = sum(Nh), 
+                               meanYst = sum(Wh * meanYh), 
+                               varYst = (1/((sum(Nh))^2)) * sum(gh * varYh), 
+                               df = ((sum(gh * varYh))^2)/(sum((gh^2 * varYh^2)/(nh - 1)))), by = survey_groups]
 
-data$af <- merge(data$setdet[, setdiff(names(data$setdet), 
-                                       "n"), with = FALSE], data$af, by = "set", 
-                 all = TRUE)
+survey_tab[, `:=`(meanYst_lcl, (meanYst - (sqrt(varYst)) * abs(stats::qt(lc, df))))]
+survey_tab[, `:=`(meanYst_ucl, (meanYst + (sqrt(varYst)) * abs(stats::qt(lc, df))))]
+survey_tab[, `:=`(sumYst, N * meanYst)]
+survey_tab[, `:=`(sumYst_lcl, (sumYst - abs(stats::qt(lc, df)) * N * sqrt(varYst)))]
+survey_tab[, `:=`(sumYst_ucl, (sumYst + abs(stats::qt(lc, df)) * N * sqrt(varYst)))]
+survey_tab[sapply(survey_tab, is.nan)] <- NA
+survey_tab <- survey_tab[, c(survey_groups,
+                             "n", "N", 
+                             "df", "varYst", "meanYst", "meanYst_lcl", 
+                             "meanYst_ucl", "sumYst", "sumYst_lcl", 
+                             "sumYst_ucl"), with = FALSE]
+survey_tab$varYst <- sqrt(survey_tab$varYst)
+setnames(survey_tab, names(survey_tab), c(survey_groups, 
+                                          "sets", "sampling_units", "df", "sd", 
+                                          "mean", "mean_lcl", "mean_ucl", "total", 
+                                          "total_lcl", "total_ucl"))
+survey_tab
+sim$total_strat = survey_tab
 
-strat_args <- list(data = data$setdet, metric = "n", 
-                   strat_groups = c("sim", "year", "division", 
-                                    "strat", "strat_area", "tow_area"), 
-                   survey_groups = c("sim", "year"))
-
-sim$total_strat <- do.call(strat_means_fun, strat_args)
-strat_args$data <- data$lf
-strat_args$strat_groups <- c(strat_args$strat_groups, "length")
-strat_args$survey_groups <- c(strat_args$survey_groups, "length")
-sim$length_strat <- do.call(strat_means_fun, strat_args)
-strat_args$data <- data$af
-strat_args$strat_groups[strat_args$strat_groups == "length"] <- "age"
-strat_args$survey_groups[strat_args$survey_groups == "length"] <- "age"
-sim$age_strat <- do.call(strat_means_fun, strat_args)
-
-total <- age <- NULL
+total <- NULL
 I_hat <- sim$total_strat[, list(sim, year, total)]
 names(I_hat) <- c("sim", "year", "I_hat")
 I <- data.frame(year = sim$years, I = colSums(sim$I))
@@ -86,40 +103,6 @@ means <- error_stats(comp$error)
 sim$total_strat_error <- comp
 sim$total_strat_error_stats <- means
 I_hat <- sim$length_strat[, list(sim, year, length, total)]
-names(I_hat) <- c("sim", "year", "length", 
-                  "I_hat")
-sly <- expand.grid(sim = seq(max(sim$total_strat$sim)), year = sim$years, 
-                   length = sim$lengths)
-I_hat <- merge(sly, I_hat, by = c("sim", "year", 
-                                  "length"), all = TRUE)
-I_hat$I_hat[is.na(I_hat$I_hat)] <- 0
-I <- as.data.frame.table(sim$I_at_length, responseName = "I")
-I$year <- as.numeric(as.character(I$year))
-I$length <- as.numeric(as.character(I$length))
-comp <- merge(data.table(I_hat), data.table(I), by = c("year", 
-                                                       "length"))
-comp$error <- comp$I_hat - comp$I
-means <- error_stats(comp$error)
-sim$length_strat_error <- comp
-sim$length_strat_error_stats <- means
-I_hat <- sim$age_strat[, list(sim, year, age, total)]
-names(I_hat) <- c("sim", "year", "age", 
-                  "I_hat")
-say <- expand.grid(sim = seq(max(sim$total_strat$sim)), year = sim$years, 
-                   age = sim$ages)
-I_hat <- merge(say, I_hat, by = c("sim", "year", 
-                                  "age"), all = TRUE)
-I_hat$I_hat[is.na(I_hat$I_hat)] <- 0
-I <- as.data.frame.table(sim$I, responseName = "I")
-I$year <- as.numeric(as.character(I$year))
-I$age <- as.numeric(as.character(I$age))
-comp <- merge(data.table(I_hat), data.table(I), by = c("year", 
-                                                       "age"))
-comp$error <- comp$I_hat - comp$I
-means <- error_stats(comp$error)
-sim$age_strat_error <- comp
-sim$age_strat_error_stats <- means
-sim
 
 
 sim$total_strat_error_stats
@@ -155,7 +138,7 @@ p = df %>%
            geom = "text",
            x = Inf,
            y = Inf, 
-           size = 2, 
+           size = 4, 
            hjust = 1,
            vjust = 1) 
 
