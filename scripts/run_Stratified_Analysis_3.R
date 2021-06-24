@@ -8,17 +8,20 @@ library(data.table)
 library(ggplot2)
 
 rm(list = ls())
+# set.seed(100)
 
+islands = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:8, 1)]
 
-load("data/survey_grid_Hawaii.RData")
+load(paste0("data/survey_grid_", islands, ".RData"))
+
+# load("data/survey_grid_Hawaii.RData")
 plot(survey_grid_kt)
 
 n_sims = 10
-min_sets = 2
+min_sets = 5
 set_den = 2/1000
 
-options(scipen = 999, digits = 2)
-set.seed(300)
+# options(scipen = 999, digits = 2)
 
 sim = sim_abundance(years = 2010:2020, ages = 1:5) %>% 
   sim_distribution(grid = survey_grid_kt) %>% 
@@ -115,7 +118,7 @@ label = paste0("ME = ", me, "\n", "MAE = ", mae, "\n", "MSE = ", mse, "\n", "RMS
 
 # ggdark::invert_geom_defaults()
 
-p = df %>% 
+df %>% 
   ggplot() + 
   # geom_point(aes(year, I_hat, color = factor(sim), alpha = 0.5), show.legend = F) +
   geom_line(aes(year, I_hat, color = factor(sim), alpha = 0.8), show.legend = F) +
@@ -139,4 +142,3 @@ p = df %>%
            hjust = 1,
            vjust = 1) 
 
-print(p)
