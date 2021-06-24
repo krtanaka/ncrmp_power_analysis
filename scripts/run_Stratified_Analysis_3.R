@@ -8,7 +8,7 @@ library(data.table)
 library(ggplot2)
 
 rm(list = ls())
-# set.seed(100)
+set.seed(100)
 
 islands = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:8, 1)]
 
@@ -18,17 +18,22 @@ load(paste0("data/survey_grid_", islands, ".RData"))
 plot(survey_grid_kt)
 
 n_sims = 10
-min_sets = 5
+min_sets = 2
 set_den = 2/1000
 
 # options(scipen = 999, digits = 2)
 
-sim = sim_abundance(years = 2010:2020, ages = 1:5) %>% 
+sim = sim_abundance(years = 2010:2020, ages = 1:5,
+                    R = sim_R(log_mean = log(10000),
+                              log_sd = 0.5),
+                    Z = sim_Z(log_mean = log(0.1))) %>% 
   sim_distribution(grid = survey_grid_kt) %>% 
   sim_survey(trawl_dim = c(0.01, 0.0353), 
              n_sims = n_sims, 
              min_sets = min_sets, 
              set_den = set_den)
+
+plot_distribution(sim = sim, ages = 1, years = 2010)
 
 setdet <- sim$setdet
 
@@ -44,29 +49,35 @@ data$setdet <- data$setdet[, c("sim",
                                "n"), 
                            with = FALSE]
 data = data$setdet
-# data$n = round(data$n*0.1, digits = 0)
+data
+
 metric = "n"
 strat_groups = c("sim", "year", "division", "strat", "strat_area", "tow_area")
 survey_groups = c("sim", "year")
+
 confidence = 95
 
 Nh <- strat_area <- tow_area <- Wh <- total <- sumYh <- nh <- gh <- meanYh <- varYh <- meanYst_lcl <- meanYst <- varYst <- df <- meanYst_ucl <- sumYst <- N <- sumYst_lcl <- sumYst_ucl <- NULL
 
-lc <- (100 - confidence)/200
-uc <- (100 - confidence)/200 + (confidence/100)
+lc <- (100 - confidence)/200; lc
+uc <- (100 - confidence)/200 + (confidence/100); uc
+
 d <- copy(data)
 d <- d[, c(strat_groups, metric), with = FALSE]
+
 setnames(d, names(d), c(strat_groups, "metric"))
 setkeyv(d, strat_groups)
+
 strat_tab <- d[, list(sumYh = sum(metric),
-                      meanYh = mean(metric), 
-                      varYh = stats::var(metric), 
+                      meanYh = mean(metric, na.rm = T), 
+                      varYh = stats::var(metric, na.rm = T), 
                       nh = .N),
-               by = strat_groups]
-strat_tab[, `:=`(Nh, strat_area/tow_area)]
-strat_tab[, `:=`(Wh, Nh/sum(Nh)), by = survey_groups]
-strat_tab[, `:=`(total, Nh * sumYh/nh)]
-strat_tab[, `:=`(gh, Nh * (Nh - nh)/nh)]
+               by = strat_groups]; strat_tab
+
+strat_tab[, `:=`(Nh, strat_area/tow_area)]; strat_tab
+strat_tab[, `:=`(Wh, Nh/sum(Nh)), by = survey_groups]; strat_tab
+strat_tab[, `:=`(total, Nh * sumYh/nh)]; strat_tab
+strat_tab[, `:=`(gh, Nh * (Nh - nh)/nh)]; strat_tab
 
 survey_tab <- strat_tab[, list(n = sum(nh),
                                N = sum(Nh), 
@@ -79,24 +90,47 @@ survey_tab[, `:=`(meanYst_ucl, (meanYst + (sqrt(varYst)) * abs(stats::qt(lc, df)
 survey_tab[, `:=`(sumYst, N * meanYst)]
 survey_tab[, `:=`(sumYst_lcl, (sumYst - abs(stats::qt(lc, df)) * N * sqrt(varYst)))]
 survey_tab[, `:=`(sumYst_ucl, (sumYst + abs(stats::qt(lc, df)) * N * sqrt(varYst)))]
+
 survey_tab[sapply(survey_tab, is.nan)] <- NA
+
 survey_tab <- survey_tab[, c(survey_groups,
-                             "n", "N", 
-                             "df", "varYst", "meanYst", "meanYst_lcl", 
-                             "meanYst_ucl", "sumYst", "sumYst_lcl", 
-                             "sumYst_ucl"), with = FALSE]
+                             "n", 
+                             "N", 
+                             "df",
+                             "varYst", 
+                             "meanYst",
+                             "meanYst_lcl", 
+                             "meanYst_ucl",
+                             "sumYst",
+                             "sumYst_lcl", 
+                             "sumYst_ucl"), 
+                         with = FALSE]
+
 survey_tab$varYst <- sqrt(survey_tab$varYst)
+
 setnames(survey_tab, names(survey_tab), c(survey_groups, 
-                                          "sets", "sampling_units", "df", "sd", 
-                                          "mean", "mean_lcl", "mean_ucl", "total", 
-                                          "total_lcl", "total_ucl"))
+                                          "sets", 
+                                          "sampling_units", 
+                                          "df", 
+                                          "sd", 
+                                          "mean",
+                                          "mean_lcl",
+                                          "mean_ucl",
+                                          "total", 
+                                          "total_lcl", 
+                                          "total_ucl"))
 survey_tab
+
 sim$total_strat = survey_tab
 
 total <- NULL
+
 I_hat <- sim$total_strat[, list(sim, year, total)]
+
 names(I_hat) <- c("sim", "year", "I_hat")
+
 I <- data.frame(year = sim$years, I = colSums(sim$I))
+
 comp <- merge(I_hat, I, by = "year")
 comp$error <- comp$I_hat - comp$I
 means <- error_stats(comp$error)
