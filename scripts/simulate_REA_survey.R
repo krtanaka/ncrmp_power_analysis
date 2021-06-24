@@ -7,6 +7,7 @@ library(raster)
 library(data.table)
 library(ggplot2)
 library(dplyr)
+library(patchwork)
 
 rm(list = ls())
 
@@ -103,7 +104,7 @@ setkeyv(sets, c("sim", "year", "cell"))
 
 # true abundance & age data
 sp_I <- data.table(sim$sp_N[, c("cell", "age", "year", "N")])
-sp_I$N = round(sp_I$N/5000, digits = 0)
+# sp_I$N = round(sp_I$N/1000, digits = 0)
 hist(sp_I$N)
 
 i <- rep(seq(nrow(sp_I)), times = n_sims) # number of rows in true abundance data * number of simulations
@@ -169,25 +170,26 @@ sample$ts = "survey"
 
 true_pop = setdet %>% 
   group_by(x, y) %>% 
-  summarise(N = mean(N))
+  summarise(N = sum(N))
 
 d = ggplot() +
   geom_tile(data = cells, aes(x, y, fill = depth, width = 1, height = 1),
             alpha = 0.5,
             show.legend = F) + 
-  geom_point(data = true_pop, aes(x, y, color = N))
+  geom_point(data = true_pop, aes(x, y, size = N, color = "red")) + 
   ggdark::dark_theme_void() +
   theme(axis.title = element_blank(),
-        axis.ticks = element_blank())
+        axis.ticks = element_blank()) + 
+  ggtitle("Survey domain + Target population")
 
 m = ggplot() +
-  geom_point(data = sets, aes(x, y, color = factor(strat)), size = 2) +
+  geom_point(data = sets, aes(x, y, color = factor(strat)), size = 1) +
   facet_wrap(.~year, ncol = 3) + 
   scale_color_discrete("strata") + 
   ggdark::dark_theme_void() +
   theme(axis.title = element_blank(),
-        axis.ticks = element_blank())
-
+        axis.ticks = element_blank()) + 
+  ggtitle("Simulated Sampling Efforts")
 
 t = rbind(true, sample) %>% 
   ggplot(aes(year, n, color = ts)) + 
@@ -195,12 +197,11 @@ t = rbind(true, sample) %>%
   geom_point(size = 3) + 
   scale_color_discrete("") + 
   ggdark::dark_theme_minimal() +
-  # theme_minimal() + 
   theme(legend.position = c(1,1),
-        legend.justification = c(1,1))
+        legend.justification = c(1,1))+ 
+  ggtitle("Survey + True")
 
-library(patchwork)
-t + m
+(d / m ) | t
 
 
 
@@ -220,7 +221,6 @@ data$setdet <- data$setdet[, c("sim",
                                "n"), 
                            with = FALSE]
 data = data$setdet
-# data$n = round(data$n*0.1, digits = 0)
 metric = "n"
 strat_groups = c("sim", "year", "division", "strat", "strat_area", "tow_area")
 survey_groups = c("sim", "year")
