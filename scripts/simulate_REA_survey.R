@@ -11,6 +11,8 @@ library(patchwork)
 
 rm(list = ls())
 
+set.seed(10)
+
 islands = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:8, 1)]
 
 load(paste0("data/survey_grid_", islands, ".RData"))
@@ -26,7 +28,7 @@ qq = sim_logistic() # simulating catchability at age
 trawl_dim = c(0.01, 0.0353) # 0.000353 sq.km (353 sq.m) from two 15-m diameter survey cylinders
 resample_cells = FALSE
 binom_error = TRUE
-min_sets = 2        # minimum number of sets per strat
+min_sets = 1        # minimum number of sets per strat
 set_den = 2/1000    # number of sets per [grid unit] squared)
 
 n <- age <- id <- division <- strat <- N <- NULL
@@ -104,7 +106,7 @@ setkeyv(sets, c("sim", "year", "cell"))
 
 # true abundance & age data
 sp_I <- data.table(sim$sp_N[, c("cell", "age", "year", "N")])
-# sp_I$N = round(sp_I$N/1000, digits = 0)
+sp_I$N = round(sp_I$N/1000, digits = 0)
 hist(sp_I$N)
 
 i <- rep(seq(nrow(sp_I)), times = n_sims) # number of rows in true abundance data * number of simulations
@@ -170,7 +172,7 @@ sample$ts = "survey"
 
 true_pop = setdet %>% 
   group_by(x, y) %>% 
-  summarise(N = sum(N))
+  summarise(N = median(N))
 
 d = ggplot() +
   geom_tile(data = cells, aes(x, y, fill = depth, width = 1, height = 1),
@@ -204,10 +206,7 @@ t = rbind(true, sample) %>%
 (d / m ) | t
 
 
-
 # -------------------------------------------------------------------------
-
-
 
 data = list(setdet = setdet)
 
@@ -230,7 +229,7 @@ Nh <- strat_area <- tow_area <- Wh <- total <- sumYh <- nh <- gh <- meanYh <- va
 
 lc <- (100 - confidence)/200
 uc <- (100 - confidence)/200 + (confidence/100)
-d <- copy(data)
+d <- data.table::copy(data)
 d <- d[, c(strat_groups, metric), with = FALSE]
 setnames(d, names(d), c(strat_groups, "metric"))
 setkeyv(d, strat_groups)
