@@ -11,8 +11,6 @@ library(patchwork)
 
 rm(list = ls())
 
-set.seed(50)
-
 islands = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:8, 1)]
 
 load(paste0("data/survey_grid_", islands, ".RData"))
@@ -28,7 +26,7 @@ qq = sim_logistic() # simulating catchability at age
 trawl_dim = c(0.01, 0.0353) # 0.000353 sq.km (353 sq.m) from two 15-m diameter survey cylinders
 resample_cells = FALSE
 binom_error = TRUE
-min_sets = 1        # minimum number of sets per strat
+min_sets = 2        # minimum number of sets per strat
 set_den = 2/1000    # number of sets per [grid unit] squared)
 
 n <- age <- id <- division <- strat <- N <- NULL
@@ -106,7 +104,7 @@ setkeyv(sets, c("sim", "year", "cell"))
 
 # true abundance & age data
 sp_I <- data.table(sim$sp_N[, c("cell", "age", "year", "N")])
-# sp_I$N = round(sp_I$N*0.001, digits = 0); sp_I$N[sp_I$N > quantile(sp_I$N, 0.95)] <- 0
+# sp_I$N = round(sp_I$N/1000, digits = 0)
 hist(sp_I$N)
 
 i <- rep(seq(nrow(sp_I)), times = n_sims) # number of rows in true abundance data * number of simulations
@@ -172,20 +170,19 @@ sample$ts = "survey"
 
 true_pop = setdet %>% 
   group_by(x, y) %>% 
-  summarise(N = median(N))
+  summarise(N = sum(N))
 
-domain = ggplot() +
+d = ggplot() +
   geom_tile(data = cells, aes(x, y, fill = depth, width = 1, height = 1),
             alpha = 0.5,
             show.legend = F) + 
-  geom_point(data = true_pop, aes(x, y, size = N, color = "catch")) + 
-  scale_fill_viridis_c() + 
+  geom_point(data = true_pop, aes(x, y, size = N, color = "red")) + 
   ggdark::dark_theme_void() +
   theme(axis.title = element_blank(),
         axis.ticks = element_blank()) + 
   ggtitle("Survey domain + Target population")
 
-survey_efforts = ggplot() +
+m = ggplot() +
   geom_point(data = sets, aes(x, y, color = factor(strat)), size = 1) +
   facet_wrap(.~year, ncol = 3) + 
   scale_color_discrete("strata") + 
@@ -194,7 +191,7 @@ survey_efforts = ggplot() +
         axis.ticks = element_blank()) + 
   ggtitle("Simulated Sampling Efforts")
 
-true_survey = rbind(true, sample) %>% 
+t = rbind(true, sample) %>% 
   ggplot(aes(year, n, color = ts)) + 
   geom_line() + 
   geom_point(size = 3) + 
@@ -204,7 +201,13 @@ true_survey = rbind(true, sample) %>%
         legend.justification = c(1,1))+ 
   ggtitle("Survey + True")
 
+(d / m ) | t
+
+
+
 # -------------------------------------------------------------------------
+
+
 
 data = list(setdet = setdet)
 
@@ -227,7 +230,7 @@ Nh <- strat_area <- tow_area <- Wh <- total <- sumYh <- nh <- gh <- meanYh <- va
 
 lc <- (100 - confidence)/200
 uc <- (100 - confidence)/200 + (confidence/100)
-d <- data.table::copy(data)
+d <- copy(data)
 d <- d[, c(strat_groups, metric), with = FALSE]
 setnames(d, names(d), c(strat_groups, "metric"))
 setkeyv(d, strat_groups)
@@ -277,6 +280,7 @@ sim$total_strat_error <- comp
 sim$total_strat_error_stats <- means
 I_hat <- sim$length_strat[, list(sim, year, length, total)]
 
+
 sim$total_strat_error_stats
 sim$total_strat_error
 df = sim$total_strat_error
@@ -288,7 +292,9 @@ rmse = formatC(sim$total_strat_error_stats[4], digits = 3)
 
 label = paste0("ME = ", me, "\n", "MAE = ", mae, "\n", "MSE = ", mse, "\n", "RMSE = ", rmse)
 
-sim_result = df %>% 
+# ggdark::invert_geom_defaults()
+
+p = df %>% 
   ggplot() + 
   # geom_point(aes(year, I_hat, color = factor(sim), alpha = 0.5), show.legend = F) +
   geom_line(aes(year, I_hat, color = factor(sim), alpha = 0.8), show.legend = F) +
@@ -312,7 +318,5 @@ sim_result = df %>%
            hjust = 1,
            vjust = 1) 
 
-print(sim_result)
-
-(domain | survey_efforts ) / (true_survey | sim_result)
+print(p)
 
