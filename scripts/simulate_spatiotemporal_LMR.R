@@ -8,7 +8,7 @@ library(patchwork)
 
 rm(list = ls())
 
-load("data/survey_grid_kt.RData")
+load("data/survey_grid_Hawaii.RData")
 
 set.seed(438)
 
