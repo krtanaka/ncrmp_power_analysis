@@ -6,16 +6,14 @@ library(SimSurvey)
 library(raster)
 library(data.table)
 library(ggplot2)
+library(dplyr)
 
 rm(list = ls())
-set.seed(100)
+
+set.seed(10)
 
 islands = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:8, 1)]
-
 load(paste0("data/survey_grid_", islands, ".RData"))
-
-# load("data/survey_grid_Hawaii.RData")
-plot(survey_grid_kt)
 
 n_sims = 10
 min_sets = 2
@@ -25,7 +23,7 @@ set_den = 2/1000
 
 sim = sim_abundance(years = 2010:2020, ages = 1:5,
                     R = sim_R(log_mean = log(10000),
-                              log_sd = 0.5),
+                              log_sd = 0.9),
                     Z = sim_Z(log_mean = log(0.1))) %>% 
   sim_distribution(grid = survey_grid_kt) %>% 
   sim_survey(trawl_dim = c(0.01, 0.0353), 
@@ -33,7 +31,7 @@ sim = sim_abundance(years = 2010:2020, ages = 1:5,
              min_sets = min_sets, 
              set_den = set_den)
 
-plot_distribution(sim = sim, ages = 1, years = 2010)
+# plot_distribution(sim = sim, ages = 1, years = 2010)
 
 setdet <- sim$setdet
 
@@ -68,10 +66,10 @@ d <- d[, c(strat_groups, metric), with = FALSE]
 setnames(d, names(d), c(strat_groups, "metric"))
 setkeyv(d, strat_groups)
 
-strat_tab <- d[, list(sumYh = sum(metric),
-                      meanYh = mean(metric, na.rm = T), 
-                      varYh = stats::var(metric, na.rm = T), 
-                      nh = .N),
+strat_tab <- d[, list(sumYh = sum(metric), # sum of samples (n)
+                      meanYh = mean(metric, na.rm = T), # mean of samples (n)
+                      varYh = stats::var(metric, na.rm = T), # variance of samples (n)
+                      nh = .N), # number of strata
                by = strat_groups]; strat_tab
 
 strat_tab[, `:=`(Nh, strat_area/tow_area)]; strat_tab
@@ -79,17 +77,17 @@ strat_tab[, `:=`(Wh, Nh/sum(Nh)), by = survey_groups]; strat_tab
 strat_tab[, `:=`(total, Nh * sumYh/nh)]; strat_tab
 strat_tab[, `:=`(gh, Nh * (Nh - nh)/nh)]; strat_tab
 
-survey_tab <- strat_tab[, list(n = sum(nh),
-                               N = sum(Nh), 
+survey_tab <- strat_tab[, list(n = sum(nh, na.rm = T),
+                               N = sum(Nh, na.rm = T), 
                                meanYst = sum(Wh * meanYh), 
                                varYst = (1/((sum(Nh))^2)) * sum(gh * varYh), 
-                               df = ((sum(gh * varYh))^2)/(sum((gh^2 * varYh^2)/(nh - 1)))), by = survey_groups]
+                               df = ((sum(gh * varYh))^2)/(sum((gh^2 * varYh^2)/(nh - 1)))), by = survey_groups]; survey_tab
 
-survey_tab[, `:=`(meanYst_lcl, (meanYst - (sqrt(varYst)) * abs(stats::qt(lc, df))))]
-survey_tab[, `:=`(meanYst_ucl, (meanYst + (sqrt(varYst)) * abs(stats::qt(lc, df))))]
-survey_tab[, `:=`(sumYst, N * meanYst)]
-survey_tab[, `:=`(sumYst_lcl, (sumYst - abs(stats::qt(lc, df)) * N * sqrt(varYst)))]
-survey_tab[, `:=`(sumYst_ucl, (sumYst + abs(stats::qt(lc, df)) * N * sqrt(varYst)))]
+survey_tab[, `:=`(meanYst_lcl, (meanYst - (sqrt(varYst)) * abs(stats::qt(lc, df))))]; survey_tab
+survey_tab[, `:=`(meanYst_ucl, (meanYst + (sqrt(varYst)) * abs(stats::qt(lc, df))))]; survey_tab
+survey_tab[, `:=`(sumYst, N * meanYst)]; survey_tab
+survey_tab[, `:=`(sumYst_lcl, (sumYst - abs(stats::qt(lc, df)) * N * sqrt(varYst)))]; survey_tab
+survey_tab[, `:=`(sumYst_ucl, (sumYst + abs(stats::qt(lc, df)) * N * sqrt(varYst)))]; survey_tab
 
 survey_tab[sapply(survey_tab, is.nan)] <- NA
 
@@ -126,7 +124,6 @@ sim$total_strat = survey_tab
 total <- NULL
 
 I_hat <- sim$total_strat[, list(sim, year, total)]
-
 names(I_hat) <- c("sim", "year", "I_hat")
 
 I <- data.frame(year = sim$years, I = colSums(sim$I))
@@ -137,7 +134,6 @@ means <- error_stats(comp$error)
 sim$total_strat_error <- comp
 sim$total_strat_error_stats <- means
 I_hat <- sim$length_strat[, list(sim, year, length, total)]
-
 
 sim$total_strat_error_stats
 sim$total_strat_error
@@ -150,18 +146,32 @@ rmse = formatC(sim$total_strat_error_stats[4], digits = 3)
 
 label = paste0("ME = ", me, "\n", "MAE = ", mae, "\n", "MSE = ", mse, "\n", "RMSE = ", rmse)
 
-# ggdark::invert_geom_defaults()
+ggdark::invert_geom_defaults()
 
-df %>% 
+strata = sim$grid_xy %>%
+  mutate(x = round(x/1, digits = 0),
+         y = round(y/1, digits = 0)) %>%
+  group_by(x, y) %>% 
+  summarise(strat = round(mean(strat), digits = 0),
+            depth = mean(depth)) %>% 
+  ggplot(aes(x, y)) + 
+  coord_fixed() + 
+  scale_fill_discrete("Strata") + 
+  geom_raster(aes(fill = factor(strat))) + 
+  theme_void() + 
+  theme(legend.position = "bottom") + 
+  ggtitle(islands)
+
+sim_output = df %>% 
   ggplot() + 
-  # geom_point(aes(year, I_hat, color = factor(sim), alpha = 0.5), show.legend = F) +
+  geom_point(aes(year, I_hat, color = factor(sim), alpha = 0.5), show.legend = F) +
   geom_line(aes(year, I_hat, color = factor(sim), alpha = 0.8), show.legend = F) +
   geom_point(aes(year, I), size = 1, color = "red") + 
   geom_line(aes(year, I), size = 1, color = "red") + 
-  scale_fill_viridis_d() +
-  scale_color_viridis_d() +
-  ggdark::dark_theme_classic() +
-  # theme_minimal()+ 
+  # scale_fill_viridis_d() +
+  # scale_color_viridis_d() +
+  theme_minimal() + 
+  ylab("total_abundance (n)")+
   labs(
     title = "",
     subtitle = paste0("Number of simulations = ", n_sims, "\n",
@@ -176,3 +186,5 @@ df %>%
            hjust = 1,
            vjust = 1) 
 
+library(patchwork)
+strata + sim_output
