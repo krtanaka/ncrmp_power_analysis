@@ -22,7 +22,7 @@ set_den = 2/1000
 # options(scipen = 999, digits = 2)
 
 sim = sim_abundance(years = 2010:2020, ages = 1:5,
-                    R = sim_R(log_mean = log(10000),
+                    R = sim_R(log_mean = log(100),
                               log_sd = 0.9),
                     Z = sim_Z(log_mean = log(0.1))) %>% 
   sim_distribution(grid = survey_grid_kt) %>% 

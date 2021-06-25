@@ -8,7 +8,6 @@ rm(list = ls())
 
 load("data/ALL_REA_FISH_RAW.rdata")
 
-
 # Total numerical density estimates (individuals per 100 m2) were obtained by dividing fish counts in each survey by the survey area (353 m2 from two 15-m diameter survey cylinders) and multiplying by 100. - Nadon et al. 2020
 
 df = df %>% 
@@ -24,7 +23,7 @@ sp = df %>%
   top_n(5) 
 
 df$density = ifelse(df$TAXONNAME == "Aprion virescens", df$density, 0)
-# df$density = ifelse(df$TAXONNAME == "Acanthurus olivaceus", df$density, 0) # most abundant in MHI
+df$density = ifelse(df$TAXONNAME == "Chromis vanderbilti", df$density, 0) # most abundant in MHI
 
 df %>% 
   group_by(ISLAND) %>% 
