@@ -16,8 +16,8 @@ islands = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau"
 load(paste0("data/survey_grid_", islands, ".RData"))
 
 n_sims = 1
-min_sets = 1
-set_den = 1/1000
+min_sets = 2
+set_den = 2/1000
 
 # options(scipen = 999, digits = 2)
 
@@ -35,8 +35,12 @@ sim = sim_abundance(years = 2010:2020, ages = 1:5,
   )
 
 sim %>% 
-  subset(strat == 2) %>% 
+  # subset(strat == 2) %>% 
   ggplot(aes(x, y, color = factor(strat))) + 
   geom_point() + 
   facet_wrap(.~sim)
+
+sim %>% 
+  group_by(strat) %>% 
+  summarise(n = n())
 

@@ -10,10 +10,13 @@ load("data/ALL_REA_FISH_RAW.rdata")
 
 # Total numerical density estimates (individuals per 100 m2) were obtained by dividing fish counts in each survey by the survey area (353 m2 from two 15-m diameter survey cylinders) and multiplying by 100. - Nadon et al. 2020
 
+region = "MHI"
+uku_or_not = T
+
 df = df %>% 
-  subset(REGION == "MHI") %>% 
+  subset(REGION == region) %>% 
   mutate(density = COUNT*100) #%>% #
-  # mutate(density = BIOMASS_G_M2*0.001)
+# mutate(density = BIOMASS_G_M2*0.001)
 
 sp = df %>% 
   group_by(TAXONNAME) %>% 
@@ -22,8 +25,17 @@ sp = df %>%
   arrange(desc(freq)) %>% 
   top_n(5) 
 
-df$density = ifelse(df$TAXONNAME == "Aprion virescens", df$density, 0)
-df$density = ifelse(df$TAXONNAME == "Chromis vanderbilti", df$density, 0) # most abundant in MHI
+if (uku_or_not == T) {
+  
+  sp = "Aprion virescens"
+  df$density = ifelse(df$TAXONNAME == sp, df$density, 0)
+  
+} else{
+  
+  sp = as.data.frame(sp[1,1]); sp = sp$TAXONNAME
+  df$density = ifelse(df$TAXONNAME == sp, df$density, 0) # most abundant in MHI
+  
+}
 
 df %>% 
   group_by(ISLAND) %>% 
@@ -56,7 +68,8 @@ xy_utm = as.data.frame(cbind(utm = project(as.matrix(df[, c("LONGITUDE", "LATITU
 colnames(xy_utm) = c("X", "Y"); plot(xy_utm, pch = ".", bty = 'n')
 df = cbind(df, xy_utm)
 
-rea_spde <- make_mesh(df, c("X", "Y"), n_knots = 300, type = "cutoff_search") # a coarse mesh for speed
+n_knots = 300
+rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search") # a coarse mesh for speed
 
 plot(rea_spde, pch = "."); axis(1); axis(2)
 
@@ -88,6 +101,9 @@ density_model <- sdmTMB(
   control = sdmTMBcontrol(step.min = 0.01, step.max = 1)
   
 )
+
+save.image(paste0("outputs/density_model_", sp, "_", n_knots, "_", region, ".RData"))
+load(paste0("outputs/density_model_", sp, "_", n_knots, "_", region, ".RData"))
 
 # look at gradients
 max(density_model$gradients)
@@ -125,7 +141,7 @@ r
 # prediction onto new data grid
 load("data/Topography_NOAA_CRM_vol10.RData")
 
-topo <- topo %>% subset(x < -157.5 & x > -158.5 & y > 21 & y < 22) #oahu
+# topo <- topo %>% subset(x < -157.5 & x > -158.5 & y > 21 & y < 22) #oahu
 # topo <- topo %>% subset(x < -154.8 & x > -156.2 & y > 18.8 & y < 20.4) #hawaii
 
 grid = topo
@@ -235,11 +251,12 @@ relative_biomass = index %>%
   geom_point(size = 3) +
   geom_ribbon(aes(ymin = lwr, ymax = upr), alpha = 0.2, colour = NA) +
   xlab('Year') + 
-  ylab('metric tonnes') + 
+  # ylab('metric tonnes') + 
+  ylab('total count (n)') + 
   ggtitle("Biomass estimate") + 
   ggdark::dark_theme_minimal()
-  # theme_pubr()
-  
+# theme_pubr()
+
 index %>% 
   mutate(cv = sqrt(exp(se^2) - 1)) %>% 
   dplyr::select(-log_est, -max_gradient, -bad_eig, -se) %>%
@@ -261,7 +278,7 @@ density_cog = ggplot(cog, aes(year, est, ymin = lwr, ymax = upr)) +
 
 # table of COG by latitude
 plot(data.frame(Y = p$data$Y, est = exp(p$data$est), year = p$data$year) %>%
-  group_by(year) %>% summarize(cog = sum(Y * est) / sum(est)), type = "b", bty = "l", ylab = "Northing")
+       group_by(year) %>% summarize(cog = sum(Y * est) / sum(est)), type = "b", bty = "l", ylab = "Northing")
 
 library(patchwork)
 

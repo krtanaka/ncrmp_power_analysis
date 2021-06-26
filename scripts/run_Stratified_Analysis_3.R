@@ -1,6 +1,7 @@
-##########################################
-### Simulate stratified-random survey  ###
-##########################################
+#####################################################################
+### Simulate stratified-random survey                             ###
+### Simple Power analysis by comparing different survey "efforts" ###
+#####################################################################
 
 library(SimSurvey)
 library(raster)
@@ -10,13 +11,13 @@ library(dplyr)
 
 rm(list = ls())
 
-set.seed(10)
+set.seed(50)
 
-islands = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:8, 1)]
-load(paste0("data/survey_grid_", islands, ".RData"))
+islands = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[1]
+load(paste0("data/survey_grid_", islands, ".RData")) # our own survey grid, just using depth*bottom strata for now
 
 n_sims = 10
-min_sets = 2
+min_sets = 20
 set_den = 2/1000
 
 # options(scipen = 999, digits = 2)
@@ -28,6 +29,7 @@ sim = sim_abundance(years = 2010:2020, ages = 1:5,
   sim_distribution(grid = survey_grid_kt) %>% 
   sim_survey(trawl_dim = c(0.01, 0.0353), 
              n_sims = n_sims, 
+             resample_cells = F, 
              min_sets = min_sets, 
              set_den = set_den)
 
@@ -146,7 +148,7 @@ rmse = formatC(sim$total_strat_error_stats[4], digits = 3)
 
 label = paste0("ME = ", me, "\n", "MAE = ", mae, "\n", "MSE = ", mse, "\n", "RMSE = ", rmse)
 
-ggdark::invert_geom_defaults()
+# ggdark::invert_geom_defaults()
 
 strata = sim$grid_xy %>%
   mutate(x = round(x/1, digits = 0),
@@ -158,7 +160,7 @@ strata = sim$grid_xy %>%
   coord_fixed() + 
   scale_fill_discrete("Strata") + 
   geom_raster(aes(fill = factor(strat))) + 
-  theme_void() + 
+  theme_minimal() + 
   theme(legend.position = "bottom") + 
   ggtitle(islands)
 
@@ -188,3 +190,4 @@ sim_output = df %>%
 
 library(patchwork)
 strata + sim_output
+
