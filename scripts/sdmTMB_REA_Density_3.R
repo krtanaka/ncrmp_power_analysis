@@ -11,12 +11,23 @@ load("data/ALL_REA_FISH_RAW.rdata")
 # Total numerical density estimates (individuals per 100 m2) were obtained by dividing fish counts in each survey by the survey area (353 m2 from two 15-m diameter survey cylinders) and multiplying by 100. - Nadon et al. 2020
 
 region = "MHI"
-uku_or_not = T
+uku_or_not = F
 
-df = df %>% 
-  subset(REGION == region) %>% 
-  mutate(density = COUNT*100) #%>% #
-# mutate(density = BIOMASS_G_M2*0.001)
+response_variable = "count"
+response_variable = "biomass"
+
+if (response_variable == "biomass") {
+  
+  df = df %>% 
+    subset(REGION == region) %>% 
+    mutate(density = BIOMASS_G_M2*0.001)
+  
+} else {
+  
+  df = df %>% 
+    subset(REGION == region) %>% 
+    mutate(density = COUNT*100)
+}
 
 sp = df %>% 
   group_by(TAXONNAME) %>% 
@@ -34,7 +45,8 @@ if (uku_or_not == T) {
   
   sp = as.data.frame(sp[1,1]); sp = sp$TAXONNAME
   df$density = ifelse(df$TAXONNAME == sp, df$density, 0) # most abundant in MHI
-  
+  print(sp)
+
 }
 
 df %>% 
@@ -102,9 +114,6 @@ density_model <- sdmTMB(
   
 )
 
-save.image(paste0("outputs/density_model_", sp, "_", n_knots, "_", region, ".RData"))
-load(paste0("outputs/density_model_", sp, "_", n_knots, "_", region, ".RData"))
-
 # look at gradients
 max(density_model$gradients)
 
@@ -137,6 +146,9 @@ ggplot(df, aes_string("X", "Y", fill = "residuals")) +
 sd <- as.data.frame(summary(TMB::sdreport(density_model$tmb_obj)))
 r <- density_model$tmb_obj$report()
 r
+
+save.image(paste0("outputs/density_model_", sp, "_", response_variable, "_", n_knots, "_", region, ".RData"))
+load(paste0("outputs/density_model_", sp, "_", response_variable, "_", n_knots, "_", region, ".RData"))
 
 # prediction onto new data grid
 load("data/Topography_NOAA_CRM_vol10.RData")
@@ -284,3 +296,8 @@ library(patchwork)
 
 density_map
 relative_biomass+density_cog
+
+p$data$sp = sp
+sp_df = p$data
+
+save(sp_df, file = paste0("outputs/density_results_", sp, "_", response_variable, "_", n_knots, "_", region, ".RData"))
