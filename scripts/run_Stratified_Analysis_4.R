@@ -242,16 +242,17 @@ label = paste0("ME = ", me, "\n", "MAE = ", mae, "\n", "MSE = ", mse, "\n", "RMS
 # ggdark::invert_geom_defaults()
 
 strata = sim$grid_xy %>%
-  mutate(x = round(x/1, digits = 0),
-         y = round(y/1, digits = 0)) %>%
+  mutate(x = round(x/0.5, digits = 0),
+         y = round(y/0.5, digits = 0)) %>%
   group_by(x, y) %>% 
   summarise(strat = round(mean(strat), digits = 0),
             depth = mean(depth)) %>% 
-  ggplot(aes(x, y)) + 
+  ggplot(aes(x, y)) +
   coord_fixed() + 
   scale_fill_discrete("Strata") + 
   geom_raster(aes(fill = factor(strat))) + 
   theme_minimal() + 
+  ylab("Northing (km)") + xlab("Easting (km)") + 
   theme(legend.position = "bottom") + 
   ggtitle(islands)
 
