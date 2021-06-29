@@ -11,7 +11,7 @@ library(dplyr)
 
 rm(list = ls())
 
-# set.seed(60)
+set.seed(6)
 
 islands = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:8, 1)]
 load(paste0("data/survey_grid_", islands, ".RData")) # our own survey grid, just using depth*bottom strata for now
@@ -21,8 +21,8 @@ print(islands)
 
 sim = sim_abundance(years = 2010:2020, ages = 1:5,
                     R = sim_R(log_mean = log(100),
-                              log_sd = 0.5),
-                    Z = sim_Z(log_mean = log(0.1))) %>% 
+                              log_sd = 0.8),
+                    Z = sim_Z(log_mean = log(0.2))) %>% 
   sim_distribution(grid = survey_grid_kt)
 
 # sim = sim %>% 
@@ -33,13 +33,13 @@ sim = sim_abundance(years = 2010:2020, ages = 1:5,
 #            set_den = set_den)
 
 sim = sim 
-n_sims = 10
+n_sims = 100
 min_sets = 2
 set_den = 2/1000
 trawl_dim = c(0.01, 0.0353)
 resample_cells = F
-q = sim_logistic()
-binom_error = TRUE
+# q = sim_logistic()
+# binom_error = TRUE
 # lengths_cap = 500
 # ages_cap = 10
 # age_sampling = "stratified"
@@ -47,34 +47,43 @@ binom_error = TRUE
 # age_space_group = "division"
 # light = TRUE
 
-n <- age <- id <- division <- strat <- N <- n_measured <- n_aged <- NULL
+n <- id <- division <- strat <- N <- n_measured <- n_aged <- NULL
 
 sim <- round_sim(sim)
-I <- sim$N * q(replicate(length(sim$years), sim$ages))
-I_at_length <- convert_N(N_at_age = I, lak = sim$sim_length(age = sim$ages, 
-                                                            length_age_key = TRUE))
+
+# I <- sim$N * q(replicate(length(sim$years), sim$ages))
+I <- sim$N
+
+# I_at_length <- convert_N(N_at_age = I, lak = sim$sim_length(age = sim$ages, length_age_key = TRUE))
+
 sets <- sim_sets(sim, resample_cells = resample_cells, n_sims = n_sims, 
                  trawl_dim = trawl_dim, set_den = set_den, min_sets = min_sets)
+
 setkeyv(sets, c("sim", "year", "cell"))
-sp_I <- data.table(sim$sp_N[, c("cell", "age", "year", "N")])
+
+# sp_I <- data.table(sim$sp_N[, c("cell", "age", "year", "N")])
+sp_I <- data.table(sim$sp_N[, c("cell", "year", "N")])
+
+
 i <- rep(seq(nrow(sp_I)), times = n_sims)
 s <- rep(seq(n_sims), each = nrow(sp_I))
+
 sp_I <- sp_I[i, ]
 sp_I$sim <- s
 setdet <- merge(sets, sp_I, by = c("sim", "year", "cell"))
 
-if (binom_error) {
-  
-  setdet$n <- stats::rbinom(rep(1, nrow(setdet)), 
-                            size = round(setdet$N/setdet$cell_sets), 
-                            # prob = (setdet$tow_area/setdet$cell_area) * q(setdet$age))
-                            prob = (setdet$tow_area/setdet$cell_area))
+# if (binom_error) {
 
-  
-} else {
-  
-  setdet$n <- round((setdet$N/setdet$cell_sets) * ((setdet$tow_area/setdet$cell_area) * q(setdet$age)))
-}
+setdet$n <- stats::rbinom(rep(1, nrow(setdet)), 
+                          size = round(setdet$N/setdet$cell_sets), 
+                          # prob = (setdet$tow_area/setdet$cell_area) * q(setdet$age))
+                          prob = (setdet$tow_area/setdet$cell_area))
+
+
+# } else {
+#   
+#   setdet$n <- round((setdet$N/setdet$cell_sets) * ((setdet$tow_area/setdet$cell_area) * q(setdet$age)))
+# }
 
 setkeyv(setdet, "set")
 setkeyv(sets, "set")
