@@ -11,16 +11,17 @@ library(dplyr)
 
 rm(list = ls())
 
-# set.seed(50)
+# set.seed(60)
 
-islands = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[1]
+islands = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:8, 1)]
 load(paste0("data/survey_grid_", islands, ".RData")) # our own survey grid, just using depth*bottom strata for now
+print(islands)
 
 # options(scipen = 999, digits = 2)
 
 sim = sim_abundance(years = 2010:2020, ages = 1:5,
                     R = sim_R(log_mean = log(100),
-                              log_sd = 0.9),
+                              log_sd = 0.5),
                     Z = sim_Z(log_mean = log(0.1))) %>% 
   sim_distribution(grid = survey_grid_kt)
 
@@ -33,19 +34,18 @@ sim = sim_abundance(years = 2010:2020, ages = 1:5,
 
 sim = sim 
 n_sims = 10
-min_sets = 5
+min_sets = 2
 set_den = 2/1000
 trawl_dim = c(0.01, 0.0353)
 resample_cells = F
 q = sim_logistic()
 binom_error = TRUE
-lengths_cap = 500
-ages_cap = 10
-age_sampling = "stratified"
-age_length_group = 1
-age_space_group = "division"
-light = TRUE
-
+# lengths_cap = 500
+# ages_cap = 10
+# age_sampling = "stratified"
+# age_length_group = 1
+# age_space_group = "division"
+# light = TRUE
 
 n <- age <- id <- division <- strat <- N <- n_measured <- n_aged <- NULL
 
@@ -62,63 +62,69 @@ s <- rep(seq(n_sims), each = nrow(sp_I))
 sp_I <- sp_I[i, ]
 sp_I$sim <- s
 setdet <- merge(sets, sp_I, by = c("sim", "year", "cell"))
+
 if (binom_error) {
-  setdet$n <- stats::rbinom(rep(1, nrow(setdet)), size = round(setdet$N/setdet$cell_sets), 
-                            prob = (setdet$tow_area/setdet$cell_area) * q(setdet$age))
+  
+  setdet$n <- stats::rbinom(rep(1, nrow(setdet)), 
+                            size = round(setdet$N/setdet$cell_sets), 
+                            # prob = (setdet$tow_area/setdet$cell_area) * q(setdet$age))
+                            prob = (setdet$tow_area/setdet$cell_area))
+
+  
+} else {
+  
+  setdet$n <- round((setdet$N/setdet$cell_sets) * ((setdet$tow_area/setdet$cell_area) * q(setdet$age)))
 }
-else {
-  setdet$n <- round((setdet$N/setdet$cell_sets) * ((setdet$tow_area/setdet$cell_area) * 
-                                                     q(setdet$age)))
-}
+
 setkeyv(setdet, "set")
 setkeyv(sets, "set")
-rm(sp_I)
-samp <- setdet[rep(seq(.N), n), list(set, age)]
-samp$id <- seq(nrow(samp))
-samp$length <- sim$sim_length(samp$age)
-measured <- samp[, list(id = id[sample(.N, ifelse(.N > lengths_cap, 
-                                                  lengths_cap, .N), replace = FALSE)]), by = "set"]
-samp$measured <- samp$id %in% measured$id
-length_samp <- samp[samp$measured, ]
-rm(measured)
-length_samp$length_group <- group_lengths(length_samp$length, 
-                                          age_length_group)
-length_samp <- merge(sets[, list(set, sim, year, division, 
-                                 strat)], length_samp, by = "set")
-if (age_sampling == "stratified") {
-  aged <- length_samp[, list(id = id[sample(.N, ifelse(.N > 
-                                                         ages_cap, ages_cap, .N), replace = FALSE)]), by = c("sim", 
-                                                                                                             "year", age_space_group, "length_group")]
-}
-if (age_sampling == "random") {
-  aged <- length_samp[, list(id = id[sample(.N, ifelse(.N > 
-                                                         ages_cap, ages_cap, .N), replace = FALSE)]), by = c("set")]
-}
-samp$aged <- samp$id %in% aged$id
-rm(aged)
-rm(length_samp)
-samp <- samp[, list(set, id, length, age, measured, aged)]
-if (light) 
-  samp$id <- NULL
-if (!light) 
-  full_setdet <- setdet
-setdet <- merge(sets, setdet[, list(N = sum(N), n = sum(n)), 
-                             by = "set"], by = "set")
-setdet <- merge(setdet, samp[, list(n_measured = sum(measured), 
-                                    n_aged = sum(aged)), by = "set"], by = "set", all.x = TRUE)
-setdet$n_measured[is.na(setdet$n_measured)] <- 0
-setdet$n_aged[is.na(setdet$n_aged)] <- 0
-samp_totals <- setdet[, list(n_sets = .N, n_caught = sum(n), 
-                             n_measured = sum(n_measured), n_aged = sum(n_aged)), 
-                      by = c("sim", "year")]
+# rm(sp_I)
+# samp <- setdet[rep(seq(.N), n), list(set, age)]
+# samp$id <- seq(nrow(samp))
+# samp$length <- sim$sim_length(samp$age)
+# measured <- samp[, list(id = id[sample(.N, ifelse(.N > lengths_cap, 
+#                                                   lengths_cap, .N), replace = FALSE)]), by = "set"]
+# samp$measured <- samp$id %in% measured$id
+# length_samp <- samp[samp$measured, ]
+# rm(measured)
+# length_samp$length_group <- group_lengths(length_samp$length, 
+#                                           age_length_group)
+# length_samp <- merge(sets[, list(set, sim, year, division, 
+#                                  strat)], length_samp, by = "set")
+# if (age_sampling == "stratified") {
+#   aged <- length_samp[, list(id = id[sample(.N, ifelse(.N > 
+#                                                          ages_cap, ages_cap, .N), replace = FALSE)]), by = c("sim", 
+#                                                                                                              "year", age_space_group, "length_group")]
+# }
+# if (age_sampling == "random") {
+#   aged <- length_samp[, list(id = id[sample(.N, ifelse(.N > 
+#                                                          ages_cap, ages_cap, .N), replace = FALSE)]), by = c("set")]
+# }
+# samp$aged <- samp$id %in% aged$id
+# rm(aged)
+# rm(length_samp)
+# samp <- samp[, list(set, id, length, age, measured, aged)]
+# if (light) 
+#   samp$id <- NULL
+# if (!light) 
+#   full_setdet <- setdet
+# setdet <- merge(sets, setdet[, list(N = sum(N), n = sum(n)), 
+#                              by = "set"], by = "set")
+# setdet <- merge(setdet, samp[, list(n_measured = sum(measured), 
+#                                     n_aged = sum(aged)), by = "set"], by = "set", all.x = TRUE)
+# setdet$n_measured[is.na(setdet$n_measured)] <- 0
+# setdet$n_aged[is.na(setdet$n_aged)] <- 0
+# samp_totals <- setdet[, list(n_sets = .N, n_caught = sum(n), 
+#                              n_measured = sum(n_measured), n_aged = sum(n_aged)), 
+#                       by = c("sim", "year")]
 sim$I <- I
-sim$I_at_length <- I_at_length
-if (!light) 
-  sim$full_setdet <- full_setdet
+# sim$I_at_length <- I_at_length
+# if (!light) 
+#   sim$full_setdet <- full_setdet
 sim$setdet <- setdet
-sim$samp <- samp
-sim$samp_totals <- samp_totals
-sim
+# sim$samp <- samp
+# sim$samp_totals <- samp_totals
+# sim
 
 setdet <- sim$setdet
 

@@ -66,9 +66,9 @@ df_base = topo; rm(topo)
 df_base$longitude = df_base$x
 df_base$latitude = df_base$y
 
-res = 3
-df_base$longitude = round(df_base$x, digits = res)
-df_base$latitude = round(df_base$y, digits = res)
+# res = 3
+# df_base$longitude = round(df_base$x, digits = res)
+# df_base$latitude = round(df_base$y, digits = res)
 
 MHI_extent = read.csv("data/MHI_Extents.csv")
 
