@@ -85,6 +85,7 @@ sim_sets %>%
   ggplot(aes(x, y, color = factor(strat))) + 
   geom_point() + 
   coord_fixed() + 
+  scale_color_discrete("") + 
   facet_wrap(.~design)
 
 sim_sets %>% 
