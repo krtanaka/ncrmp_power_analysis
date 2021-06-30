@@ -7,6 +7,7 @@ library(raster)
 library(data.table)
 library(ggplot2)
 library(dplyr)
+library(scales)
 
 rm(list = ls())
 
@@ -16,8 +17,10 @@ islands = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau"
 load(paste0("data/survey_grid_", islands, ".RData"))
 
 n_sims = 10
-min_sets = 10
+min_sets = 1
 set_den = 2/1000
+trawl_dim = c(0.01, 0.0353)
+resample_cells = FALSE
 
 # options(scipen = 999, digits = 2)
 
@@ -25,22 +28,64 @@ sim = sim_abundance(years = 2010:2020, ages = 1:5,
                     R = sim_R(log_mean = log(100),
                               log_sd = 0.9),
                     Z = sim_Z(log_mean = log(0.1))) %>% 
-  sim_distribution(grid = survey_grid_kt) %>% 
-  sim_sets(
-    n_sims = n_sims,
-    trawl_dim = c(0.01, 0.0353),
-    min_sets = min_sets,
-    set_den = set_den,
-    resample_cells = FALSE
-  )
+  sim_distribution(grid = survey_grid_kt) 
 
-sim %>% 
+strat_sets <- cell_sets <- NULL
+
+cells <- data.table(rasterToPoints(sim$grid))
+
+strat_det <- cells[, list(strat_cells = .N), by = "strat"]
+strat_det$tow_area <- prod(trawl_dim)
+strat_det$cell_area <- prod(res(sim$grid))
+strat_det$strat_area <- strat_det$strat_cells * prod(res(sim$grid))
+strat_det$strat_sets <- round(strat_det$strat_area * set_den)
+strat_det$strat_sets[strat_det$strat_sets < min_sets] <- min_sets
+strat_det$area_prop = rescale(strat_det$strat_area, to = c(0.1, 0.9))
+
+cells <- merge(cells, strat_det, by = c("strat"))
+
+i <- rep(seq(nrow(cells)), times = length(sim$years))
+y <- rep(sim$years, each = nrow(cells))
+
+cells <- cells[i, ]
+cells$year <- y
+
+i <- rep(seq(nrow(cells)), times = n_sims)
+s <- rep(seq(n_sims), each = nrow(cells))
+
+cells <- cells[i, ]
+cells$sim <- s
+
+sets = sample(cells)
+
+# sample(d$s,replace = TRUE,prob = d$Freq,10)
+
+# proportional sampling
+subsets_prop = sets <- cells[, .SD[sample(.N, strat_area, replace = resample_cells, prob = strat_area)], 
+              by = c("sim", "year", "strat")]
+
+subsets_prop[, `:=`(cell_sets, .N), by = c("sim", "year", "cell")]
+subsets_prop$set <- seq(nrow(subsets_prop))
+subsets_prop
+
+#equal sampling
+subsets_norm <- cells[, .SD[sample(.N, strat_sets, replace = resample_cells)], 
+              by = c("sim", "year", "strat")]
+
+subsets_norm[, `:=`(cell_sets, .N), by = c("sim", "year", "cell")]
+subsets_norm$set <- seq(nrow(subsets_norm))
+subsets_norm
+
+sim_sets = sets %>% 
+  group_by(x, y) %>% 
+  summarise(strat = mean(strat))
+
+sim_sets %>% 
   # subset(strat == 2) %>%
   ggplot(aes(x, y, color = factor(strat))) + 
-  geom_point() + 
-  facet_wrap(.~sim)
+  geom_point()
 
-sim %>% 
+sim_sets %>% 
   group_by(strat) %>% 
   summarise(n = n())
 
