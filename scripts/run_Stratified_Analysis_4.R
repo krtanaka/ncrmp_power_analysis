@@ -19,49 +19,33 @@ print(islands)
 
 # options(scipen = 999, digits = 2)
 
-sim = sim_abundance(years = 2010:2020, ages = 1:5,
-                    R = sim_R(log_mean = log(100),
+sim = sim_abundance(years = 2010:2020, ages = 1:2,
+                    R = sim_R(log_mean = log(10),
                               log_sd = 0.8),
                     Z = sim_Z(log_mean = log(0.2))) %>% 
   sim_distribution(grid = survey_grid_kt)
 
-# sim = sim %>% 
-# sim_survey(trawl_dim = trawl_dim, 
-#            n_sims = n_sims, 
-#            resample_cells = F, 
-#            min_sets = min_sets, 
-#            set_den = set_den)
-
-sim = sim 
-n_sims = 100
+n_sims = 10
 min_sets = 2
 set_den = 2/1000
 trawl_dim = c(0.01, 0.0353)
 resample_cells = F
-# q = sim_logistic()
-# binom_error = TRUE
-# lengths_cap = 500
-# ages_cap = 10
-# age_sampling = "stratified"
-# age_length_group = 1
-# age_space_group = "division"
-# light = TRUE
 
 n <- id <- division <- strat <- N <- n_measured <- n_aged <- NULL
 
 sim <- round_sim(sim)
 
-# I <- sim$N * q(replicate(length(sim$years), sim$ages))
 I <- sim$N
 
-# I_at_length <- convert_N(N_at_age = I, lak = sim$sim_length(age = sim$ages, length_age_key = TRUE))
-
-sets <- sim_sets(sim, resample_cells = resample_cells, n_sims = n_sims, 
-                 trawl_dim = trawl_dim, set_den = set_den, min_sets = min_sets)
+sets <- sim_sets(sim, 
+                 resample_cells = resample_cells, 
+                 n_sims = n_sims, 
+                 trawl_dim = trawl_dim, 
+                 set_den = set_den, 
+                 min_sets = min_sets)
 
 setkeyv(sets, c("sim", "year", "cell"))
 
-# sp_I <- data.table(sim$sp_N[, c("cell", "age", "year", "N")])
 sp_I <- data.table(sim$sp_N[, c("cell", "year", "N")])
 
 
@@ -72,68 +56,17 @@ sp_I <- sp_I[i, ]
 sp_I$sim <- s
 setdet <- merge(sets, sp_I, by = c("sim", "year", "cell"))
 
-# if (binom_error) {
-
 setdet$n <- stats::rbinom(rep(1, nrow(setdet)), 
                           size = round(setdet$N/setdet$cell_sets), 
                           # prob = (setdet$tow_area/setdet$cell_area) * q(setdet$age))
                           prob = (setdet$tow_area/setdet$cell_area))
 
-
-# } else {
-#   
-#   setdet$n <- round((setdet$N/setdet$cell_sets) * ((setdet$tow_area/setdet$cell_area) * q(setdet$age)))
-# }
-
 setkeyv(setdet, "set")
 setkeyv(sets, "set")
-# rm(sp_I)
-# samp <- setdet[rep(seq(.N), n), list(set, age)]
-# samp$id <- seq(nrow(samp))
-# samp$length <- sim$sim_length(samp$age)
-# measured <- samp[, list(id = id[sample(.N, ifelse(.N > lengths_cap, 
-#                                                   lengths_cap, .N), replace = FALSE)]), by = "set"]
-# samp$measured <- samp$id %in% measured$id
-# length_samp <- samp[samp$measured, ]
-# rm(measured)
-# length_samp$length_group <- group_lengths(length_samp$length, 
-#                                           age_length_group)
-# length_samp <- merge(sets[, list(set, sim, year, division, 
-#                                  strat)], length_samp, by = "set")
-# if (age_sampling == "stratified") {
-#   aged <- length_samp[, list(id = id[sample(.N, ifelse(.N > 
-#                                                          ages_cap, ages_cap, .N), replace = FALSE)]), by = c("sim", 
-#                                                                                                              "year", age_space_group, "length_group")]
-# }
-# if (age_sampling == "random") {
-#   aged <- length_samp[, list(id = id[sample(.N, ifelse(.N > 
-#                                                          ages_cap, ages_cap, .N), replace = FALSE)]), by = c("set")]
-# }
-# samp$aged <- samp$id %in% aged$id
-# rm(aged)
-# rm(length_samp)
-# samp <- samp[, list(set, id, length, age, measured, aged)]
-# if (light) 
-#   samp$id <- NULL
-# if (!light) 
-#   full_setdet <- setdet
-# setdet <- merge(sets, setdet[, list(N = sum(N), n = sum(n)), 
-#                              by = "set"], by = "set")
-# setdet <- merge(setdet, samp[, list(n_measured = sum(measured), 
-#                                     n_aged = sum(aged)), by = "set"], by = "set", all.x = TRUE)
-# setdet$n_measured[is.na(setdet$n_measured)] <- 0
-# setdet$n_aged[is.na(setdet$n_aged)] <- 0
-# samp_totals <- setdet[, list(n_sets = .N, n_caught = sum(n), 
-#                              n_measured = sum(n_measured), n_aged = sum(n_aged)), 
-#                       by = c("sim", "year")]
+
 sim$I <- I
-# sim$I_at_length <- I_at_length
-# if (!light) 
-#   sim$full_setdet <- full_setdet
+
 sim$setdet <- setdet
-# sim$samp <- samp
-# sim$samp_totals <- samp_totals
-# sim
 
 setdet <- sim$setdet
 
@@ -247,8 +180,6 @@ mse = formatC(sim$total_strat_error_stats[3], digits = 3)
 rmse = formatC(sim$total_strat_error_stats[4], digits = 3)
 
 label = paste0("ME = ", me, "\n", "MAE = ", mae, "\n", "MSE = ", mse, "\n", "RMSE = ", rmse)
-
-# ggdark::invert_geom_defaults()
 
 strata = sim$grid_xy %>%
   mutate(x = round(x/0.5, digits = 0),
