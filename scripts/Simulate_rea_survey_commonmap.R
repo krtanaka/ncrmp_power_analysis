@@ -58,15 +58,13 @@ cells$sim <- s
 
 sets = sample(cells)
 
-# sample(d$s,replace = TRUE,prob = d$Freq,10)
-
 # proportional sampling
-subsets_prop = sets <- cells[, .SD[sample(.N, strat_area, replace = resample_cells, prob = strat_area)], 
+subsets_prop <- cells[, .SD[sample(.N, strat_area, replace = resample_cells, prob = strat_area)], 
               by = c("sim", "year", "strat")]
 
 subsets_prop[, `:=`(cell_sets, .N), by = c("sim", "year", "cell")]
 subsets_prop$set <- seq(nrow(subsets_prop))
-subsets_prop
+subsets_prop$design = "proportional"
 
 #equal sampling
 subsets_norm <- cells[, .SD[sample(.N, strat_sets, replace = resample_cells)], 
@@ -74,18 +72,22 @@ subsets_norm <- cells[, .SD[sample(.N, strat_sets, replace = resample_cells)],
 
 subsets_norm[, `:=`(cell_sets, .N), by = c("sim", "year", "cell")]
 subsets_norm$set <- seq(nrow(subsets_norm))
-subsets_norm
+subsets_norm$design = "equal"
 
-sim_sets = sets %>% 
-  group_by(x, y) %>% 
+sim_sets = rbind(subsets_norm, subsets_prop)
+
+sim_sets = sim_sets %>% 
+  group_by(x, y, design) %>% 
   summarise(strat = mean(strat))
 
 sim_sets %>% 
-  # subset(strat == 2) %>%
+  # subset(strat == 1) %>%
   ggplot(aes(x, y, color = factor(strat))) + 
-  geom_point()
+  geom_point() + 
+  coord_fixed() + 
+  facet_wrap(.~design)
 
 sim_sets %>% 
-  group_by(strat) %>% 
+  group_by(strat, design) %>% 
   summarise(n = n())
 
