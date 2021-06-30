@@ -86,7 +86,7 @@ sim_sets %>%
   geom_point() + 
   coord_fixed() + 
   scale_color_discrete("") + 
-  facet_wrap(.~design)
+  facet_grid(design ~ strat)
 
 sim_sets %>% 
   group_by(strat, design) %>% 
