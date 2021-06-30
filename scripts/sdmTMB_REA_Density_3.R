@@ -298,6 +298,6 @@ density_map
 relative_biomass+density_cog
 
 p$data$sp = sp
-sp_df = p$data
+sdm_output = p$data
 
-save(sp_df, file = paste0("outputs/density_results_", sp, "_", response_variable, "_", n_knots, "_", region, ".RData"))
+save(sdm_output, file = paste0("outputs/density_results_", sp, "_", response_variable, "_", n_knots, "_", region, ".RData"))
