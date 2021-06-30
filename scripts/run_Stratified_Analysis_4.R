@@ -11,13 +11,12 @@ library(dplyr)
 
 rm(list = ls())
 
-set.seed(6)
+set.seed(42)
+# options(scipen = 999, digits = 2)
 
 islands = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:8, 1)]
-load(paste0("data/survey_grid_", islands, ".RData")) # our own survey grid, just using depth*bottom strata for now
+load(paste0("data/survey_grid_", islands, ".RData"))
 print(islands)
-
-# options(scipen = 999, digits = 2)
 
 sim = sim_abundance(years = 2010:2020, ages = 1:2,
                     R = sim_R(log_mean = log(10),
@@ -25,7 +24,7 @@ sim = sim_abundance(years = 2010:2020, ages = 1:2,
                     Z = sim_Z(log_mean = log(0.2))) %>% 
   sim_distribution(grid = survey_grid_kt)
 
-n_sims = 10
+n_sims = 100
 min_sets = 2
 set_den = 2/1000
 trawl_dim = c(0.01, 0.0353)
@@ -33,21 +32,63 @@ resample_cells = F
 
 n <- id <- division <- strat <- N <- n_measured <- n_aged <- NULL
 
-sim <- round_sim(sim)
+# sim <- round_sim(sim)
 
 I <- sim$N
+I
 
-sets <- sim_sets(sim, 
-                 resample_cells = resample_cells, 
-                 n_sims = n_sims, 
-                 trawl_dim = trawl_dim, 
-                 set_den = set_den, 
-                 min_sets = min_sets)
+# stratified random survey ------------------------------------------------
+
+
+# sets <- sim_sets(sim,
+#                  resample_cells = resample_cells,
+#                  n_sims = n_sims,
+#                  trawl_dim = trawl_dim,
+#                  set_den = set_den,
+#                  min_sets = min_sets)
+
+strat_sets <- cell_sets <- NULL
+
+cells <- data.table(rasterToPoints(sim$grid))
+strat_det <- cells[, list(strat_cells = .N), by = "strat"]; strat_det
+strat_det$tow_area <- prod(trawl_dim); strat_det
+strat_det$cell_area <- prod(res(sim$grid)); strat_det
+strat_det$strat_area <- strat_det$strat_cells * prod(res(sim$grid)); strat_det
+strat_det$strat_sets <- round(strat_det$strat_area * set_den); strat_det
+strat_det$strat_sets[strat_det$strat_sets < min_sets] <- min_sets; strat_det #make sure minimum number of sets per strat is not 0 or 1
+
+cells <- merge(cells, strat_det, by = c("strat")) # add "strat" "strat_cells" "tow_area" ...
+
+i <- rep(seq(nrow(cells)), times = length(sim$years)) # number of cells * number of years
+y <- rep(sim$years, each = nrow(cells)) # number of years * number of cells
+
+cells <- cells[i, ] # increase the number of rows by number or years
+cells$year <- y
+
+i <- rep(seq(nrow(cells)), times = n_sims) # number of cells * number of simulations
+s <- rep(seq(n_sims), each = nrow(cells)) # number of simulations * number of cells
+
+cells <- cells[i, ] # increase the number of rows by number or simulations
+cells$sim <- s
+
+# .SD = "Subset of Data.table"
+# .N = number of instances
+# strat_sets, see unique(cells$strat_sets)
+
+sets <- cells[, .SD[sample(.N, strat_sets, replace = resample_cells, prob = strat_area)], 
+              by = c("sim", "year", "strat")]
+
+sets[, `:=`(cell_sets, .N), by = c("sim", "year", "cell")]
+sets$set <- seq(nrow(sets))
+sets
+
+# -------------------------------------------------------------------------
+
+
 
 setkeyv(sets, c("sim", "year", "cell"))
 
 sp_I <- data.table(sim$sp_N[, c("cell", "year", "N")])
-
 
 i <- rep(seq(nrow(sp_I)), times = n_sims)
 s <- rep(seq(n_sims), each = nrow(sp_I))
@@ -202,16 +243,13 @@ sim_output = df %>%
   geom_line(aes(year, I_hat, color = factor(sim), alpha = 0.8), show.legend = F) +
   geom_point(aes(year, I), size = 1, color = "red") + 
   geom_line(aes(year, I), size = 1, color = "red") + 
-  # scale_fill_viridis_d() +
-  # scale_color_viridis_d() +
   theme_minimal() + 
   ylab("total_abundance (n)")+
   labs(
     title = "",
     subtitle = paste0("Number of simulations = ", n_sims, "\n",
                       "Min # of sets per strat = ", min_sets, "\n",
-                      "number of sets per sq.km = ", set_den)
-  )+
+                      "number of sets per sq.km = ", set_den))+
   annotate(label = label,
            geom = "text",
            x = Inf,
