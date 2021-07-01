@@ -11,7 +11,7 @@ library(dplyr)
 
 rm(list = ls())
 
-# set.seed(50)
+set.seed(42)
 # options(scipen = 999, digits = 2)
 
 islands = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:8, 1)]
@@ -29,7 +29,11 @@ I <- sim$N
 I
 
 # replace sim$ with sdm output --------------------------------------------------
-load("C:/Users/Kisei/ncrmp_power_analysis/outputs/density_results_Chromis vanderbilti_count_300_MHI.RData")
+# load("C:/Users/Kisei/ncrmp_power_analysis/outputs/density_results_Chromis vanderbilti_count_300_MHI.RData"); sp = "Chromis vanderbilti"; scale = "count"
+load("C:/Users/Kisei/ncrmp_power_analysis/outputs/density_results_Acanthurus olivaceus_biomass_300_MHI.RData"); sp = "Acanthurus olivaceus"; scale = "biomass"
+# load("C:/Users/Kisei/ncrmp_power_analysis/outputs/density_results_Aprion virescens_count_300_MHI.RData"); sp = "Aprion virescens"; scale = "count"
+# load("C:/Users/Kisei/ncrmp_power_analysis/outputs/density_results_Aprion virescens_biomass_300_MHI.RData"); sp = "Aprion virescens"; scale = "biomass"
+
 sdm = sdm_output[,c("X", "Y", "longitude", "latitude", "year", "est" )]; rm(sdm_output)
 colnames(sdm)[1:2] = c("x", "y")
 sdm$est = exp(sdm$est)
@@ -61,15 +65,20 @@ head(sim_grid)
 
 df = merge(sim_grid, sdm_grid)
 
-# plot(df$x, df$y, col = 6, pch = 20)
-# points(sim_grid$x, sim_grid$y, col = 4, pch = 20)
+df %>% 
+  group_by(x, y) %>% 
+  summarise(est = median(est)) %>% 
+  ggplot(aes(x, y, color = est)) + 
+  geom_point(size = 2, alpha = 0.5) + 
+  scale_color_gradientn(colours = colorRamps::matlab.like(100)) + 
+  ggdark::dark_theme_minimal()
 
 N = df %>% group_by(year) %>% summarise(age = sum(est)) 
 N = matrix(N$age, nrow = 1, ncol = 9)
 rownames(N) <- "1"
 colnames(N) = sort(unique(sdm$year))
 names(dimnames(N)) = c("age", "year")
-
+N
 sim$N = N
 
 # replace sim$sp_N
@@ -85,7 +94,7 @@ I
 # sim <- round_sim(sim)
 
 n_sims = 100
-min_sets = 2
+min_sets = 50
 set_den = 2/1000
 trawl_dim = c(0.01, 0.0353)
 resample_cells = F
@@ -285,7 +294,10 @@ strata = sim$grid_xy %>%
   theme_minimal() + 
   ylab("Northing (km)") + xlab("Easting (km)") + 
   theme(legend.position = "bottom") + 
-  ggtitle(paste0(islands, "\n", "Chromis vanderbilti"))
+  ggtitle(paste0(islands, "\n", sp))
+
+if (scale == "biomass") ylab_scale = "biomass (g)"
+if (scale == "count") ylab_scale = "abundance (n)"
 
 sim_output = df %>% 
   ggplot() + 
@@ -294,7 +306,7 @@ sim_output = df %>%
   geom_point(aes(year, I), size = 1, color = "red") + 
   geom_line(aes(year, I), size = 1, color = "red") + 
   theme_minimal() + 
-  ylab("total_abundance (n)")+
+  ylab(ylab_scale)+
   labs(
     title = "",
     subtitle = paste0("Number of simulations = ", n_sims, "\n",
