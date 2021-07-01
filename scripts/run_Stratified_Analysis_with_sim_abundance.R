@@ -19,9 +19,9 @@ load(paste0("data/survey_grid_", islands, ".RData"))
 print(islands)
 
 sim = sim_abundance(years = 2000:2020, ages = 1:2,
-                    R = sim_R(log_mean = log(100),
+                    R = sim_R(log_mean = log(10),
                               log_sd = 0.8),
-                    Z = sim_Z(log_mean = log(0.2))) %>% 
+                    Z = sim_Z(log_mean = log(0.5))) %>% 
   sim_distribution(grid = survey_grid_kt)
 
 
@@ -237,6 +237,7 @@ sim_output = df %>%
   geom_line(aes(year, I_hat, color = factor(sim), alpha = 0.8), show.legend = F) +
   geom_point(aes(year, I), size = 1, color = "red") + 
   geom_line(aes(year, I), size = 1, color = "red") + 
+  scale_color_viridis_d() + 
   theme_minimal() + 
   ylab("total_abundance (n)")+
   labs(
@@ -254,4 +255,3 @@ sim_output = df %>%
 
 library(patchwork)
 strata + sim_output
-
