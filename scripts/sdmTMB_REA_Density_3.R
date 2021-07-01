@@ -13,8 +13,8 @@ load("data/ALL_REA_FISH_RAW.rdata")
 region = "MHI"
 uku_or_not = F
 
-# response_variable = "count"
-response_variable = "biomass"
+response_variable = "count"
+# response_variable = "biomass"
 
 if (response_variable == "biomass") {
   
