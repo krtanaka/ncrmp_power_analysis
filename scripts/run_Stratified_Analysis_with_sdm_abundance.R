@@ -11,7 +11,7 @@ library(dplyr)
 
 rm(list = ls())
 
-set.seed(42)
+# set.seed(50)
 # options(scipen = 999, digits = 2)
 
 islands = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:8, 1)]
@@ -29,7 +29,7 @@ I <- sim$N
 I
 
 # replace sim$ with sdm output --------------------------------------------------
-load("C:/Users/Kisei/ncrmp_power_analysis/outputs/density_results_Acanthurus olivaceus_biomass_300_MHI.RData")
+load("C:/Users/Kisei/ncrmp_power_analysis/outputs/density_results_Chromis vanderbilti_count_300_MHI.RData")
 sdm = sdm_output[,c("X", "Y", "longitude", "latitude", "year", "est" )]; rm(sdm_output)
 colnames(sdm)[1:2] = c("x", "y")
 sdm$est = exp(sdm$est)
@@ -285,7 +285,7 @@ strata = sim$grid_xy %>%
   theme_minimal() + 
   ylab("Northing (km)") + xlab("Easting (km)") + 
   theme(legend.position = "bottom") + 
-  ggtitle(islands)
+  ggtitle(paste0(islands, "\n", "Chromis vanderbilti"))
 
 sim_output = df %>% 
   ggplot() + 
