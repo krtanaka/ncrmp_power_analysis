@@ -65,13 +65,13 @@ head(sim_grid)
 
 df = merge(sim_grid, sdm_grid)
 
-df %>% 
-  group_by(x, y) %>% 
-  summarise(est = median(est)) %>% 
-  ggplot(aes(x, y, color = est)) + 
-  geom_point(size = 2, alpha = 0.5) + 
-  scale_color_gradientn(colours = colorRamps::matlab.like(100)) + 
-  ggdark::dark_theme_minimal()
+# df %>% 
+#   group_by(x, y) %>% 
+#   summarise(est = median(est)) %>% 
+#   ggplot(aes(x, y, color = est)) + 
+#   geom_point(size = 2, alpha = 0.5) + 
+#   scale_color_gradientn(colours = colorRamps::matlab.like(100)) + 
+#   ggdark::dark_theme_minimal()
 
 N = df %>% group_by(year) %>% summarise(age = sum(est)) 
 N = matrix(N$age, nrow = 1, ncol = 9)
@@ -94,7 +94,7 @@ I
 # sim <- round_sim(sim)
 
 n_sims = 100
-min_sets = 50
+min_sets = 10
 set_den = 2/1000
 trawl_dim = c(0.01, 0.0353)
 resample_cells = F
