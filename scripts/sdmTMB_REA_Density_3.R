@@ -11,7 +11,7 @@ load("data/ALL_REA_FISH_RAW.rdata")
 # Total numerical density estimates (individuals per 100 m2) were obtained by dividing fish counts in each survey by the survey area (353 m2 from two 15-m diameter survey cylinders) and multiplying by 100. - Nadon et al. 2020
 
 region = "MHI"
-uku_or_not = F
+uku_or_not = T
 
 # response_variable = "count"
 response_variable = "biomass"
@@ -20,7 +20,8 @@ if (response_variable == "biomass") {
   
   df = df %>% 
     subset(REGION == region) %>% 
-    mutate(density = BIOMASS_G_M2*0.001)
+    # mutate(density = BIOMASS_G_M2*0.001)
+    mutate(density = BIOMASS_G_M2)
   
 } else {
   
@@ -46,7 +47,7 @@ if (uku_or_not == T) {
   sp = as.data.frame(sp[1,1]); sp = sp$TAXONNAME
   df$density = ifelse(df$TAXONNAME == sp, df$density, 0) # most abundant in MHI
   print(sp)
-
+  
 }
 
 df %>% 
