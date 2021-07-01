@@ -18,11 +18,71 @@ islands = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau"
 load(paste0("data/survey_grid_", islands, ".RData"))
 print(islands)
 
-sim = sim_abundance(years = 2010:2020, ages = 1:2,
-                    R = sim_R(log_mean = log(10),
+sim = sim_abundance(years = 2000:2020, ages = 1:2,
+                    R = sim_R(log_mean = log(50),
                               log_sd = 0.8),
                     Z = sim_Z(log_mean = log(0.2))) %>% 
   sim_distribution(grid = survey_grid_kt)
+
+
+I <- sim$N
+I
+
+# replace sim$ with sdm output --------------------------------------------------
+load("C:/Users/Kisei/ncrmp_power_analysis/outputs/density_results_Acanthurus olivaceus_biomass_300_MHI.RData")
+sdm = sdm_output[,c("X", "Y", "longitude", "latitude", "year", "est" )]; rm(sdm_output)
+colnames(sdm)[1:2] = c("x", "y")
+sdm$est = exp(sdm$est)
+
+# replace sim$years and sim$ages
+sim$years = sort(unique(sdm$year))
+sim$ages = 1
+
+# replace sim$N
+sim_grid = sim$grid_xy
+
+sim_grid = sim_grid %>%
+  mutate(x = round(x, 1),
+         y = round(y, 1)) %>%
+  group_by(x, y) %>%
+  summarise(cell = round(median(cell), 0))
+
+sdm_grid = sdm %>%
+  mutate(x = round(x, 1),
+         y = round(y, 1)) %>%
+  group_by(x, y, year) %>%
+  summarise(est = sum(est))
+
+sdm_grid = as.data.frame(sdm_grid)
+sim_grid = as.data.frame(sim_grid)
+
+head(sdm_grid)
+head(sim_grid)
+
+df = merge(sim_grid, sdm_grid)
+
+# plot(df$x, df$y, col = 6, pch = 20)
+# points(sim_grid$x, sim_grid$y, col = 4, pch = 20)
+
+N = df %>% group_by(year) %>% summarise(age = sum(est)) 
+N = matrix(N$age, nrow = 1, ncol = 9)
+rownames(N) <- "1"
+colnames(N) = sort(unique(sdm$year))
+names(dimnames(N)) = c("age", "year")
+
+sim$N = N
+
+# replace sim$sp_N
+sp_N = df %>% group_by(year, cell) %>% summarise(N = sum(est))
+sim$sp_N = sp_N
+
+# replace sim$I
+I <- sim$N
+I
+
+# stratified random survey ------------------------------------------------
+
+# sim <- round_sim(sim)
 
 n_sims = 100
 min_sets = 2
@@ -31,14 +91,6 @@ trawl_dim = c(0.01, 0.0353)
 resample_cells = F
 
 n <- id <- division <- strat <- N <- n_measured <- n_aged <- NULL
-
-# sim <- round_sim(sim)
-
-I <- sim$N
-I
-
-# stratified random survey ------------------------------------------------
-
 
 # sets <- sim_sets(sim,
 #                  resample_cells = resample_cells,
@@ -82,10 +134,6 @@ sets[, `:=`(cell_sets, .N), by = c("sim", "year", "cell")]
 sets$set <- seq(nrow(sets))
 sets
 
-# -------------------------------------------------------------------------
-
-
-
 setkeyv(sets, c("sim", "year", "cell"))
 
 sp_I <- data.table(sim$sp_N[, c("cell", "year", "N")])
@@ -96,6 +144,8 @@ s <- rep(seq(n_sims), each = nrow(sp_I))
 sp_I <- sp_I[i, ]
 sp_I$sim <- s
 setdet <- merge(sets, sp_I, by = c("sim", "year", "cell"))
+
+# -------------------------------------------------------------------------
 
 setdet$n <- stats::rbinom(rep(1, nrow(setdet)), 
                           size = round(setdet$N/setdet$cell_sets), 
