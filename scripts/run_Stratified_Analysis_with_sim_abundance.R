@@ -30,7 +30,7 @@ I
 
 # sim <- round_sim(sim)
 
-n_sims = 10
+n_sims = 30
 min_sets = 2
 set_den = 2/1000
 trawl_dim = c(0.01, 0.0353)
