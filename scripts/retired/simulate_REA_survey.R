@@ -1,5 +1,5 @@
 ##############################################
-### Simulate REA stratified-random survey  ###
+### Simulate REA stratified-random surveys ###
 ##############################################
 
 library(SimSurvey)
