@@ -1,38 +1,42 @@
-#####################################################################
-### Simulate stratified-random survey                             ###
-### Simple Power analysis by comparing different survey "efforts" ###
-#####################################################################
+#######################################################################################################################
+### Simulate stratified-random surveys in MHI region with reconstructed fish density (count (n) or biomass (g/sq.m) ###
+### Simple Power analysis by comparing different survey "efforts"                                                   ###
+#######################################################################################################################
 
 library(SimSurvey)
 library(raster)
 library(data.table)
 library(ggplot2)
 library(dplyr)
+library(ggdark)
+library(patchwork)
 
 rm(list = ls())
 
-set.seed(42)
+set.seed(50)
 # options(scipen = 999, digits = 2)
 
-islands = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:8, 1)]
-load(paste0("data/survey_grid_", islands, ".RData"))
-print(islands)
+# pick an island ----------------------------------------------------------
+island = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:8, 1)]
+load(paste0("data/survey_grid_", island, ".RData"))
+print(island)
 
-sim = sim_abundance(years = 2000:2020, ages = 1:2,
-                    R = sim_R(log_mean = log(50),
-                              log_sd = 0.8),
+# bring in sim$ as a place holder -----------------------------------------
+sim = sim_abundance(years = 2000:2020, 
+                    ages = 1:2,
+                    R = sim_R(log_mean = log(50), log_sd = 0.8),
                     Z = sim_Z(log_mean = log(0.2))) %>% 
   sim_distribution(grid = survey_grid_kt)
-
 
 I <- sim$N
 I
 
-# replace sim$ with sdm output --------------------------------------------------
-# load("C:/Users/Kisei/ncrmp_power_analysis/outputs/density_results_Chromis vanderbilti_count_300_MHI.RData"); sp = "Chromis vanderbilti"; scale = "count"
-load("C:/Users/Kisei.Tanaka/coral_power_analysis/outputs/density_results_Acanthurus olivaceus_biomass_300_MHI.RData"); sp = "Acanthurus olivaceus"; scale = "biomass"
-# load("C:/Users/Kisei/ncrmp_power_analysis/outputs/density_results_Aprion virescens_count_300_MHI.RData"); sp = "Aprion virescens"; scale = "count"
-# load("C:/Users/Kisei/ncrmp_power_analysis/outputs/density_results_Aprion virescens_biomass_300_MHI.RData"); sp = "Aprion virescens"; scale = "biomass"
+# replace sim$ with sdm outputs, pick species and response_scale (n or g/sq.m) --------
+
+# load("outputs/density_results_Chromis vanderbilti_count_300_MHI.RData"); sp = "Chromis vanderbilti"; response_scale = "count"
+# load("outputs/density_results_Acanthurus olivaceus_biomass_300_MHI.RData"); sp = "Acanthurus olivaceus"; response_scale = "biomass"
+load("outputs/density_results_Aprion virescens_count_300_MHI.RData"); sp = "Aprion virescens"; response_scale = "count"
+# load("outputs/density_results_Aprion virescens_biomass_300_MHI.RData"); sp = "Aprion virescens"; response_scale = "biomass"
 
 sdm = sdm_output[,c("X", "Y", "longitude", "latitude", "year", "est" )]; rm(sdm_output)
 colnames(sdm)[1:2] = c("x", "y")
@@ -65,13 +69,14 @@ head(sim_grid)
 
 df = merge(sim_grid, sdm_grid)
 
-# df %>% 
-#   group_by(x, y) %>% 
-#   summarise(est = median(est)) %>% 
-#   ggplot(aes(x, y, color = est)) + 
-#   geom_point(size = 2, alpha = 0.5) + 
-#   scale_color_gradientn(colours = colorRamps::matlab.like(100)) + 
-#   ggdark::dark_theme_minimal()
+df %>%
+  group_by(x, y) %>%
+  summarise(est = median(est)) %>%
+  ggplot(aes(x, y, color = est)) +
+  geom_point(size = 2, alpha = 0.5) +
+  scale_color_gradientn(colours = colorRamps::matlab.like(100)) +
+  coord_fixed() +
+  ggdark::dark_theme_void()
 
 N = df %>% group_by(year) %>% summarise(age = sum(est)) 
 N = matrix(N$age, nrow = 1, ncol = 9)
@@ -89,17 +94,15 @@ sim$sp_N = sp_N
 I <- sim$N
 I
 
-# stratified random survey ------------------------------------------------
+# simulate stratified random surveys --------------------------------------
 
-# sim <- round_sim(sim)
-
-n_sims = 100
-min_sets = 50
-set_den = 2/1000
-trawl_dim = c(0.01, 0.0353)
+n_sims = 100 # number of simulations
+min_sets = 10 # minimum number of sets per strat
+set_den = 2/1000 # number of sets per [grid unit = km] squared)
+trawl_dim = c(0.01, 0.0353) # 0.000353 sq.km (353 sq.m) from two 15-m diameter survey cylinders
 resample_cells = F
 
-n <- id <- division <- strat <- N <- n_measured <- n_aged <- NULL
+n <- id <- division <- strat <- N <- NULL
 
 # sets <- sim_sets(sim,
 #                  resample_cells = resample_cells,
@@ -153,8 +156,6 @@ s <- rep(seq(n_sims), each = nrow(sp_I))
 sp_I <- sp_I[i, ]
 sp_I$sim <- s
 setdet <- merge(sets, sp_I, by = c("sim", "year", "cell"))
-
-# -------------------------------------------------------------------------
 
 setdet$n <- stats::rbinom(rep(1, nrow(setdet)), 
                           size = round(setdet$N/setdet$cell_sets), 
@@ -291,21 +292,21 @@ strata = sim$grid_xy %>%
   coord_fixed() + 
   scale_fill_discrete("Strata") + 
   geom_raster(aes(fill = factor(strat))) + 
-  theme_minimal() + 
+  dark_theme_minimal() + 
   ylab("Northing (km)") + xlab("Easting (km)") + 
   theme(legend.position = "bottom") + 
-  ggtitle(paste0(islands, "\n", sp))
+  ggtitle(paste0(island, "\n", sp))
 
-if (scale == "biomass") ylab_scale = "biomass (g)"
-if (scale == "count") ylab_scale = "abundance (n)"
+if (response_scale == "biomass") ylab_scale = "biomass (g)"
+if (response_scale == "count") ylab_scale = "abundance (n)"
 
 sim_output = df %>% 
   ggplot() + 
-  geom_point(aes(year, I_hat, color = factor(sim), alpha = 0.5), show.legend = F) +
-  geom_line(aes(year, I_hat, color = factor(sim), alpha = 0.8), show.legend = F) +
-  geom_point(aes(year, I), size = 1, color = "red") + 
-  geom_line(aes(year, I), size = 1, color = "red") + 
-  theme_minimal() + 
+  geom_line(aes(year, I_hat, color = factor(sim), alpha = 0.2), show.legend = F) +
+  geom_line(aes(year, I), size = 2, color = "red") + 
+  scale_color_viridis_d() + 
+  dark_theme_minimal() + 
+  coord_fixed(ratio = 0.002) + 
   ylab(ylab_scale)+
   labs(
     title = "",
@@ -320,6 +321,5 @@ sim_output = df %>%
            hjust = 1,
            vjust = 1) 
 
-library(patchwork)
 strata + sim_output
 

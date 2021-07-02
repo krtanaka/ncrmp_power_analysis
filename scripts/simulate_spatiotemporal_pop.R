@@ -54,7 +54,6 @@ df = df %>% group_by(x, y, year) %>% summarise(n = mean(N))
 space =
   df %>% 
   ggplot(aes(x, y, fill = n, color = n)) + 
-  # geom_tile() +
   geom_point(size = 1.5, alpha = 0.8) +
   facet_wrap(~year) + 
   scale_fill_viridis_c("g/sq.m", limits = c(0,  quantile(df$n, prob = 0.9))) +
