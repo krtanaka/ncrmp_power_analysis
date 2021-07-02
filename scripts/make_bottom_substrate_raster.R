@@ -59,7 +59,7 @@ df$division = as.numeric(1)
 ### import hard/soft bottom substrate shapefile ###
 ### adjust resolutions and merge with crm data  ###
 ###################################################
-load("data/oah_hs_biogeo_shp.RData")
+load("data/biogeo/oah_hs_biogeo_shp.RData")
 utmcoor <- SpatialPoints(cbind(bottom_type$lon, bottom_type$lat), proj4string = CRS("+proj=utm +units=m +zone=4"))
 longlatcoor <- spTransform(utmcoor,CRS("+proj=longlat"))
 bottom_type$lon <- coordinates(longlatcoor)[,1]
