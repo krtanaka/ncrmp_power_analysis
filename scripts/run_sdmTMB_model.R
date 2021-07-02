@@ -44,7 +44,7 @@ if (uku_or_not == T) {
   
 } else{
   
-  sp = as.data.frame(sp[2,1]); sp = sp$TAXONNAME
+  sp = as.data.frame(sp[4,1]); sp = sp$TAXONNAME
   df$density = ifelse(df$TAXONNAME == sp, df$density, 0) # most abundant in MHI
   print(sp)
   
