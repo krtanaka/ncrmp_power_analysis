@@ -13,32 +13,35 @@ library(patchwork)
 
 rm(list = ls())
 
-# set.seed(42)
+# set.seed(50)
 # options(scipen = 999, digits = 2)
 
-islands = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:8, 1)]
-load(paste0("data/survey_grid_", islands, ".RData"))
-print(islands)
+# pick an island ----------------------------------------------------------
+island = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:8, 1)]
+load(paste0("data/survey_grid_", island, ".RData"))
+print(island)
 
-sim = sim_abundance(years = 2000:2020, ages = 1:2,
-                    R = sim_R(log_mean = log(10),
-                              log_sd = 0.8),
+# simulate spatiotemporal dyamic LMR --------------------------------------
+sim = sim_abundance(years = 2000:2020, 
+                    ages = 1:2,
+                    R = sim_R(log_mean = log(10), log_sd = 0.8),
                     Z = sim_Z(log_mean = log(0.5))) %>% 
   sim_distribution(grid = survey_grid_kt)
-
 
 I <- sim$N
 I
 
 # sim <- round_sim(sim)
 
-n_sims = 30
-min_sets = 2
-set_den = 2/1000
-trawl_dim = c(0.01, 0.0353)
+# simulate stratified random surveys --------------------------------------
+
+n_sims = 100 # number of simulations
+min_sets = 10 # minimum number of sets per strat
+set_den = 2/1000 # number of sets per [grid unit = km] squared)
+trawl_dim = c(0.01, 0.0353) # 0.000353 sq.km (353 sq.m) from two 15-m diameter survey cylinders
 resample_cells = F
 
-n <- id <- division <- strat <- N <- n_measured <- n_aged <- NULL
+n <- id <- division <- strat <- N <- NULL
 
 # sets <- sim_sets(sim,
 #                  resample_cells = resample_cells,
@@ -255,5 +258,4 @@ sim_output = df %>%
            hjust = 1,
            vjust = 1) 
 
-library(patchwork)
 strata + sim_output
