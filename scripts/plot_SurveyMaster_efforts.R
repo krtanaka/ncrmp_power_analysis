@@ -14,15 +14,18 @@ df <- df %>% subset(ISLAND == "Hawaii")
 
 df %>% group_by(
   DEPTH_BIN,
-  REEF_ZONE,
+  SEC_NAME, 
+  # REEF_ZONE,
   OBS_YEAR) %>% 
   summarise(n = n()) %>% 
   na.omit() %>% 
   ggplot(aes(OBS_YEAR, n, color = n)) + 
-  geom_point() + 
+  geom_line() + 
   scale_fill_viridis_c() + 
-  facet_grid(DEPTH_BIN ~ REEF_ZONE) + 
+  facet_grid(SEC_NAME~DEPTH_BIN ) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+# 2013 > 
 
 df$LONGITUDE_LOV = ifelse(df$LONGITUDE_LOV < 0, 
                           df$LONGITUDE_LOV + 360, 

@@ -30,7 +30,7 @@ I
 
 # replace sim$ with sdm output --------------------------------------------------
 # load("C:/Users/Kisei/ncrmp_power_analysis/outputs/density_results_Chromis vanderbilti_count_300_MHI.RData"); sp = "Chromis vanderbilti"; scale = "count"
-load("C:/Users/Kisei/ncrmp_power_analysis/outputs/density_results_Acanthurus olivaceus_biomass_300_MHI.RData"); sp = "Acanthurus olivaceus"; scale = "biomass"
+load("C:/Users/Kisei.Tanaka/coral_power_analysis/outputs/density_results_Acanthurus olivaceus_biomass_300_MHI.RData"); sp = "Acanthurus olivaceus"; scale = "biomass"
 # load("C:/Users/Kisei/ncrmp_power_analysis/outputs/density_results_Aprion virescens_count_300_MHI.RData"); sp = "Aprion virescens"; scale = "count"
 # load("C:/Users/Kisei/ncrmp_power_analysis/outputs/density_results_Aprion virescens_biomass_300_MHI.RData"); sp = "Aprion virescens"; scale = "biomass"
 
@@ -94,7 +94,7 @@ I
 # sim <- round_sim(sim)
 
 n_sims = 100
-min_sets = 10
+min_sets = 50
 set_den = 2/1000
 trawl_dim = c(0.01, 0.0353)
 resample_cells = F
