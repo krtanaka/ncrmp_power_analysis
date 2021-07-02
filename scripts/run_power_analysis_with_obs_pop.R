@@ -17,7 +17,7 @@ set.seed(50)
 # options(scipen = 999, digits = 2)
 
 # pick an island ----------------------------------------------------------
-island = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:8, 1)]
+island = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[1]
 load(paste0("data/survey_grid_", island, ".RData"))
 print(island)
 
@@ -35,7 +35,10 @@ I
 
 # load("outputs/density_results_Chromis vanderbilti_count_300_MHI.RData"); sp = "Chromis vanderbilti"; response_scale = "count"
 # load("outputs/density_results_Acanthurus olivaceus_biomass_300_MHI.RData"); sp = "Acanthurus olivaceus"; response_scale = "biomass"
-load("outputs/density_results_Aprion virescens_count_300_MHI.RData"); sp = "Aprion virescens"; response_scale = "count"
+load("outputs/density_results_Acanthurus dussumieri_biomass_300_MHI.RData"); sp = "Acanthurus dussumieri"; response_scale = "biomass"
+# load("outputs/density_results_Lutjanus kasmira_biomass_300_MHI.RData"); sp = "Lutjanus kasmira"; response_scale = "biomass"
+# load("outputs/density_results_Scarus rubroviolaceus_biomass_300_MHI.RData"); sp = "Scarus rubroviolaceus"; response_scale = "biomass"
+# load("outputs/density_results_Aprion virescens_count_300_MHI.RData"); sp = "Aprion virescens"; response_scale = "count"
 # load("outputs/density_results_Aprion virescens_biomass_300_MHI.RData"); sp = "Aprion virescens"; response_scale = "biomass"
 
 sdm = sdm_output[,c("X", "Y", "longitude", "latitude", "year", "est" )]; rm(sdm_output)
@@ -306,7 +309,6 @@ sim_output = df %>%
   geom_line(aes(year, I), size = 2, color = "red") + 
   scale_color_viridis_d() + 
   dark_theme_minimal() + 
-  coord_fixed(ratio = 0.002) + 
   ylab(ylab_scale)+
   labs(
     title = "",
