@@ -1,13 +1,15 @@
-#####################################################################
-### Simulate stratified-random survey                             ###
-### Simple Power analysis by comparing different survey "efforts" ###
-#####################################################################
+###################################################################################################################
+### Simulate stratified-random surveys in MHI region with simulated fish density (count (n) or biomass (g/sq.m) ###
+### Simple Power analysis by comparing different survey "efforts"                                               ###
+###################################################################################################################
 
 library(SimSurvey)
 library(raster)
 library(data.table)
 library(ggplot2)
 library(dplyr)
+library(ggdark)
+library(patchwork)
 
 rm(list = ls())
 
