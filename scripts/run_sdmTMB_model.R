@@ -134,7 +134,6 @@ m_p  %>%
   geom_abline(intercept = 0, slope = 1) +
   geom_smooth(method = "lm", se = T)
 
-
 ggplot(df, aes_string("X", "Y", fill = "residuals")) +
   geom_tile(aes(height = 0.5, width = 0.5)) +
   facet_wrap(.~ISLAND, scales = "free") + 
@@ -216,9 +215,10 @@ for (y in 1:length(missing_year)) {
 
 # grid_year = rbind(grid_year, grid_year_missing)
 
+# set the area argument to 0.0081 km2 since our grid cells are 90 m x 90 m = 0.0081 square kilometers
 p <- predict(density_model, 
              newdata = grid_year, 
-             return_tmb_object = T) # area = 2.5)
+             return_tmb_object = T, area = 0.0081)
 
 plot_map_raster <- function(dat, column = "est") {
   
