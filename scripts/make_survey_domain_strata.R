@@ -2,6 +2,10 @@
 ### prep survey_grid for subsequent simulations ###
 ###################################################
 
+
+### to do, 
+### replace bottom substrate layer with regional sub-island sectors and reef zone components
+
 rm(list = ls())
 
 library(dplyr)
