@@ -1,6 +1,6 @@
-#######################################
-### prep survey_grid for simulation ###
-#######################################
+###################################################
+### prep survey_grid for subsequent simulations ###
+###################################################
 
 rm(list = ls())
 
@@ -73,7 +73,7 @@ df_base$latitude = df_base$y
 MHI_extent = read.csv("data/MHI_Extents.csv")
 
 islands = MHI_extent$ISLAND
-islands = islands[! islands %in% c("Kaula", "Lehua", "Molokini")]
+islands = islands[! islands %in% c("Kaula", "Lehua", "Molokini")] #remove islands that are too small
 
 for (il in 1:length(islands)) {
   
@@ -97,10 +97,12 @@ for (il in 1:length(islands)) {
   
   # plot(df$longitude, df$latitude, pch = 20, bty = "l", ann = F, col = 2)
   
-  ###################################################
-  ### import hard/soft bottom substrate shapefile ###
-  ### adjust resolutions and merge with crm data  ###
-  ###################################################
+  ##############################################################
+  ### import hard/soft bottom substrate shapefile            ###
+  ### adjust resolutions and merge with crm bathymetry data  ###
+  ### these are outputs from "convert_biogeo_shp_to_raster.R ###
+  ##############################################################
+  
   if (island == "Hawaii") load("data/biogeo/haw_hs_biogeo_shp.RData")
   if (island == "Kahoolawe") load("data/biogeo/kah_hs_biogeo_shp.RData")
   if (island == "Kauai") load("data/biogeo/kau_hs_biogeo_shp.RData")
@@ -273,3 +275,4 @@ for (il in 1:length(islands)) {
   save(survey_grid_kt, file = paste0("data/survey_grid_", islands[il], ".RData"))
   
 }
+
