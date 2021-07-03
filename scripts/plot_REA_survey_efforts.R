@@ -15,7 +15,7 @@ df <- df %>% subset(ISLAND == "Hawaii")
 df %>% group_by(
   DEPTH_BIN,
   SEC_NAME, 
-  # REEF_ZONE,
+  REEF_ZONE,
   OBS_YEAR) %>% 
   summarise(n = n()) %>% 
   na.omit() %>% 
@@ -25,7 +25,7 @@ df %>% group_by(
   facet_grid(SEC_NAME~DEPTH_BIN ) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
-# 2013 > 
+# look at > 2013 for representative survey efforts
 
 df$LONGITUDE_LOV = ifelse(df$LONGITUDE_LOV < 0, 
                           df$LONGITUDE_LOV + 360, 
@@ -61,13 +61,12 @@ df$Month = ifelse(df$Month %in% c(1:9), sprintf("%02d", as.numeric(df$Month)), d
 
 ggplot() +
   # geom_sf(data = pacific_crop, size = 0.01, fill = "gray", color = "gray") +
-  geom_point(data = df, aes(x = LONGITUDE_LOV, y = LATITUDE_LOV, color = log(n)), alpha = 0.5, size = 3) +
-  scale_color_viridis_c() + 
+  geom_hex(data = df, aes(x = LONGITUDE_LOV, y = LATITUDE_LOV), bins = 10) +
+  scale_fill_viridis_c("") + 
   # facet_grid(Month ~ Year) +
   facet_wrap(~Year) +
   # facet_wrap(~Month) +
   # scale_x_continuous(expand = c(0, 0), "") +
   # scale_y_continuous(expand = c(0, 0), "") + 
-  # ggdark::dark_theme_void() + 
+  ggdark::dark_theme_void() +
   coord_fixed()
-  # theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
