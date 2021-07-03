@@ -13,8 +13,8 @@ load("data/ALL_REA_FISH_RAW.rdata")
 region = "MHI"
 uku_or_not = F
 
-# response_variable = "count"
-response_variable = "biomass"
+response_variable = "count"
+# response_variable = "biomass"
 
 if (response_variable == "biomass") {
   
@@ -220,6 +220,11 @@ p <- predict(density_model,
              newdata = grid_year, 
              return_tmb_object = T, area = 0.0081)
 
+p$data$sp = sp
+sdm_output = p$data
+
+save(sdm_output, file = paste0("outputs/density_results_", sp, "_", response_variable, "_", n_knots, "_", region, ".RData"))
+
 plot_map_raster <- function(dat, column = "est") {
   
   ggplot(dat, aes_string("X", "Y", fill = column)) +
@@ -298,7 +303,4 @@ library(patchwork)
 density_map
 relative_biomass+density_cog
 
-p$data$sp = sp
-sdm_output = p$data
 
-save(sdm_output, file = paste0("outputs/density_results_", sp, "_", response_variable, "_", n_knots, "_", region, ".RData"))
