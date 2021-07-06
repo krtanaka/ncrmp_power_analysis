@@ -16,7 +16,7 @@ rm(list = ls())
 islands = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:8, 1)]
 load(paste0("data/survey_grid_", islands, ".RData"))
 
-n_sims = 1
+n_sims = 10
 min_sets = 2
 set_den = 2/1000
 trawl_dim = c(0.01, 0.0353)
@@ -58,39 +58,28 @@ s <- rep(seq(n_sims), each = nrow(cells)); s
 cells <- cells[i, ]
 cells$sim <- s
 
-# proportional sampling
-subsets_prop <- cells[, .SD[sample(.N, strat_area, replace = resample_cells, prob = strat_area)], 
+subsets <- cells[, .SD[sample(.N, strat_sets, replace = resample_cells)], 
               by = c("sim", "year", "strat")]
 
-subsets_prop[, `:=`(cell_sets, .N), by = c("sim", "year", "cell")]; subsets_prop
-subsets_prop$set <- seq(nrow(subsets_prop)); subsets_prop
-subsets_prop$design = "proportional"; subsets_prop
+subsets[, `:=`(cell_sets, .N), by = c("sim", "year", "cell")]; subsets
+subsets$set <- seq(nrow(subsets)); subsets
 
-#equal sampling
-subsets_norm <- cells[, .SD[sample(.N, strat_sets, replace = resample_cells)], 
-              by = c("sim", "year", "strat")]
-
-subsets_norm[, `:=`(cell_sets, .N), by = c("sim", "year", "cell")]; subsets_norm
-subsets_norm$set <- seq(nrow(subsets_norm)); subsets_norm
-subsets_norm$design = "equal"; subsets_norm
-
-sim_sets = rbind(subsets_norm, subsets_prop)
+sim_sets = subsets
 
 sim_sets = sim_sets %>% 
-  group_by(x, y, design) %>% 
+  group_by(x, y, year, sim) %>% 
   summarise(strat = mean(strat))
 
 sim_sets %>% 
-  # subset(strat == 1) %>%
-  ggplot(aes(x, y, color = factor(strat))) + 
+  # subset(strat == 4) %>%
+  ggplot(aes(x, y, color = factor(year))) + 
   geom_point() + 
   coord_fixed() + 
-  scale_color_discrete("") + 
-  facet_grid(design ~ strat)
+  scale_color_discrete("") 
 
 sim_sets %>% 
-  group_by(strat, design) %>% 
+  group_by(strat, year, sim) %>% 
   summarise(n = n()) %>% 
-  ggplot(aes(strat, n, fill = design)) + 
+  ggplot(aes(strat, n, fill = factor(year))) + 
   geom_bar(position = "dodge", stat = "identity")
   
