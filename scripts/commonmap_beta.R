@@ -41,6 +41,8 @@ strat_det$strat_area <- strat_det$strat_cells * prod(res(sim$grid)); strat_det
 strat_det$strat_sets <- round(strat_det$strat_area * set_den); strat_det
 strat_det$strat_sets[strat_det$strat_sets < min_sets] <- min_sets; strat_det
 # strat_det$area_prop = rescale(strat_det$strat_area, to = c(0.1, 0.9)); strat_det
+strat_det$strat_sets = round((10 * strat_det$strat_area) / sum(strat_det$strat_area), 0); strat_det
+
 
 cells <- merge(cells, strat_det, by = c("strat")); cells
 
