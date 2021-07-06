@@ -17,10 +17,11 @@ islands = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau"
 load(paste0("data/survey_grid_", islands, ".RData"))
 
 n_sims = 1
-min_sets = 10
+min_sets = 2
 set_den = 2/1000
 trawl_dim = c(0.01, 0.0353)
 resample_cells = FALSE
+total_sample = 30
 
 # options(scipen = 999, digits = 2)
 
@@ -39,10 +40,9 @@ strat_det$tow_area <- prod(trawl_dim); strat_det
 strat_det$cell_area <- prod(res(sim$grid)); strat_det
 strat_det$strat_area <- strat_det$strat_cells * prod(res(sim$grid)); strat_det
 strat_det$strat_sets <- round(strat_det$strat_area * set_den); strat_det
+strat_det$strat_sets = round((total_sample * strat_det$strat_area) / sum(strat_det$strat_area), 0); strat_det
 strat_det$strat_sets[strat_det$strat_sets < min_sets] <- min_sets; strat_det
 # strat_det$area_prop = rescale(strat_det$strat_area, to = c(0.1, 0.9)); strat_det
-strat_det$strat_sets = round((10 * strat_det$strat_area) / sum(strat_det$strat_area), 0); strat_det
-
 
 cells <- merge(cells, strat_det, by = c("strat")); cells
 
