@@ -17,7 +17,7 @@ rm(list = ls())
 # options(scipen = 999, digits = 2)
 
 # pick an island ----------------------------------------------------------
-island = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[8]
+island = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:8, 1)]
 load(paste0("data/survey_grid_", island, ".RData"))
 print(island)
 
@@ -38,8 +38,8 @@ I
 # load("outputs/density_results_Acanthurus dussumieri_biomass_300_MHI.RData"); sp = "Acanthurus dussumieri"; response_scale = "biomass"
 # load("outputs/density_results_Lutjanus kasmira_biomass_300_MHI.RData"); sp = "Lutjanus kasmira"; response_scale = "biomass"
 # load("outputs/density_results_Scarus rubroviolaceus_biomass_300_MHI.RData"); sp = "Scarus rubroviolaceus"; response_scale = "biomass"
-load("outputs/density_results_Aprion virescens_count_300_MHI.RData"); sp = "Aprion virescens"; response_scale = "count"
-# load("outputs/density_results_Aprion virescens_biomass_300_MHI.RData"); sp = "Aprion virescens"; response_scale = "biomass"
+# load("outputs/density_results_Aprion virescens_count_300_MHI.RData"); sp = "Aprion virescens"; response_scale = "count"
+load("outputs/density_results_Aprion virescens_biomass_300_MHI.RData"); sp = "Aprion virescens"; response_scale = "biomass"
 
 sdm = sdm_output[,c("X", "Y", "longitude", "latitude", "year", "est" )]; rm(sdm_output)
 colnames(sdm)[1:2] = c("x", "y")
@@ -99,12 +99,12 @@ I
 
 # simulate stratified random surveys --------------------------------------
 
-n_sims = 100 # number of simulations
-total_sample = 100 # total sample efforts you want to deploy
+n_sims = 1000 # number of simulations
+total_sample = 5000 # total sample efforts you want to deploy
 min_sets = 2 # minimum number of sets per strat
 set_den = 2/1000 # number of sets per [grid unit = km] squared)
 trawl_dim = c(0.01, 0.0353) # 0.000353 sq.km (353 sq.m) from two 15-m diameter survey cylinders
-resample_cells = F
+resample_cells = T
 
 n <- id <- division <- strat <- N <- NULL
 
