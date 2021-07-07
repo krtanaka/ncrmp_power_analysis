@@ -13,11 +13,11 @@ library(patchwork)
 
 rm(list = ls())
 
-set.seed(50)
+# set.seed(42)
 # options(scipen = 999, digits = 2)
 
 # pick an island ----------------------------------------------------------
-island = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[1]
+island = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[8]
 load(paste0("data/survey_grid_", island, ".RData"))
 print(island)
 
@@ -35,10 +35,10 @@ I
 
 # load("outputs/density_results_Chromis vanderbilti_count_300_MHI.RData"); sp = "Chromis vanderbilti"; response_scale = "count"
 # load("outputs/density_results_Acanthurus olivaceus_biomass_300_MHI.RData"); sp = "Acanthurus olivaceus"; response_scale = "biomass"
-load("outputs/density_results_Acanthurus dussumieri_biomass_300_MHI.RData"); sp = "Acanthurus dussumieri"; response_scale = "biomass"
+# load("outputs/density_results_Acanthurus dussumieri_biomass_300_MHI.RData"); sp = "Acanthurus dussumieri"; response_scale = "biomass"
 # load("outputs/density_results_Lutjanus kasmira_biomass_300_MHI.RData"); sp = "Lutjanus kasmira"; response_scale = "biomass"
 # load("outputs/density_results_Scarus rubroviolaceus_biomass_300_MHI.RData"); sp = "Scarus rubroviolaceus"; response_scale = "biomass"
-# load("outputs/density_results_Aprion virescens_count_300_MHI.RData"); sp = "Aprion virescens"; response_scale = "count"
+load("outputs/density_results_Aprion virescens_count_300_MHI.RData"); sp = "Aprion virescens"; response_scale = "count"
 # load("outputs/density_results_Aprion virescens_biomass_300_MHI.RData"); sp = "Aprion virescens"; response_scale = "biomass"
 
 sdm = sdm_output[,c("X", "Y", "longitude", "latitude", "year", "est" )]; rm(sdm_output)
@@ -100,7 +100,8 @@ I
 # simulate stratified random surveys --------------------------------------
 
 n_sims = 100 # number of simulations
-min_sets = 10 # minimum number of sets per strat
+total_sample = 100 # total sample efforts you want to deploy
+min_sets = 2 # minimum number of sets per strat
 set_den = 2/1000 # number of sets per [grid unit = km] squared)
 trawl_dim = c(0.01, 0.0353) # 0.000353 sq.km (353 sq.m) from two 15-m diameter survey cylinders
 resample_cells = F
@@ -122,7 +123,8 @@ strat_det$tow_area <- prod(trawl_dim); strat_det
 strat_det$cell_area <- prod(res(sim$grid)); strat_det
 strat_det$strat_area <- strat_det$strat_cells * prod(res(sim$grid)); strat_det
 strat_det$strat_sets <- round(strat_det$strat_area * set_den); strat_det
-strat_det$strat_sets[strat_det$strat_sets < min_sets] <- min_sets; strat_det #make sure minimum number of sets per strat is not 0 or 1
+strat_det$strat_sets = round((total_sample * strat_det$strat_area) / sum(strat_det$strat_area), 0); strat_det
+strat_det$strat_sets[strat_det$strat_sets < min_sets] <- min_sets; strat_det # make sure minimum number of sets per strat is not 0 or 1
 
 cells <- merge(cells, strat_det, by = c("strat")) # add "strat" "strat_cells" "tow_area" ...
 
@@ -142,7 +144,7 @@ cells$sim <- s
 # .N = number of instances
 # strat_sets, see unique(cells$strat_sets)
 
-sets <- cells[, .SD[sample(.N, strat_sets, replace = resample_cells, prob = strat_area)], 
+sets <- cells[, .SD[sample(.N, strat_sets, replace = resample_cells)], 
               by = c("sim", "year", "strat")]
 
 sets[, `:=`(cell_sets, .N), by = c("sim", "year", "cell")]
@@ -312,9 +314,9 @@ sim_output = df %>%
   ylab(ylab_scale)+
   labs(
     title = "",
-    subtitle = paste0("Number of simulations = ", n_sims, "\n",
-                      "Min # of sets per strat = ", min_sets, "\n",
-                      "number of sets per sq.km = ", set_den))+
+    subtitle = paste0("Total # of surveyed sites = ", total_sample, "\n",
+                      "Number of simulations = ", n_sims, "\n",
+                      "Min # of sets per strat = ", min_sets))+
   annotate(label = label,
            geom = "text",
            x = Inf,

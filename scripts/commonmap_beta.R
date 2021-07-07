@@ -59,27 +59,26 @@ cells <- cells[i, ]
 cells$sim <- s
 
 subsets <- cells[, .SD[sample(.N, strat_sets, replace = resample_cells)], 
-              by = c("sim", "year", "strat")]
+                 by = c("sim", "year", "strat")]
 
 subsets[, `:=`(cell_sets, .N), by = c("sim", "year", "cell")]; subsets
 subsets$set <- seq(nrow(subsets)); subsets
 
-sim_sets = subsets
-
-sim_sets = sim_sets %>% 
-  group_by(x, y, year, sim) %>% 
-  summarise(strat = mean(strat))
-
-sim_sets %>% 
-  # subset(strat == 4) %>%
+subsets %>% 
+  subset(strat == 4) %>%
   ggplot(aes(x, y, color = factor(year))) + 
   geom_point() + 
   coord_fixed() + 
   scale_color_discrete("") 
 
-sim_sets %>% 
+subsets %>% 
+  # subset(sim == 10) %>%
+  group_by(strat, year) %>% 
+  summarise(n = n()) 
+
+subsets %>% 
   group_by(strat, year, sim) %>% 
   summarise(n = n()) %>% 
   ggplot(aes(strat, n, fill = factor(year))) + 
   geom_bar(position = "dodge", stat = "identity")
-  
+

@@ -36,7 +36,8 @@ I
 # simulate stratified random surveys --------------------------------------
 
 n_sims = 100 # number of simulations
-min_sets = 10 # minimum number of sets per strat
+total_sample = 30 # total sample efforts you want to deploy
+min_sets = 2 # minimum number of sets per strat
 set_den = 2/1000 # number of sets per [grid unit = km] squared)
 trawl_dim = c(0.01, 0.0353) # 0.000353 sq.km (353 sq.m) from two 15-m diameter survey cylinders
 resample_cells = F
@@ -58,6 +59,7 @@ strat_det$tow_area <- prod(trawl_dim); strat_det
 strat_det$cell_area <- prod(res(sim$grid)); strat_det
 strat_det$strat_area <- strat_det$strat_cells * prod(res(sim$grid)); strat_det
 strat_det$strat_sets <- round(strat_det$strat_area * set_den); strat_det
+strat_det$strat_sets = round((total_sample * strat_det$strat_area) / sum(strat_det$strat_area), 0); strat_det
 strat_det$strat_sets[strat_det$strat_sets < min_sets] <- min_sets; strat_det #make sure minimum number of sets per strat is not 0 or 1
 
 cells <- merge(cells, strat_det, by = c("strat")) # add "strat" "strat_cells" "tow_area" ...
@@ -247,9 +249,9 @@ sim_output = df %>%
   ylab("total_abundance (n)")+
   labs(
     title = "",
-    subtitle = paste0("Number of simulations = ", n_sims, "\n",
-                      "Min # of sets per strat = ", min_sets, "\n",
-                      "number of sets per sq.km = ", set_den))+
+    subtitle = paste0("Total # of surveyed sites = ", total_sample, "\n",
+                      "Number of simulations = ", n_sims, "\n",
+                      "Min # of sets per strat = ", min_sets))+
   annotate(label = label,
            geom = "text",
            x = Inf,
