@@ -33,13 +33,13 @@ I
 
 # replace sim$ with sdm outputs, pick species and response_scale (n or g/sq.m) --------
 
-# load("outputs/density_results_Chromis vanderbilti_count_300_MHI.RData"); sp = "Chromis vanderbilti"; response_scale = "count"
+load("outputs/density_results_Chromis vanderbilti_count_300_MHI.RData"); sp = "Chromis vanderbilti"; response_scale = "count"
 # load("outputs/density_results_Acanthurus olivaceus_biomass_300_MHI.RData"); sp = "Acanthurus olivaceus"; response_scale = "biomass"
 # load("outputs/density_results_Acanthurus dussumieri_biomass_300_MHI.RData"); sp = "Acanthurus dussumieri"; response_scale = "biomass"
 # load("outputs/density_results_Lutjanus kasmira_biomass_300_MHI.RData"); sp = "Lutjanus kasmira"; response_scale = "biomass"
 # load("outputs/density_results_Scarus rubroviolaceus_biomass_300_MHI.RData"); sp = "Scarus rubroviolaceus"; response_scale = "biomass"
 # load("outputs/density_results_Aprion virescens_count_300_MHI.RData"); sp = "Aprion virescens"; response_scale = "count"
-load("outputs/density_results_Aprion virescens_biomass_300_MHI.RData"); sp = "Aprion virescens"; response_scale = "biomass"
+# load("outputs/density_results_Aprion virescens_biomass_300_MHI.RData"); sp = "Aprion virescens"; response_scale = "biomass"
 
 sdm = sdm_output[,c("X", "Y", "longitude", "latitude", "year", "est" )]; rm(sdm_output)
 colnames(sdm)[1:2] = c("x", "y")
@@ -99,8 +99,8 @@ I
 
 # simulate stratified random surveys --------------------------------------
 
-n_sims = 1000 # number of simulations
-total_sample = 5000 # total sample efforts you want to deploy
+n_sims = 100 # number of simulations
+total_sample = 100 # total sample efforts you want to deploy
 min_sets = 2 # minimum number of sets per strat
 set_den = 2/1000 # number of sets per [grid unit = km] squared)
 trawl_dim = c(0.01, 0.0353) # 0.000353 sq.km (353 sq.m) from two 15-m diameter survey cylinders

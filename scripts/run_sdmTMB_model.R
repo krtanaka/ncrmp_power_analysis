@@ -8,13 +8,18 @@ rm(list = ls())
 
 load("data/ALL_REA_FISH_RAW.rdata")
 
+# Target
+# 4 functional groups
+# live coral cover
+# adult juvenile density
+
 # Total numerical density estimates (individuals per 100 m2) were obtained by dividing fish counts in each survey by the survey area (353 m2 from two 15-m diameter survey cylinders) and multiplying by 100. - Nadon et al. 2020
 
 region = "MHI"
 uku_or_not = F
 
-response_variable = "count"
-# response_variable = "biomass"
+# response_variable = "count"
+response_variable = "biomass"
 
 if (response_variable == "biomass") {
   
@@ -31,7 +36,8 @@ if (response_variable == "biomass") {
 }
 
 sp = df %>% 
-  group_by(TAXONNAME) %>% 
+  # group_by(TAXONNAME) %>% 
+  group_by(TROPHIC_MONREP) %>% 
   summarise(n = sum(density, na.rm = T)) %>% 
   mutate(freq = n/sum(n)) %>% 
   arrange(desc(freq)) %>% 
@@ -44,8 +50,8 @@ if (uku_or_not == T) {
   
 } else{
   
-  sp = as.data.frame(sp[5,1]); sp = sp$TAXONNAME
-  df$density = ifelse(df$TAXONNAME == sp, df$density, 0) # most abundant in MHI
+  sp = as.data.frame(sp[1,1]); sp = sp$TROPHIC_MONREP
+  df$density = ifelse(df$TROPHIC_MONREP == sp, df$density, 0) # most abundant in MHI
   print(sp)
   
 }
@@ -71,7 +77,7 @@ islands = c("Kauai", #1
 df = df %>% 
   subset(ISLAND %in% islands) %>% 
   group_by(LONGITUDE, LATITUDE, OBS_YEAR, DEPTH, ISLAND) %>% 
-  summarise(density = mean(density, na.rm = T))
+  summarise(density = sum(density, na.rm = T))
 
 hist(df$density)
 summary(df$density)
@@ -140,7 +146,7 @@ ggplot(df, aes_string("X", "Y", fill = "residuals")) +
   xlab("Eastings") +
   ylab("Northings") + 
   scale_fill_gradient2() + 
-  ggdark::dark_theme_minimal()
+  ggdark::dark_theme_void()
 
 #  extract some parameter estimates
 sd <- as.data.frame(summary(TMB::sdreport(density_model$tmb_obj)))
