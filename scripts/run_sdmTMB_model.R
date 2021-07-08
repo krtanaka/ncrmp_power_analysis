@@ -78,7 +78,7 @@ islands = c("Kauai", #1
 
 df = df %>% 
   subset(ISLAND %in% islands) %>% 
-  group_by(LONGITUDE, LATITUDE, OBS_YEAR, DATE_, DEPTH) %>% 
+  group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_, DEPTH) %>% 
   summarise(density = sum(density, na.rm = T))
 
 hist(df$density)
@@ -101,7 +101,7 @@ df$depth_scaled = scale(log(df$depth))
 df$depth_scaled2 = df$depth_scaled ^ 2
 
 plot(df$depth, df$density, pch = ".", bty = "n")
-plot(df[10:12], pch = ".")
+plot(df[11:13], pch = ".")
 
 obs_year = unique(df$year)
 full_year = seq(min(df$year), max(df$year), by = 1)
