@@ -42,6 +42,7 @@ sp = df %>%
   mutate(freq = n/sum(n)) %>% 
   arrange(desc(freq)) %>% 
   top_n(5) 
+
 sp
 
 if (uku_or_not == T) {
@@ -77,7 +78,7 @@ islands = c("Kauai", #1
 
 df = df %>% 
   subset(ISLAND %in% islands) %>% 
-  group_by(LONGITUDE, LATITUDE, OBS_YEAR, DEPTH) %>% 
+  group_by(LONGITUDE, LATITUDE, OBS_YEAR, DATE_, DEPTH) %>% 
   summarise(density = sum(density, na.rm = T))
 
 hist(df$density)
@@ -99,8 +100,8 @@ df$depth = df$DEPTH
 df$depth_scaled = scale(log(df$depth))
 df$depth_scaled2 = df$depth_scaled ^ 2
 
-plot(df$depth, df$density, pch = 20, bty = "n")
-plot(df[9:11], pch = ".")
+plot(df$depth, df$density, pch = ".", bty = "n")
+plot(df[10:12], pch = ".")
 
 obs_year = unique(df$year)
 full_year = seq(min(df$year), max(df$year), by = 1)
