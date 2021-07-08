@@ -7,6 +7,11 @@ library(future.apply)
 
 rm(list = ls())
 
+# jubilee.mcsapply() = works in Linux and MAC, faster
+# future_lapply)() = for Windows, needs plan(multisession) 
+ 
+plan(multisession) 
+  
 ####################################
 ### Hard / Soft Bottom Substrate ###
 ####################################
@@ -14,7 +19,6 @@ rm(list = ls())
 shp_list = list.files(path = "G:/GIS/hardsoft/MHI/", pattern = "shp.shp"); shp_list
 shp_list = list.files(path = "/mnt/ldrive/ktanaka/GIS/hardsoft/MHI/", pattern = "shp.shp"); shp_list
 
-plan(multisession) 
 
 for (shp_i in 1:length(shp_list)) {
   
@@ -35,12 +39,12 @@ for (shp_i in 1:length(shp_list)) {
   # Raster template 
   r <- raster(extent(df))
   projection(r) <- proj4string(df)
-  res(r) <- 100 # spatial resolution in m
+  res(r) <- 5000 # spatial resolution in m
   
   # Per pixel, identify ID covering largest area, try jubilee.mcsapply() or pbsapply(), or future_lapply()
   r_val <-  simplify2array(future_lapply(1:ncell(r), function(i) {
     # r_val <-  jubilee.mcsapply(1:ncell(r), mc.cores = 48, function(i) {
-      
+    
     r_dupl <- r
     r_dupl[i] <- 1
     p <- rasterToPolygons(r_dupl) # Current cell -> polygon
@@ -78,7 +82,7 @@ for (shp_i in 1:length(shp_list)) {
   r_val = gsub("Land", NA, r_val)
   r_val = gsub("Unknown", NA, r_val)
   r_val = gsub("Other", NA, r_val)
-
+  
   # Write ID values covering the largest area per pixel into raster template
   r[] <- as.numeric(r_val)
   # plot(r, col = topo.colors(2))
@@ -117,7 +121,7 @@ for (shp_i in 1:length(shp_list)) {
   df <- readOGR(paste0("G:/GIS/sector/MHI/", shp_list[shp_i]))[1]
   df@data
   table = data.frame(df@data, i = 0:(length(df)-1)); table
-
+  
   # Raster template 
   r <- raster(extent(df))
   projection(r) <- proj4string(df)

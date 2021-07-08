@@ -8,13 +8,18 @@ rm(list = ls())
 
 load("data/ALL_REA_FISH_RAW.rdata")
 
+# Target
+# 4 functional groups
+# live coral cover
+# adult juvenile density
+
 # Total numerical density estimates (individuals per 100 m2) were obtained by dividing fish counts in each survey by the survey area (353 m2 from two 15-m diameter survey cylinders) and multiplying by 100. - Nadon et al. 2020
 
 region = "MHI"
 uku_or_not = F
 
-response_variable = "count"
-# response_variable = "biomass"
+# response_variable = "count"
+response_variable = "biomass"
 
 if (response_variable == "biomass") {
   
@@ -31,21 +36,23 @@ if (response_variable == "biomass") {
 }
 
 sp = df %>% 
-  group_by(TAXONNAME) %>% 
+  # group_by(TAXONNAME) %>% 
+  group_by(TROPHIC_MONREP) %>% 
   summarise(n = sum(density, na.rm = T)) %>% 
   mutate(freq = n/sum(n)) %>% 
   arrange(desc(freq)) %>% 
   top_n(5) 
+sp
 
 if (uku_or_not == T) {
   
   sp = "Aprion virescens"
   df$density = ifelse(df$TAXONNAME == sp, df$density, 0)
   
-} else{
+} else {
   
-  sp = as.data.frame(sp[5,1]); sp = sp$TAXONNAME
-  df$density = ifelse(df$TAXONNAME == sp, df$density, 0) # most abundant in MHI
+  sp = as.data.frame(sp[1,1]); sp = sp$TROPHIC_MONREP
+  df$density = ifelse(df$TROPHIC_MONREP == sp, df$density, 0) # most abundant in MHI
   print(sp)
   
 }
@@ -70,8 +77,8 @@ islands = c("Kauai", #1
 
 df = df %>% 
   subset(ISLAND %in% islands) %>% 
-  group_by(LONGITUDE, LATITUDE, OBS_YEAR, DEPTH, ISLAND) %>% 
-  summarise(density = mean(density, na.rm = T))
+  group_by(LONGITUDE, LATITUDE, OBS_YEAR, DEPTH) %>% 
+  summarise(density = sum(density, na.rm = T))
 
 hist(df$density)
 summary(df$density)
@@ -82,7 +89,8 @@ colnames(xy_utm) = c("X", "Y"); plot(xy_utm, pch = ".", bty = 'n')
 df = cbind(df, xy_utm)
 
 n_knots = 300
-rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search") # a coarse mesh for speed
+n_knots = 100 # a coarse mesh for speed
+rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search") 
 
 plot(rea_spde, pch = "."); axis(1); axis(2)
 
@@ -92,7 +100,7 @@ df$depth_scaled = scale(log(df$depth))
 df$depth_scaled2 = df$depth_scaled ^ 2
 
 plot(df$depth, df$density, pch = 20, bty = "n")
-plot(df[10:12], pch = ".")
+plot(df[9:11], pch = ".")
 
 obs_year = unique(df$year)
 full_year = seq(min(df$year), max(df$year), by = 1)
@@ -136,11 +144,11 @@ m_p  %>%
 
 ggplot(df, aes_string("X", "Y", fill = "residuals")) +
   geom_tile(aes(height = 0.5, width = 0.5)) +
-  facet_wrap(.~ISLAND, scales = "free") + 
+  # facet_wrap(.~ISLAND, scales = "free") + 
   xlab("Eastings") +
   ylab("Northings") + 
   scale_fill_gradient2() + 
-  ggdark::dark_theme_minimal()
+  ggdark::dark_theme_void()
 
 #  extract some parameter estimates
 sd <- as.data.frame(summary(TMB::sdreport(density_model$tmb_obj)))
