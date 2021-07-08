@@ -12,6 +12,7 @@ rm(list = ls())
 ####################################
 
 shp_list = list.files(path = "G:/GIS/hardsoft/MHI/", pattern = "shp.shp"); shp_list
+shp_list = list.files(path = "/mnt/ldrive/ktanaka/GIS/hardsoft/MHI/", pattern = "shp.shp"); shp_list
 
 plan(multisession) 
 
@@ -38,7 +39,8 @@ for (shp_i in 1:length(shp_list)) {
   
   # Per pixel, identify ID covering largest area, try jubilee.mcsapply() or pbsapply(), or future_lapply()
   r_val <-  simplify2array(future_lapply(1:ncell(r), function(i) {
-    
+    # r_val <-  jubilee.mcsapply(1:ncell(r), mc.cores = 48, function(i) {
+      
     r_dupl <- r
     r_dupl[i] <- 1
     p <- rasterToPolygons(r_dupl) # Current cell -> polygon
@@ -123,6 +125,7 @@ for (shp_i in 1:length(shp_list)) {
   
   # Per pixel, identify ID covering largest area, try jubilee.mcsapply() or pbsapply(), or future_lapply()
   r_val <-  simplify2array(future_lapply(1:ncell(r), function(i) {
+    # r_val <-  jubilee.mcsapply(1:ncell(r), mc.cores = 48, function(i) {
     
     r_dupl <- r
     r_dupl[i] <- 1
