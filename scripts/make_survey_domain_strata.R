@@ -78,10 +78,11 @@ MHI_extent = read.csv("data/MHI_Extents.csv")
 
 islands = MHI_extent$ISLAND
 islands = islands[! islands %in% c("Kaula", "Lehua", "Molokini")] #remove islands that are too small
+islands = islands[! islands %in% c("Kahoolawe")] # remove this island because its missing reef layer
 
 for (il in 1:length(islands)) {
   
-  # il = 2
+  # il = 5
   island = islands[il]
   extent = subset(MHI_extent, ISLAND == island)
   
@@ -101,97 +102,146 @@ for (il in 1:length(islands)) {
   
   # plot(df$longitude, df$latitude, pch = 20, bty = "l", ann = F, col = 2)
   
-  ##############################################################
-  ### import hard/soft bottom substrate shapefile            ###
-  ### adjust resolutions and merge with crm bathymetry data  ###
-  ### these are outputs from "convert_biogeo_shp_to_raster.R ###
-  ##############################################################
+  #############################################################
+  ### import sector/reefzones shapefile                     ###
+  ### adjust resolutions and merge with crm bathymetry data ###
+  ### these are outputs from "convert_shp_to_data.frame.R   ###
+  #############################################################
   
-  if (island == "Hawaii") load("data/biogeo/haw_hs_biogeo_shp.RData")
-  if (island == "Kahoolawe") load("data/biogeo/kah_hs_biogeo_shp.RData")
-  if (island == "Kauai") load("data/biogeo/kau_hs_biogeo_shp.RData")
-  if (island == "Lanai") load("data/biogeo/lan_hs_biogeo_shp.RData")
-  if (island == "Maui") load("data/biogeo/mai_hs_biogeo_shp.RData")
-  if (island == "Molokai") load("data/biogeo/mol_hs_biogeo_shp.RData")
-  if (island == "Niihau") load("data/biogeo/nii_hs_biogeo_shp.RData")
-  if (island == "Oahu") load("data/biogeo/oah_hs_biogeo_shp.RData")
+  if (island == "Hawaii") {load("data/sectors/haw_sectors_shp.RData"); load("data/reefzone/haw_reefzone.shp.RData")}
+  # if (island == "Kahoolawe") {load("data/sectors/kah_sectors_shp.RData")}
+  if (island == "Kauai") {load("data/sectors/kau_sectors_shp.RData"); load("data/reefzone/kau_reefzone.shp.RData")}
+  if (island == "Lanai") {load("data/sectors/lan_sectors_shp.RData"); load("data/reefzone/lan_reefzone.shp.RData")}
+  if (island == "Maui") {load("data/sectors/mai_sectors_shp.RData"); load("data/reefzone/mai_reefzone.shp.RData")}
+  if (island == "Molokai") {load("data/sectors/mol_sectors_shp.RData"); load("data/reefzone/mol_reefzone.shp.RData")}
+  if (island == "Niihau") {load("data/sectors/nii_sectors_shp.RData"); load("data/reefzone/nii_reefzone.shp.RData")}
+  if (island == "Oahu") {load("data/sectors/oah_sectors_shp.RData"); load("data/reefzone/oah_reefzone.shp.RData")}
   
-  # plot(bottom_type$lon, bottom_type$lat, pch = ".", bty = "l", ann = F, col = 4)
+  plot(sector$lon, sector$lat, pch = ".", bty = "l", ann = F, col = 4)
+  points(reef$lon, reef$lat, pch = ".", bty = "l", ann = F, col = 2)
   
-  utmcoor <- SpatialPoints(cbind(bottom_type$lon, bottom_type$lat), proj4string = CRS("+proj=utm +units=m +zone=4"))
+  # merge sectors -----------------------------------------------------------
+  utmcoor <- SpatialPoints(cbind(sector$lon, sector$lat), proj4string = CRS("+proj=utm +units=m +zone=4"))
   longlatcoor <- spTransform(utmcoor,CRS("+proj=longlat"))
-  bottom_type$lon <- coordinates(longlatcoor)[,1]
-  bottom_type$lat <- coordinates(longlatcoor)[,2]
+  sector$lon <- coordinates(longlatcoor)[,1]
+  sector$lat <- coordinates(longlatcoor)[,2]
   rm(longlatcoor, utmcoor)
-  bottom_type = bottom_type %>% filter(!HardSoft %in% c("Unknown", "Land", "Other"))
-  # bottom_type = bottom_type %>% filter(!HardSoft %in% c("Land"))
-  bottom_type$hs = ifelse(bottom_type$HardSoft == "Hard", 1, 2)
-  bottom_type = as.matrix(bottom_type[,c("lon", "lat", "hs")])
-  e = extent(bottom_type[,1:2])
+  # sector = sector %>% filter(!HardSoft %in% c("Unknown", "Land", "Other"))
+  sector$sector_name = as.numeric(as.factor(sector$SEC_NAME))
+  sector = as.matrix(sector[,c("lon", "lat", "sector_name")])
+  e = extent(sector[,1:2])
   
   crm_res = rasterFromXYZ(df[,c("longitude", "latitude", "cell")])
-  # plot(crm_res, col = rainbow(100))
-  crm_res %>%
-    rasterToPoints(spatial = T) %>%
-    as.data.frame() %>% 
-    ggplot(aes(x, y, color = cell)) + 
-    geom_hex(bins = 50) + 
-    coord_fixed() + 
-    scale_fill_gradientn(colors = cm.colors(10)) + 
-    ggdark::dark_mode()
-  dim(crm_res)
-  crm_res
+  dim(crm_res); crm_res
   
-  # rasterize it, but be careful with resolutions
-  res = 1
+  res = 50  # rasterize it, but be careful with resolutions, lower = better but more missing points
   r <- raster(e, ncol = round((dim(crm_res)[2]/res), digits = 0), nrow = round(dim(crm_res)[1]/res, digits = 0))
-  bottom_type <- rasterize(bottom_type[, 1:2], r, bottom_type[,3], fun = mean)
-  bottom_type %>% 
+  sector <- rasterize(sector[, 1:2], r, sector[,3], fun = mean)
+  sector %>% 
     rasterToPoints(spatial = T) %>% 
-    as.data.frame() %>% 
-    ggplot(aes(x, y, color = layer)) + 
-    geom_hex(bins = 50) + 
+    as.data.frame() %>%
+    ggplot(aes(x, y, fill = layer)) + 
+    geom_raster() + 
     coord_fixed() +
-    scale_fill_viridis_b("hard_soft") + 
+    scale_fill_viridis_b("") + 
     ggdark::dark_theme_minimal()
-  dim(bottom_type)
-  bottom_type
+  dim(sector)
+  sector
   default_proj = "+init=epsg:4326 +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +towgs84=0,0,0"
-  crs(bottom_type) = default_proj
-  plot(bottom_type)
+  crs(sector) = default_proj
+  plot(sector)
   
-  bottom_type = resample(bottom_type, crm_res, method = "bilinear") 
+  sector = resample(sector, crm_res, method = "bilinear") 
   
   crm_res = as.data.frame(rasterToPoints(crm_res))
-  bottom_type = as.data.frame(rasterToPoints(bottom_type))
+  sector = as.data.frame(rasterToPoints(sector))
   
-  bottom_type = left_join(crm_res, bottom_type)
-  colnames(bottom_type) = c("longitude", "latitude", "cell", "substrate")
-  summary(bottom_type)
+  sector = left_join(crm_res, sector)
+  colnames(sector) = c("longitude", "latitude", "cell", "sector")
+  summary(sector)
   
-  # qplot(bottom_type$longitude, bottom_type$latitude, color = bottom_type$substrate) + coord_fixed()
-  
-  bottom_type %>% 
-    ggplot(aes(longitude, latitude, color = substrate)) + 
-    geom_hex(bins = 50) + 
+  sector %>% 
+    ggplot(aes(longitude, latitude, color = sector)) + 
+    geom_point() + 
     coord_fixed() + 
-    scale_fill_viridis_b("hard_soft") + 
+    scale_fill_viridis_b("") + 
     ggdark::dark_theme_minimal()
   
-  df = merge(df, bottom_type, by = "cell")
+  df = merge(df, sector, by = c("cell"))
   
-  df$substrate = round(df$substrate, digits = 0)
-  df = df[!is.na(df$substrate), ]
+  df$sector = round(df$sector, digits = 0)
+  df = df[!is.na(df$sector), ]
   
-  # make strata by depth * bottom type
-  df$strat = ""
-  df$strat = ifelse(df$Topography <= 0  & df$Topography >= -6  & df$substrate == 1, 1L, df$strat) # shallow & hard
-  df$strat = ifelse(df$Topography < -6  & df$Topography >= -18 & df$substrate == 1, 2L, df$strat) # mid & hard
-  df$strat = ifelse(df$Topography < -18 &                        df$substrate == 1, 3L, df$strat) # deep & hard
-  df$strat = ifelse(df$Topography <= 0  & df$Topography >= -6  & df$substrate == 2, 4L, df$strat) # shallow & soft
-  df$strat = ifelse(df$Topography < -6  & df$Topography >= -18 & df$substrate == 2, 5L, df$strat) # mid & soft
-  df$strat = ifelse(df$Topography < -18 &                        df$substrate == 2, 6L, df$strat) # deep & soft
-  df$strat = as.numeric(df$strat)
+  colnames(df)[2:3] = c("longitude", "latitude")
+  
+  # merge reefzones ---------------------------------------------------------
+  utmcoor <- SpatialPoints(cbind(reef$lon, reef$lat), proj4string = CRS("+proj=utm +units=m +zone=4"))
+  longlatcoor <- spTransform(utmcoor,CRS("+proj=longlat"))
+  reef$lon <- coordinates(longlatcoor)[,1]
+  reef$lat <- coordinates(longlatcoor)[,2]
+  rm(longlatcoor, utmcoor)
+  reef = reef %>% filter(!REEF_ZONE %in% c("Unknown", "Land", "Other"))
+  reef$reef_zone = as.numeric(as.factor(reef$REEF_ZONE))
+  reef = as.matrix(reef[,c("lon", "lat", "reef_zone")])
+  e = extent(reef[,1:2])
+  
+  crm_res = rasterFromXYZ(df[,c("longitude", "latitude", "cell")])
+  dim(crm_res); crm_res
+  
+  # rasterize it, but be careful with resolutions
+  res = 50
+  r <- raster(e, ncol = round((dim(crm_res)[2]/res), digits = 0), nrow = round(dim(crm_res)[1]/res, digits = 0))
+  reef <- rasterize(reef[, 1:2], r, reef[,3], fun = mean)
+  reef %>% 
+    rasterToPoints(spatial = T) %>% 
+    as.data.frame() %>%
+    ggplot(aes(x, y, fill = layer)) + 
+    geom_raster() + 
+    coord_fixed() +
+    scale_fill_viridis_b("") + 
+    ggdark::dark_theme_minimal()
+  dim(reef)
+  reef
+  default_proj = "+init=epsg:4326 +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +towgs84=0,0,0"
+  crs(reef) = default_proj
+  plot(reef)
+  
+  reef = resample(reef, crm_res, method = "bilinear") 
+  
+  crm_res = as.data.frame(rasterToPoints(crm_res))
+  reef = as.data.frame(rasterToPoints(reef))
+  
+  reef = left_join(crm_res, reef)
+  colnames(reef) = c("longitude", "latitude", "cell", "reef")
+  summary(reef)
+  
+  reef %>% 
+    ggplot(aes(longitude, latitude, color = reef)) + 
+    geom_point() + 
+    coord_fixed() + 
+    scale_fill_viridis_b("") + 
+    ggdark::dark_theme_minimal()
+  
+  df = merge(df, reef, by = "cell")
+  
+  df$reef = round(df$reef, digits = 0)
+  df = df[!is.na(df$reef), ]
+  
+  df = df[ , -which(names(df) %in% c("longitude.y", "latitude.y", "longitude.y", "latitude.y"))]
+  
+  # make strata by depth * sector * reef type -------------------------------
+
+  df$depth_bin = ""
+  df$depth_bin = ifelse(df$Topography <= 0  & df$Topography >= -6, 1L, df$depth_bin) 
+  df$depth_bin = ifelse(df$Topography < -6  & df$Topography >= -18, 2L, df$depth_bin) 
+  df$depth_bin = ifelse(df$Topography < -18, 3L, df$depth_bin) 
+  
+  df$sector = as.character(df$sector)
+  df$reef = as.character(df$reef)
+  
+  df$strat = paste(df$depth_bin, df$sector, df$reef, sep = "_")
+  df$strat = as.numeric(as.factor(df$strat))
+  
   df$depth = as.numeric(df$Topography*-1)
   
   colnames(df)[2:3] = c("longitude", "latitude")
@@ -205,8 +255,8 @@ for (il in 1:length(islands)) {
     theme(axis.title = element_blank(),
           legend.position = "bottom")
   
-  substrate = df %>% 
-    ggplot( aes(longitude, latitude, fill = factor(substrate))) + 
+  sector = df %>% 
+    ggplot( aes(longitude, latitude, fill = factor(sector))) + 
     geom_tile(aes(width = 0.005, height = 0.005)) +
     scale_fill_discrete("Bottom type") +
     coord_fixed() +
@@ -215,8 +265,8 @@ for (il in 1:length(islands)) {
     theme(axis.title = element_blank(),
           legend.position = "bottom")
   
-  strat = df %>% 
-    ggplot( aes(longitude, latitude, fill = as.factor(strat))) + 
+  reef = df %>% 
+    ggplot( aes(longitude, latitude, fill = as.factor(reef))) + 
     geom_tile(aes(width = 0.005, height = 0.005)) +
     scale_fill_discrete("Strata") +
     coord_fixed() +
@@ -225,10 +275,10 @@ for (il in 1:length(islands)) {
     theme(axis.title = element_blank(),
           legend.position = "bottom")
   
-  pdf(paste0("outputs/survey_grid_", islands[il], ".pdf"), height = 8, width = 10)
-  p =  depth + substrate + strat
+  # pdf(paste0("outputs/survey_grid_", islands[il], ".pdf"), height = 8, width = 10)
+  p =  depth + sector + reef
   print(p)
-  dev.off()
+  # dev.off()
   
   df = as.data.frame(df)
   
