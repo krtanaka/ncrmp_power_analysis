@@ -52,7 +52,7 @@ if (uku_or_not == T) {
   
 } else {
   
-  sp = as.data.frame(sp[1,1]); sp = sp$TROPHIC_MONREP
+  sp = as.data.frame(sp[4,1]); sp = sp$TROPHIC_MONREP
   df$density = ifelse(df$TROPHIC_MONREP == sp, df$density, 0) # most abundant in MHI
   print(sp)
   
@@ -101,7 +101,7 @@ df$depth_scaled = scale(log(df$depth))
 df$depth_scaled2 = df$depth_scaled ^ 2
 
 plot(df$depth, df$density, pch = ".", bty = "n")
-plot(df[11:13], pch = ".")
+# plot(df[11:13], pch = ".")
 
 obs_year = unique(df$year)
 full_year = seq(min(df$year), max(df$year), by = 1)
@@ -145,7 +145,7 @@ m_p  %>%
 
 ggplot(df, aes_string("X", "Y", fill = "residuals")) +
   geom_tile(aes(height = 0.5, width = 0.5)) +
-  # facet_wrap(.~ISLAND, scales = "free") + 
+  facet_wrap(.~ISLAND, scales = "free") +
   xlab("Eastings") +
   ylab("Northings") + 
   scale_fill_gradient2() + 
