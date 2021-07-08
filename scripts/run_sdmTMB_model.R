@@ -16,10 +16,10 @@ load("data/ALL_REA_FISH_RAW.rdata")
 # Total numerical density estimates (individuals per 100 m2) were obtained by dividing fish counts in each survey by the survey area (353 m2 from two 15-m diameter survey cylinders) and multiplying by 100. - Nadon et al. 2020
 
 region = "MHI"
-uku_or_not = F
+uku_or_not = T
 
-# response_variable = "count"
-response_variable = "biomass"
+response_variable = "count"
+# response_variable = "biomass"
 
 if (response_variable == "biomass") {
   
