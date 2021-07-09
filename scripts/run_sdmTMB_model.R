@@ -6,11 +6,11 @@ library(colorRamps)
 
 rm(list = ls())
 
-# Targets
 # 4 functional groups
 # live coral cover
 # adult juvenile density
 
+# for Uku: 
 # Total numerical density estimates (individuals per 100 m2) were obtained by dividing fish counts in each survey by the survey area (353 m2 from two 15-m diameter survey cylinders) and multiplying by 100. - Nadon et al. 2020
 
 region = "MHI"
@@ -36,7 +36,7 @@ islands = c("Kauai", #1
             "Lanai", #8
             "Molokini", #9
             "Kahoolawe", #10
-            "Hawaii")#[5]
+            "Hawaii")[5]
 
 response_variable = "fish_count";      sp = ifelse(uku_or_not == T, "Aprion virescens", "Chromis vanderbilti")
 response_variable = "fish_biomass";    sp = ifelse(uku_or_not == T, "Aprion virescens", "Acanthurus olivaceus")
@@ -50,11 +50,11 @@ if (response_variable == "fish_count") {
   
   df = df %>% 
     subset(REGION == region & ISLAND %in% islands) %>% 
-    mutate(response = ifelse(TAXONNAME == sp, COUNT, 0)) %>%  
+    mutate(response = ifelse(TAXONNAME == sp, COUNT*100, 0)) %>%  
     group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_, DEPTH) %>% 
     summarise(response = sum(response, na.rm = T))
   
-  hist(df$response)
+  hist(df$response, main = sp)
   
 }
 
@@ -98,7 +98,7 @@ if (response_variable == "coral_cover") {
     group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_, DEPTH) %>% 
     summarise(response = median(response, na.rm = T),
               n = n())
-    
+  
   hist(df$response, main = paste0(sp, "_cover"))
   
 }
