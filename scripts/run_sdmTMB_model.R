@@ -162,6 +162,7 @@ density_model <- sdmTMB(
   spde = rea_spde, 
   anisotropy = T,
   family = tweedie(link = "log"),
+  # family = poisson(link = "log"),
   # family = binomial(link = "logit"),
   # family = nbinom2(link = "log"),
   
@@ -200,9 +201,6 @@ ggplot(df, aes_string("X", "Y", fill = "residuals")) +
 sd <- as.data.frame(summary(TMB::sdreport(density_model$tmb_obj)))
 r <- density_model$tmb_obj$report()
 r
-
-save.image(paste0("outputs/density_model_", sp, "_", response_variable, "_", n_knots, "_", region, ".RData"))
-load(paste0("outputs/density_model_", sp, "_", response_variable, "_", n_knots, "_", region, ".RData"))
 
 # prediction onto new data grid
 load("data/Topography_NOAA_CRM_vol10.RData")
