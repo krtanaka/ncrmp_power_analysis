@@ -14,7 +14,7 @@ rm(list = ls())
 # Total numerical density estimates (individuals per 100 m2) were obtained by dividing fish counts in each survey by the survey area (353 m2 from two 15-m diameter survey cylinders) and multiplying by 100. - Nadon et al. 2020
 
 region = "MHI"
-uku_or_not = F
+uku_or_not = T
 
 # load("data/ALL_REA_FISH_RAW.rdata")
 # df %>% 
@@ -26,69 +26,6 @@ uku_or_not = F
 #   arrange(desc(freq)) %>% 
 #   top_n(5) 
 
-response_variable = "fish_count";      sp = ifelse(uku_or_not == T, "Aprion virescens", "Chromis vanderbilti")
-response_variable = "fish_biomass";    sp = ifelse(uku_or_not == T, "Aprion virescens", "Acanthurus olivaceus")
-response_variable = "trophic_biomass"; sp = c("PISCIVORE", "PLANKTIVORE", "PRIMARY", "SECONDARY")[1]
-response_variable = "coral_cover";     sp = c("CCA", "CORAL", "EMA", "HAL", "I", "MA", "SC", "SED", "TURF")[2]
-
-if (response_variable == "fish_count") {
-  
-  load("data/ALL_REA_FISH_RAW.rdata")
-  
-  df = df %>% 
-    subset(REGION == region) %>% 
-    mutate(response = COUNT*100)
-  
-  df$response = ifelse(df$TAXONNAME == sp, df$response, 0) 
-  
-}
-
-if (response_variable == "fish_biomass") {
-  
-  load("data/ALL_REA_FISH_RAW.rdata")
-  
-  df = df %>% 
-    subset(REGION == region) %>% 
-    # mutate(response = BIOMASS_G_M2*0.001)
-    mutate(response = BIOMASS_G_M2)
-  
-  df$response = ifelse(df$TAXONNAME == sp, df$response, 0) 
-  
-} 
-
-
-if (response_variable == "trophic_biomass") {
-  
-  load("data/ALL_REA_FISH_RAW.rdata")
-  
-  df = df %>% 
-    subset(REGION == region) %>% 
-    mutate(response = BIOMASS_G_M2)
-  
-  df$response = ifelse(df$TROPHIC_MONREP == sp, df$response, 0) 
-  
-}
-
-if (response_variable == "coral_cover") {
-  
-  load("data/BenthicCover_2010-2020_Tier1_SITE_MHI_w_CRM.RData") #live coral cover, only for MHI, with CRM_Bathy data
-  
-  df = df %>% 
-    subset(REGION == region) %>% 
-    mutate(response = CORAL*0.01)
-  
-  df$DEPTH = df$DEPTH_e*-1
-  df$DEPTH = ifelse(df$DEPTH == 0, df$DEPTH + 0.5, df$DEPTH) 
-  
-}
-
-# north-south gradient
-df %>% 
-  group_by(ISLAND) %>% 
-  summarise(n = mean(response, na.rm = T),
-            lat = mean(LATITUDE)) %>% 
-  arrange(desc(lat)) 
-
 islands = c("Kauai", #1
             "Lehua", #2
             "Niihau", #3
@@ -99,15 +36,95 @@ islands = c("Kauai", #1
             "Lanai", #8
             "Molokini", #9
             "Kahoolawe", #10
-            "Hawaii")[11]
+            "Hawaii")#[5]
 
-df = df %>% 
-  subset(ISLAND %in% islands) %>% 
-  group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_, DEPTH) %>% 
-  summarise(response = mean(response, na.rm = T))
+response_variable = "fish_count";      sp = ifelse(uku_or_not == T, "Aprion virescens", "Chromis vanderbilti")
+response_variable = "fish_biomass";    sp = ifelse(uku_or_not == T, "Aprion virescens", "Acanthurus olivaceus")
+response_variable = "trophic_biomass"; sp = c("PISCIVORE", "PLANKTIVORE", "PRIMARY", "SECONDARY")[2]
+response_variable = "coral_cover";     sp = c("CCA", "CORAL", "EMA", "HAL", "I", "MA", "SC", "SED", "TURF")[2]
+response_variable = "coral_density";   sp = c("AdColDen", "JuvColDen")[1]
 
-hist(df$response)
-summary(df$response)
+if (response_variable == "fish_count") {
+  
+  load("data/ALL_REA_FISH_RAW.rdata")
+  
+  df = df %>% 
+    subset(REGION == region & ISLAND %in% islands) %>% 
+    mutate(response = ifelse(TAXONNAME == sp, COUNT, 0)) %>%  
+    group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_, DEPTH) %>% 
+    summarise(response = sum(response, na.rm = T))
+  
+  hist(df$response)
+  
+}
+
+if (response_variable == "fish_biomass") {
+  
+  load("data/ALL_REA_FISH_RAW.rdata")
+  
+  df = df %>% 
+    subset(REGION == region & ISLAND %in% islands) %>% 
+    mutate(response = ifelse(TAXONNAME == sp, BIOMASS_G_M2, 0)) %>%  
+    # mutate(response = ifelse(TAXONNAME == sp, BIOMASS_G_M2*0.001, 0)) %>%  
+    group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_, DEPTH) %>% 
+    summarise(response = sum(response, na.rm = T))  
+  
+  hist(df$response)
+  
+} 
+
+if (response_variable == "trophic_biomass") {
+  
+  load("data/ALL_REA_FISH_RAW.rdata")
+  
+  df = df %>% 
+    subset(REGION == region & ISLAND %in% islands) %>% 
+    mutate(response = ifelse(TROPHIC_MONREP == sp, BIOMASS_G_M2, 0)) %>%  
+    group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_, DEPTH) %>% 
+    summarise(response = sum(response, na.rm = T))  
+  
+  hist(df$response, main = paste0(sp, "_biomass"))
+  
+}
+
+if (response_variable == "coral_cover") {
+  
+  load("data/BenthicCover_2010-2020_Tier1_SITE_MHI_w_CRM.RData") #live coral cover, only for MHI, with CRM_Bathy data
+  
+  df = df %>% 
+    subset(REGION == region & ISLAND %in% islands) %>% 
+    mutate(response = CORAL*0.01,
+           DEPTH = ifelse(DEPTH_e == 0, DEPTH_e*-1 + 0.1, DEPTH_e*-1)) %>%  
+    group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_, DEPTH) %>% 
+    summarise(response = median(response, na.rm = T))
+    
+  hist(df$response, main = paste0(sp, "_cover"))
+  
+}
+
+if (response_variable == "coral_density") {
+  
+  load("data/BenthicREA_sitedata_TAXONCODE.RData_MHI_w_CRM.RData") #live coral cover, only for MHI, with CRM_Bathy data
+  
+  if (sp == "AdColDen") df = df %>% mutate(response = AdColDen)
+  if (sp == "JuvColDen") df = df %>% mutate(response = JuvColDen)
+  
+  df = df %>% 
+    subset(REGION == region & ISLAND %in% islands) %>% 
+    mutate( DEPTH = ifelse(DEPTH_e == 0, DEPTH_e*-1 + 0.1, DEPTH_e*-1)) %>%  
+    group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_, DEPTH) %>% 
+    summarise(response = sum(response, na.rm = T))
+  
+  hist(df$response, main = paste0(sp, "_coral_density"))
+  
+}
+
+# north-south gradient
+df %>% 
+  group_by(ISLAND) %>% 
+  summarise(n = mean(response, na.rm = T),
+            lat = mean(LATITUDE)) %>% 
+  arrange(desc(lat)) 
 
 zone <- (floor((df$LONGITUDE[1] + 180)/6) %% 60) + 1
 xy_utm = as.data.frame(cbind(utm = project(as.matrix(df[, c("LONGITUDE", "LATITUDE")]), paste0("+proj=utm +units=km +zone=", zone))))
@@ -115,7 +132,7 @@ colnames(xy_utm) = c("X", "Y"); plot(xy_utm, pch = ".", bty = 'n')
 df = cbind(df, xy_utm)
 
 n_knots = 300
-n_knots = 100 # a coarse mesh for speed
+# n_knots = 100 # a coarse mesh for speed
 rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search") 
 
 plot(rea_spde, pch = "."); axis(1); axis(2)
@@ -125,7 +142,7 @@ df$depth = df$DEPTH
 df$depth_scaled = scale(log(df$depth))
 df$depth_scaled2 = df$depth_scaled ^ 2
 
-plot(df$depth, df$response, pch = ".", bty = "n")
+plot(df$depth, df$response, pch = 20, bty = "n")
 plot(df[11:13], pch = ".")
 
 obs_year = unique(df$year)

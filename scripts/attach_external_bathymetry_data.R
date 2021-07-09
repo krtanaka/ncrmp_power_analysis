@@ -13,7 +13,7 @@ library(colorRamps)
 source("/Users/Kisei.Tanaka/env_data_summary/scripts/HelperCode/ExpandingExtract.R")
 
 load("data/BenthicCover_2010-2020_Tier1_SITE.RData")
-
+load("data/BenthicREA_sitedata_TAXONCODE.RData")
 
 SM = df %>% subset(REGION == "MHI") %>% as.data.frame()
 
@@ -60,4 +60,4 @@ df %>%
   ggdark::dark_theme_void() 
 
 
-save(df, file = "data/BenthicCover_2010-2020_Tier1_SITE_MHI_w_CRM.RData")
+save(df, file = "data/BenthicREA_sitedata_TAXONCODE.RData_MHI_w_CRM.RData")
