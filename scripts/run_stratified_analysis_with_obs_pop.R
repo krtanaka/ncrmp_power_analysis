@@ -33,13 +33,23 @@ I
 
 # replace sim$ with sdm outputs, pick species and response_scale (n or g/sq.m) --------
 
-load("outputs/density_results_Chromis vanderbilti_count_300_MHI.RData"); sp = "Chromis vanderbilti"; response_scale = "count"
-# load("outputs/density_results_Acanthurus olivaceus_biomass_300_MHI.RData"); sp = "Acanthurus olivaceus"; response_scale = "biomass"
-# load("outputs/density_results_Acanthurus dussumieri_biomass_300_MHI.RData"); sp = "Acanthurus dussumieri"; response_scale = "biomass"
-# load("outputs/density_results_Lutjanus kasmira_biomass_300_MHI.RData"); sp = "Lutjanus kasmira"; response_scale = "biomass"
-# load("outputs/density_results_Scarus rubroviolaceus_biomass_300_MHI.RData"); sp = "Scarus rubroviolaceus"; response_scale = "biomass"
-# load("outputs/density_results_Aprion virescens_count_300_MHI.RData"); sp = "Aprion virescens"; response_scale = "count"
-# load("outputs/density_results_Aprion virescens_biomass_300_MHI.RData"); sp = "Aprion virescens"; response_scale = "biomass"
+# fish_count
+list = list.files(path = "outputs/", pattern = "_count"); list
+
+# fish_or_trophic_biomass
+list = list.files(path = "outputs/", pattern = "_biomass"); list
+
+# coral_cover
+list = list.files(path = "outputs/", pattern = "_coral_cover"); list
+
+# adult or juvenile coral density
+list = list.files(path = "outputs/", pattern = "_density"); list
+
+i = 1
+
+load(paste0("outputs/", list[i]))
+sp = strsplit(list[i], split = "_")[[1]][3]
+response_scale = strsplit(list[i], split = "_")[[1]][4]
 
 sdm = sdm_output[,c("X", "Y", "longitude", "latitude", "year", "est" )]; rm(sdm_output)
 colnames(sdm)[1:2] = c("x", "y")

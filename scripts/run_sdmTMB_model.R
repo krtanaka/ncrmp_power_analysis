@@ -14,7 +14,7 @@ rm(list = ls())
 # Total numerical density estimates (individuals per 100 m2) were obtained by dividing fish counts in each survey by the survey area (353 m2 from two 15-m diameter survey cylinders) and multiplying by 100. - Nadon et al. 2020
 
 region = "MHI"
-uku_or_not = T
+uku_or_not = F
 
 # load("data/ALL_REA_FISH_RAW.rdata")
 # df %>% 
@@ -36,7 +36,7 @@ islands = c("Kauai", #1
             "Lanai", #8
             "Molokini", #9
             "Kahoolawe", #10
-            "Hawaii")[5]
+            "Hawaii")#[5]
 
 response_variable = "fish_count";      sp = ifelse(uku_or_not == T, "Aprion virescens", "Chromis vanderbilti")
 response_variable = "fish_biomass";    sp = ifelse(uku_or_not == T, "Aprion virescens", "Acanthurus olivaceus")
@@ -211,20 +211,20 @@ load("data/Topography_NOAA_CRM_vol10.RData")
 
 grid = topo
 
-res = 2
-
-grid$longitude = round(grid$x, digits = res)
-grid$latitude = round(grid$y, digits = res)
+# res = 2
+# 
+# grid$longitude = round(grid$x, digits = res)
+# grid$latitude = round(grid$y, digits = res)
 
 grid$longitude = grid$x
 grid$latitude = grid$y
 
 grid = grid %>% 
   group_by(longitude, latitude) %>% 
-  # subset(longitude > range(df$LONGITUDE)[1]) %>% 
-  # subset(longitude < range(df$LONGITUDE)[2]) %>%  
-  # subset(latitude > range(df$LATITUDE)[1]) %>%
-  # subset(latitude < range(df$LATITUDE)[2]) %>% 
+  subset(longitude > range(df$LONGITUDE)[1]) %>%
+  subset(longitude < range(df$LONGITUDE)[2]) %>%
+  subset(latitude > range(df$LATITUDE)[1]) %>%
+  subset(latitude < range(df$LATITUDE)[2]) %>%
   summarise(depth = mean(Topography, na.rm = T)*-1) 
 
 zone <- (floor((grid$longitude[1] + 180)/6) %% 60) + 1
@@ -355,5 +355,3 @@ library(patchwork)
 
 density_map
 relative_biomass+density_cog
-
-
