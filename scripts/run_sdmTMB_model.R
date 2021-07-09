@@ -85,11 +85,9 @@ if (response_variable == "coral_cover") {
 # north-south gradient
 df %>% 
   group_by(ISLAND) %>% 
-  summarise(n = median(response, na.rm = T),
+  summarise(n = mean(response, na.rm = T),
             lat = mean(LATITUDE)) %>% 
-  arrange(desc(lat)) %>% 
-  ggplot(aes(lat, n, label = ISLAND)) + 
-  geom_text()
+  arrange(desc(lat)) 
 
 islands = c("Kauai", #1
             "Lehua", #2
@@ -106,7 +104,7 @@ islands = c("Kauai", #1
 df = df %>% 
   subset(ISLAND %in% islands) %>% 
   group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_, DEPTH) %>% 
-  summarise(response = median(response, na.rm = T))
+  summarise(response = mean(response, na.rm = T))
 
 hist(df$response)
 summary(df$response)
@@ -146,9 +144,9 @@ density_model <- sdmTMB(
   time = "year", 
   spde = rea_spde, 
   anisotropy = T,
-  # family = tweedie(link = "log"),
-  family = nbinom2(link = "log"),
-  family = nbinom2(link = "log"),
+  family = tweedie(link = "log"),
+  # family = binomial(link = "logit"),
+  # family = nbinom2(link = "log"),
   
   control = sdmTMBcontrol(step.min = 0.01, step.max = 1)
   
