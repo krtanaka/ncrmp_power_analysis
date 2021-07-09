@@ -18,7 +18,7 @@ rm(list = ls())
 
 # pick an island ----------------------------------------------------------
 island = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:8, 1)]
-load(paste0("data/survey_grid_", island, ".RData"))
+load(paste0("data/survey_grid_w_sector_reef/survey_grid_", island, ".RData"))
 print(island)
 
 # bring in sim$ as a place holder -----------------------------------------
@@ -100,11 +100,11 @@ I
 # simulate stratified random surveys --------------------------------------
 
 n_sims = 100 # number of simulations
-total_sample = 100 # total sample efforts you want to deploy
+total_sample = 10 # total sample efforts you want to deploy
 min_sets = 2 # minimum number of sets per strat
 set_den = 2/1000 # number of sets per [grid unit = km] squared)
 trawl_dim = c(0.01, 0.0353) # 0.000353 sq.km (353 sq.m) from two 15-m diameter survey cylinders
-resample_cells = T
+resample_cells = F
 
 n <- id <- division <- strat <- N <- NULL
 
@@ -325,5 +325,6 @@ sim_output = df %>%
            hjust = 1,
            vjust = 1) 
 
-strata + sim_output
+strata
+sim_output
 
