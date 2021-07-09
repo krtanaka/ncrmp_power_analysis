@@ -10,16 +10,17 @@ library(ggplot2)
 library(patchwork)
 library(colorRamps)
 
-GIS_Survey_Grid = read_csv("T:/Fish/GIS/Projects/Gridding/OAH/OAH_sites.csv")
-GIS_Survey_Grid[GIS_Survey_Grid == -9999] <- NA
-
-glimpse(GIS_Survey_Grid)
-
 source("/Users/Kisei.Tanaka/env_data_summary/scripts/HelperCode/ExpandingExtract.R")
 
 load("data/BenthicCover_2010-2020_Tier1_SITE.RData")
 
-SM = as.data.frame(GIS_Survey_Grid)
+
+SM = df %>% subset(REGION == "MHI") %>% as.data.frame()
+
+SM$X = SM$LONGITUDE
+SM$Y = SM$LATITUDE
+
+SM$LONGITUDE = ifelse(SM$LONGITUDE < 0, SM$LONGITUDE + 180, SM$LONGITUDE)
 
 SM = SM[complete.cases(SM[,c("X", "Y")]), ]
 SM_sp = SM; SM_sp = as.data.frame(SM_sp)
@@ -46,39 +47,17 @@ this_Ex = ExpandingExtract(this_r, SM_sp, Dists = c(0, 1)); summary(this_Ex)
 
 SM_sp$DEPTH_e = this_Ex$values
 
-GIS_Survey_Grid = as.data.frame(SM_sp) %>% subset(DEPTH_e > -30)
+df = as.data.frame(SM_sp)
 
-g1 = GIS_Survey_Grid %>%
+df %>%
   group_by(X, Y) %>% 
   summarise(depth = mean(DEPTH_e)) %>% 
   ggplot(aes(X, Y, fill = depth)) + 
   # geom_raster(interpolate = T) +
-  geom_tile(aes(height = 0.001, width = 0.001)) +
-  scale_fill_viridis_c("data")+
+  geom_tile(aes(height = 0.01, width = 0.01)) +
+  scale_fill_viridis_c("data") +
   coord_fixed() +
   ggdark::dark_theme_void() 
 
-g2 = GIS_Survey_Grid %>% 
-  group_by(X, Y) %>% 
-  summarise(depth = mean(DEPTH)) %>% 
-  ggplot(aes(X, Y, fill = depth)) + 
-  # geom_raster(interpolate = T) +
-  geom_tile(aes(height = 0.001, width = 0.001)) +
-  scale_fill_viridis_c("obs")+
-  coord_fixed() +
-  ggdark::dark_theme_void() 
 
-g3 = GIS_Survey_Grid %>% 
-  group_by(X, Y) %>% 
-  mutate(error = DEPTH-DEPTH_e) %>% 
-  summarise(error = abs(mean(error))) %>% 
-  ggplot(aes(X, Y, fill = error)) + 
-  # geom_raster(interpolate = T) +
-  geom_tile(aes(height = 0.001, width = 0.001)) +
-  scale_fill_gradientn(colours = matlab.like(10), "error") +
-  coord_fixed() +
-  ggdark::dark_theme_void() 
-
-g1 + g2 + g3
-
-save(GIS_Survey_Grid, file = "data/OAH_Grid.RData")
+save(df, file = "data/BenthicCover_2010-2020_Tier1_SITE_MHI_w_CRM.RData")

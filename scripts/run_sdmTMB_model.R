@@ -71,14 +71,16 @@ if (response_variable == "trophic_biomass") {
 
 if (response_variable == "coral_cover") {
   
-  load("data/BenthicCover_2010-2020_Tier1_SITE.RData") #live coral cover
+  load("data/BenthicCover_2010-2020_Tier1_SITE_MHI_w_CRM.RData") #live coral cover, only for MHI, with CRM_Bathy data
   
   df = df %>% 
     subset(REGION == region) %>% 
     mutate(response = CORAL*0.01)
   
+  df$DEPTH = df$DEPTH_e*-1
+  df$DEPTH = ifelse(df$DEPTH == 0, df$DEPTH + 0.5, df$DEPTH) 
+  
 }
-
 
 # north-south gradient
 df %>% 
@@ -99,11 +101,11 @@ islands = c("Kauai", #1
             "Lanai", #8
             "Molokini", #9
             "Kahoolawe", #10
-            "Hawaii")#[5]
+            "Hawaii")[11]
 
 df = df %>% 
   subset(ISLAND %in% islands) %>% 
-  group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_) %>% 
+  group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_, DEPTH) %>% 
   summarise(response = median(response, na.rm = T))
 
 hist(df$response)
@@ -126,7 +128,7 @@ df$depth_scaled = scale(log(df$depth))
 df$depth_scaled2 = df$depth_scaled ^ 2
 
 plot(df$depth, df$response, pch = ".", bty = "n")
-# plot(df[11:13], pch = ".")
+plot(df[11:13], pch = ".")
 
 obs_year = unique(df$year)
 full_year = seq(min(df$year), max(df$year), by = 1)
@@ -144,7 +146,10 @@ density_model <- sdmTMB(
   time = "year", 
   spde = rea_spde, 
   anisotropy = T,
-  family = tweedie(link = "log"),
+  # family = tweedie(link = "log"),
+  family = nbinom2(link = "log"),
+  family = nbinom2(link = "log"),
+  
   control = sdmTMBcontrol(step.min = 0.01, step.max = 1)
   
 )
@@ -155,12 +160,12 @@ max(density_model$gradients)
 df$residuals <- residuals(density_model)
 qqnorm(df$residuals, ylim = c(-5, 5), xlim = c(-5, 5), bty = "n", pch = 20);abline(a = 0, b = 1)
 
-m_p <- predict(density_model); m_p = m_p[,c("density", "est")]
+m_p <- predict(density_model); m_p = m_p[,c("response", "est")]
 
 ggdark::invert_geom_defaults()
 
 m_p  %>% 
-  ggplot(aes(density, exp(est))) + 
+  ggplot(aes(response, exp(est))) + 
   geom_point(alpha = 0.2) + 
   coord_fixed(ratio = 1) +
   ylab("predicted_density") + 
