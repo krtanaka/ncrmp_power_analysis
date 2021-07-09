@@ -6,9 +6,7 @@ library(colorRamps)
 
 rm(list = ls())
 
-load("data/ALL_REA_FISH_RAW.rdata")
-
-# Target
+# Targets
 # 4 functional groups
 # live coral cover
 # adult juvenile density
@@ -16,53 +14,80 @@ load("data/ALL_REA_FISH_RAW.rdata")
 # Total numerical density estimates (individuals per 100 m2) were obtained by dividing fish counts in each survey by the survey area (353 m2 from two 15-m diameter survey cylinders) and multiplying by 100. - Nadon et al. 2020
 
 region = "MHI"
-uku_or_not = T
+uku_or_not = F
 
-response_variable = "count"
-# response_variable = "biomass"
+# load("data/ALL_REA_FISH_RAW.rdata")
+# df %>% 
+#   subset(REGION == region) %>% 
+#   group_by(TAXONNAME) %>%
+#   summarise(n = sum(BIOMASS_G_M2, na.rm = T)) %>%
+#   # summarise(n = sum(COUNT, na.rm = T)) %>% 
+#   mutate(freq = n/sum(n)) %>% 
+#   arrange(desc(freq)) %>% 
+#   top_n(5) 
 
-if (response_variable == "biomass") {
+response_variable = "fish_count";      sp = ifelse(uku_or_not == T, "Aprion virescens", "Chromis vanderbilti")
+response_variable = "fish_biomass";    sp = ifelse(uku_or_not == T, "Aprion virescens", "Acanthurus olivaceus")
+response_variable = "trophic_biomass"; sp = c("PISCIVORE", "PLANKTIVORE", "PRIMARY", "SECONDARY")[1]
+response_variable = "coral_cover";     sp = c("CCA", "CORAL", "EMA", "HAL", "I", "MA", "SC", "SED", "TURF")[2]
+
+if (response_variable == "fish_count") {
+  
+  load("data/ALL_REA_FISH_RAW.rdata")
   
   df = df %>% 
     subset(REGION == region) %>% 
-    # mutate(density = BIOMASS_G_M2*0.001)
-    mutate(density = BIOMASS_G_M2)
+    mutate(response = COUNT*100)
   
-} else {
+  df$response = ifelse(df$TAXONNAME == sp, df$response, 0) 
+  
+}
+
+if (response_variable == "fish_biomass") {
+  
+  load("data/ALL_REA_FISH_RAW.rdata")
   
   df = df %>% 
     subset(REGION == region) %>% 
-    mutate(density = COUNT*100)
-}
-
-sp = df %>% 
-  # group_by(TAXONNAME) %>% 
-  group_by(TROPHIC_MONREP) %>% 
-  summarise(n = sum(density, na.rm = T)) %>% 
-  mutate(freq = n/sum(n)) %>% 
-  arrange(desc(freq)) %>% 
-  top_n(5) 
-
-sp
-
-if (uku_or_not == T) {
+    # mutate(response = BIOMASS_G_M2*0.001)
+    mutate(response = BIOMASS_G_M2)
   
-  sp = "Aprion virescens"
-  df$density = ifelse(df$TAXONNAME == sp, df$density, 0)
+  df$response = ifelse(df$TAXONNAME == sp, df$response, 0) 
   
-} else {
+} 
+
+
+if (response_variable == "trophic_biomass") {
   
-  sp = as.data.frame(sp[4,1]); sp = sp$TROPHIC_MONREP
-  df$density = ifelse(df$TROPHIC_MONREP == sp, df$density, 0) # most abundant in MHI
-  print(sp)
+  load("data/ALL_REA_FISH_RAW.rdata")
+  
+  df = df %>% 
+    subset(REGION == region) %>% 
+    mutate(response = BIOMASS_G_M2)
+  
+  df$response = ifelse(df$TROPHIC_MONREP == sp, df$response, 0) 
   
 }
 
+if (response_variable == "coral_cover") {
+  
+  load("data/BenthicCover_2010-2020_Tier1_SITE.RData") #live coral cover
+  
+  df = df %>% 
+    subset(REGION == region) %>% 
+    mutate(response = CORAL*0.01)
+  
+}
+
+
+# north-south gradient
 df %>% 
   group_by(ISLAND) %>% 
-  summarise(n = mean(density, na.rm = T),
+  summarise(n = median(response, na.rm = T),
             lat = mean(LATITUDE)) %>% 
-  arrange(desc(lat))
+  arrange(desc(lat)) %>% 
+  ggplot(aes(lat, n, label = ISLAND)) + 
+  geom_text()
 
 islands = c("Kauai", #1
             "Lehua", #2
@@ -74,15 +99,15 @@ islands = c("Kauai", #1
             "Lanai", #8
             "Molokini", #9
             "Kahoolawe", #10
-            "Hawaii")[1:11]
+            "Hawaii")#[5]
 
 df = df %>% 
   subset(ISLAND %in% islands) %>% 
-  group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_, DEPTH) %>% 
-  summarise(density = sum(density, na.rm = T))
+  group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_) %>% 
+  summarise(response = median(response, na.rm = T))
 
-hist(df$density)
-summary(df$density)
+hist(df$response)
+summary(df$response)
 
 zone <- (floor((df$LONGITUDE[1] + 180)/6) %% 60) + 1
 xy_utm = as.data.frame(cbind(utm = project(as.matrix(df[, c("LONGITUDE", "LATITUDE")]), paste0("+proj=utm +units=km +zone=", zone))))
@@ -100,7 +125,7 @@ df$depth = df$DEPTH
 df$depth_scaled = scale(log(df$depth))
 df$depth_scaled2 = df$depth_scaled ^ 2
 
-plot(df$depth, df$density, pch = ".", bty = "n")
+plot(df$depth, df$response, pch = ".", bty = "n")
 # plot(df[11:13], pch = ".")
 
 obs_year = unique(df$year)
@@ -111,7 +136,7 @@ missing_year = as.integer(missing_year);missing_year
 density_model <- sdmTMB(
   
   data = df, 
-  formula = density ~ as.factor(year) + depth_scaled + depth_scaled2,
+  formula = response ~ as.factor(year) + depth_scaled + depth_scaled2,
   silent = F, 
   # extra_time = missing_year,
   spatial_trend = T, 
