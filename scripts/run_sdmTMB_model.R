@@ -93,10 +93,11 @@ if (response_variable == "coral_cover") {
   
   df = df %>% 
     subset(REGION == region & ISLAND %in% islands) %>% 
-    mutate(response = CORAL*0.01,
+    mutate(response = CORAL,
            DEPTH = ifelse(DEPTH_e == 0, DEPTH_e*-1 + 0.1, DEPTH_e*-1)) %>%  
     group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_, DEPTH) %>% 
-    summarise(response = median(response, na.rm = T))
+    summarise(response = median(response, na.rm = T),
+              n = n())
     
   hist(df$response, main = paste0(sp, "_cover"))
   
@@ -163,7 +164,7 @@ density_model <- sdmTMB(
   anisotropy = T,
   family = tweedie(link = "log"),
   # family = poisson(link = "log"),
-  # family = binomial(link = "logit"),
+  # family = binomial(link = "logit"), weights = n,
   # family = nbinom2(link = "log"),
   
   control = sdmTMBcontrol(step.min = 0.01, step.max = 1)
@@ -220,10 +221,10 @@ grid$latitude = grid$y
 
 grid = grid %>% 
   group_by(longitude, latitude) %>% 
-  subset(longitude > range(df$LONGITUDE)[1]) %>% 
-  subset(longitude < range(df$LONGITUDE)[2]) %>%  
-  subset(latitude > range(df$LATITUDE)[1]) %>%
-  subset(latitude < range(df$LATITUDE)[2]) %>% 
+  # subset(longitude > range(df$LONGITUDE)[1]) %>% 
+  # subset(longitude < range(df$LONGITUDE)[2]) %>%  
+  # subset(latitude > range(df$LATITUDE)[1]) %>%
+  # subset(latitude < range(df$LATITUDE)[2]) %>% 
   summarise(depth = mean(Topography, na.rm = T)*-1) 
 
 zone <- (floor((grid$longitude[1] + 180)/6) %% 60) + 1
