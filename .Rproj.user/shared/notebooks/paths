@@ -1,2 +1,5 @@
-C:/Users/Kisei.Tanaka/ncrmp_power_analysis/scripts/convert shp_to_data.frame.R="964336DF"
-C:/Users/Kisei.Tanaka/ncrmp_power_analysis/scripts/run_stratified_analysis_with_obs_pop.R="53EE81F2"
+C:/Users/Kisei/ncrmp_power_analysis/scripts/commonmap_beta.R="E8942367"
+C:/Users/Kisei/ncrmp_power_analysis/scripts/convert_shp_to_raster.R="7C5943EB"
+C:/Users/Kisei/ncrmp_power_analysis/scripts/import_analyze_external_bathymetry_data.R="64E03CC4"
+C:/Users/Kisei/ncrmp_power_analysis/scripts/make_survey_domain_strata.R="62748759"
+C:/Users/Kisei/ncrmp_power_analysis/scripts/run_stratified_analysis_with_obs_pop.R="8755D9B6"
