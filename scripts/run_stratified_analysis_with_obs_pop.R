@@ -45,7 +45,7 @@ list = list.files(path = "outputs/", pattern = "_coral_cover"); list
 # adult or juvenile coral density
 list = list.files(path = "outputs/", pattern = "_density"); list
 
-i = 1
+i = 3
 
 load(paste0("outputs/", list[i]))
 sp = strsplit(list[i], split = "_")[[1]][3]

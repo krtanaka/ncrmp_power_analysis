@@ -154,7 +154,10 @@ missing_year = as.integer(missing_year);missing_year
 density_model <- sdmTMB(
   
   data = df, 
-  formula = response ~ as.factor(year) + depth_scaled + depth_scaled2,
+  
+  # formula = response ~ as.factor(year) + depth_scaled + depth_scaled2,
+  formula = response ~ as.factor(year) + s(depth, k=3),
+  
   silent = F, 
   # extra_time = missing_year,
   spatial_trend = T, 
@@ -179,6 +182,14 @@ qqnorm(df$residuals, ylim = c(-5, 5), xlim = c(-5, 5), bty = "n", pch = 20);abli
 
 m_p <- predict(density_model); m_p = m_p[,c("response", "est")]
 
+ggplot(df, aes_string("X", "Y", fill = "residuals")) +
+  geom_tile(aes(height = 0.5, width = 0.5)) +
+  facet_wrap(.~ISLAND, scales = "free") +
+  xlab("Eastings") +
+  ylab("Northings") + 
+  scale_fill_gradient2() + 
+  ggdark::dark_theme_void()
+
 ggdark::invert_geom_defaults()
 
 m_p  %>% 
@@ -189,14 +200,6 @@ m_p  %>%
   xlab("observed_density") + 
   geom_abline(intercept = 0, slope = 1) +
   geom_smooth(method = "lm", se = T)
-
-ggplot(df, aes_string("X", "Y", fill = "residuals")) +
-  geom_tile(aes(height = 0.5, width = 0.5)) +
-  facet_wrap(.~ISLAND, scales = "free") +
-  xlab("Eastings") +
-  ylab("Northings") + 
-  scale_fill_gradient2() + 
-  ggdark::dark_theme_void()
 
 #  extract some parameter estimates
 sd <- as.data.frame(summary(TMB::sdreport(density_model$tmb_obj)))
