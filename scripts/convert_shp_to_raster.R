@@ -18,9 +18,9 @@ rm(list = ls())
 # plan(multisession) # Uncomment if you are running this on Windows OS
 
 
-####################################
-### Hard / Soft Bottom Substrate ###
-####################################
+##################################
+### Hard/Soft Bottom Substrate ###
+##################################
 
 shp_list = list.files(path = "G:/GIS/hardsoft/MHI/", pattern = "shp.shp"); shp_list
 shp_list = list.files(path = "/mnt/ldrive/ktanaka/GIS/hardsoft/MHI/", pattern = "shp.shp"); shp_list
@@ -29,10 +29,14 @@ for (shp_i in 1:length(shp_list)) {
   
   start = Sys.time()
   
-  # shp_i = 2
+  # shp_i = 1
   
   # Import shapefile
   df <- readOGR(paste0("/mnt/ldrive/ktanaka/GIS/hardsoft/MHI/", shp_list[shp_i]))[4]
+  df <- df[df$HardSoft != "Land",]
+  df <- df[df$HardSoft != "Other",]
+  df <- df[df$HardSoft != "Unknown",]
+  
   df@data
   table = data.frame(df@data, i = 0:(length(df)-1)); table
   
@@ -43,7 +47,7 @@ for (shp_i in 1:length(shp_list)) {
   # Raster template 
   r <- raster(extent(df))
   projection(r) <- proj4string(df)
-  res(r) <- 1000 # spatial resolution in m
+  res(r) <- 100 # spatial resolution in m
   
   # Per pixel, identify ID covering largest area, try jubilee.mcsapply() or pbsapply(), or future_lapply()
   # r_val <-  simplify2array(future_lapply(1:ncell(r), function(i) {
@@ -88,7 +92,7 @@ for (shp_i in 1:length(shp_list)) {
   
   raster_and_table = list(r, table)
   
-  save(raster_and_table, file = paste0("data/hardsoft_", island_name, ".RData"))
+  # save(raster_and_table, file = paste0("data/hardsoft_", island_name, ".RData"))
   
   end = Sys.time()
   
@@ -110,10 +114,13 @@ for (shp_i in 1:length(shp_list)) {
   
   start = Sys.time()
   
-  # shp_i = 6
+  # shp_i = 3
   
   # Import shapefile
   df <- readOGR(paste0("/mnt/ldrive/ktanaka/GIS/sector/MHI/", shp_list[shp_i]))[1]
+  df <- df[df$SEC_NAME != "Land",]
+  df <- df[df$SEC_NAME != "Other",]
+  
   df@data
   table = data.frame(df@data, i = 0:(length(df)-1)); table
   
@@ -160,7 +167,7 @@ for (shp_i in 1:length(shp_list)) {
   
   # Write ID values covering the largest area per pixel into raster template
   r[] <- as.numeric(r_val)
-  # plot(r, col = topo.colors(length(unique(r))))
+  plot(r, col = topo.colors(length(unique(r))))
   # plot(df, border = "grey45", add = TRUE)
   
   island_name = substr(shp_list[shp_i], 1, nchar(shp_list[shp_i])-12)
@@ -191,10 +198,13 @@ for (shp_i in 1:length(shp_list)) {
   
   start = Sys.time()
   
-  # shp_i = 6
+  # shp_i = 7
   
   # Import shapefile
   df <- readOGR(paste0("/mnt/ldrive/ktanaka/GIS/reef/MHI/", shp_list[shp_i]))[1]
+  df <- df[df$REEF_ZONE != "Land",]
+  df <- df[df$REEF_ZONE != "Other",]
+  
   df@data
   table = data.frame(df@data, i = 0:(length(df)-1)); table
   
@@ -241,7 +251,7 @@ for (shp_i in 1:length(shp_list)) {
   
   # Write ID values covering the largest area per pixel into raster template
   r[] <- as.numeric(r_val)
-  # plot(r, col = topo.colors(length(unique(r))))
+  plot(r, col = topo.colors(length(unique(r))))
   # plot(df, border = "grey45", add = TRUE)
   
   island_name = substr(shp_list[shp_i], 1, nchar(shp_list[shp_i])-12)
