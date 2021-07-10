@@ -108,6 +108,7 @@ for (shp_i in 1:length(shp_list)) {
 ##################################
 
 shp_list = list.files(path = "G:/GIS/sector/MHI/", pattern = ".shp"); shp_list
+shp_list = list.files(path = "/mnt/ldrive/ktanaka/GIS/hardsoft/MHI/", pattern = "shp.shp"); shp_list
 
 plan(multisession) 
 
