@@ -36,11 +36,11 @@ islands = c("Kauai", #1
             "Lanai", #8
             "Molokini", #9
             "Kahoolawe", #10
-            "Hawaii")#[5]
+            "Hawaii")[11]
 
 response_variable = "fish_count";      sp = ifelse(uku_or_not == T, "Aprion virescens", "Chromis vanderbilti")
 response_variable = "fish_biomass";    sp = ifelse(uku_or_not == T, "Aprion virescens", "Acanthurus olivaceus")
-response_variable = "trophic_biomass"; sp = c("PISCIVORE", "PLANKTIVORE", "PRIMARY", "SECONDARY")[1]
+response_variable = "trophic_biomass"; sp = c("PISCIVORE", "PLANKTIVORE", "PRIMARY", "SECONDARY")[2]
 response_variable = "coral_cover";     sp = c("CCA", "CORAL", "EMA", "HAL", "I", "MA", "SC", "SED", "TURF")[2]
 response_variable = "coral_density";   sp = c("AdColDen", "JuvColDen")[1]
 
@@ -54,7 +54,8 @@ if (response_variable == "fish_count") {
     group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_, DEPTH) %>% 
     summarise(response = sum(response, na.rm = T))
   
-  hist(df$response, main = sp)
+  df %>% ggplot(aes(response)) + geom_histogram() + 
+    df %>% group_by(OBS_YEAR) %>% summarise(n = median(response)) %>% ggplot(aes(OBS_YEAR, n)) + geom_line()
   
 }
 
@@ -69,7 +70,8 @@ if (response_variable == "fish_biomass") {
     group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_, DEPTH) %>% 
     summarise(response = sum(response, na.rm = T))  
   
-  hist(df$response)
+  df %>% ggplot(aes(response)) + geom_histogram() + 
+    df %>% group_by(OBS_YEAR) %>% summarise(n = median(response)) %>% ggplot(aes(OBS_YEAR, n)) + geom_line()
   
 } 
 
@@ -83,7 +85,8 @@ if (response_variable == "trophic_biomass") {
     group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_, DEPTH) %>% 
     summarise(response = sum(response, na.rm = T))  
   
-  hist(df$response, main = paste0(sp, "_biomass"))
+  df %>% ggplot(aes(response)) + geom_histogram() + 
+    df %>% group_by(OBS_YEAR) %>% summarise(n = median(response)) %>% ggplot(aes(OBS_YEAR, n)) + geom_line()
   
 }
 

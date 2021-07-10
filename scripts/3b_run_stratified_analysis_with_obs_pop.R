@@ -13,7 +13,7 @@ library(patchwork)
 
 rm(list = ls())
 
-# set.seed(42)
+set.seed(50)
 # options(scipen = 999, digits = 2)
 
 # pick an island ----------------------------------------------------------
@@ -33,17 +33,17 @@ I
 
 # replace sim$ with sdm outputs, pick species and response_scale (n or g/sq.m) --------
 
-# fish_count
-list = list.files(path = "outputs/", pattern = "_count"); list
+# # fish_count
+# list = list.files(path = "outputs/", pattern = "_count"); list
 
 # fish_or_trophic_biomass
 list = list.files(path = "outputs/", pattern = "_biomass"); list
 
-# coral_cover
-list = list.files(path = "outputs/", pattern = "_coral_cover"); list
+# # coral_cover
+# list = list.files(path = "outputs/", pattern = "_cover"); list
 
-# adult or juvenile coral density
-list = list.files(path = "outputs/", pattern = "_density"); list
+# # adult or juvenile coral density
+# list = list.files(path = "outputs/", pattern = "_density"); list
 
 i = 3
 
@@ -110,7 +110,7 @@ I
 # simulate stratified random surveys --------------------------------------
 
 n_sims = 100 # number of simulations
-total_sample = 10 # total sample efforts you want to deploy
+total_sample = 100 # total sample efforts you want to deploy
 min_sets = 2 # minimum number of sets per strat
 set_den = 2/1000 # number of sets per [grid unit = km] squared)
 trawl_dim = c(0.01, 0.0353) # 0.000353 sq.km (353 sq.m) from two 15-m diameter survey cylinders
@@ -310,7 +310,7 @@ strata = sim$grid_xy %>%
   dark_theme_minimal() + 
   ylab("Northing (km)") + xlab("Easting (km)") + 
   theme(legend.position = "bottom") + 
-  ggtitle(paste0(island, "\n", sp))
+  ggtitle(island)
 
 if (response_scale == "biomass") ylab_scale = "biomass (g)"
 if (response_scale == "count") ylab_scale = "abundance (n)"
@@ -324,9 +324,10 @@ sim_output = df %>%
   ylab(ylab_scale)+
   labs(
     title = "",
-    subtitle = paste0("Total # of surveyed sites = ", total_sample, "\n",
-                      "Number of simulations = ", n_sims, "\n",
-                      "Min # of sets per strat = ", min_sets))+
+    subtitle = paste0("Survey target = ", sp, "\n",
+                      "Total # of surveyed sites = ", total_sample, "\n",
+                      "Min # of sets per strat = ", min_sets, "\n",
+                      "Number of simulations = ", n_sims))+
   annotate(label = label,
            geom = "text",
            x = Inf,
@@ -335,6 +336,5 @@ sim_output = df %>%
            hjust = 1,
            vjust = 1) 
 
-strata
-sim_output
+strata + sim_output
 

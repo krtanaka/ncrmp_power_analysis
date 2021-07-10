@@ -78,7 +78,7 @@ islands = islands[! islands %in% c("Kahoolawe")] # remove this island because it
 
 for (il in 1:length(islands)) {
   
-  # il = 5
+  il = 7
   island = islands[il]
   extent = subset(MHI_extent, ISLAND == island)
   
@@ -104,17 +104,17 @@ for (il in 1:length(islands)) {
   ### these are outputs from "convert_shp_to_data.frame.R   ###
   #############################################################
   
-  if (island == "Hawaii") {load("data/sectors/haw_sectors_shp.RData"); load("data/reefzone/haw_reefzone.shp.RData")}
-  # if (island == "Kahoolawe") {load("data/sectors/kah_sectors_shp.RData")}
-  if (island == "Kauai") {load("data/sectors/kau_sectors_shp.RData"); load("data/reefzone/kau_reefzone.shp.RData")}
-  if (island == "Lanai") {load("data/sectors/lan_sectors_shp.RData"); load("data/reefzone/lan_reefzone.shp.RData")}
-  if (island == "Maui") {load("data/sectors/mai_sectors_shp.RData"); load("data/reefzone/mai_reefzone.shp.RData")}
-  if (island == "Molokai") {load("data/sectors/mol_sectors_shp.RData"); load("data/reefzone/mol_reefzone.shp.RData")}
-  if (island == "Niihau") {load("data/sectors/nii_sectors_shp.RData"); load("data/reefzone/nii_reefzone.shp.RData")}
-  if (island == "Oahu") {load("data/sectors/oah_sectors_shp.RData"); load("data/reefzone/oah_reefzone.shp.RData")}
+  if (island == "Hawaii") {load("data/shp_sectors/haw_sectors_shp.RData"); load("data/shp_reefzone/haw_reefzone.shp.RData")}
+  # if (island == "Kahoolawe") {load("data/shp_sectors/kah_sectors_shp.RData")}
+  if (island == "Kauai") {load("data/shp_sectors/kau_sectors_shp.RData"); load("data/shp_reefzone/kau_reefzone.shp.RData")}
+  if (island == "Lanai") {load("data/shp_sectors/lan_sectors_shp.RData"); load("data/shp_reefzone/lan_reefzone.shp.RData")}
+  if (island == "Maui") {load("data/shp_sectors/mai_sectors_shp.RData"); load("data/shp_reefzone/mai_reefzone.shp.RData")}
+  if (island == "Molokai") {load("data/shp_sectors/mol_sectors_shp.RData"); load("data/shp_reefzone/mol_reefzone.shp.RData")}
+  if (island == "Niihau") {load("data/shp_sectors/nii_sectors_shp.RData"); load("data/shp_reefzone/nii_reefzone.shp.RData")}
+  if (island == "Oahu") {load("data/shp_sectors/oah_sectors_shp.RData"); load("data/shp_reefzone/oah_reefzone.shp.RData")}
   
-  plot(sector$lon, sector$lat, pch = ".", bty = "l", ann = F, col = 4)
-  points(reef$lon, reef$lat, pch = ".", bty = "l", ann = F, col = 2)
+  # plot(sector$lon, sector$lat, pch = ".", bty = "l", ann = F, col = 4)
+  # points(reef$lon, reef$lat, pch = ".", bty = "l", ann = F, col = 2)
   
   # merge sectors -----------------------------------------------------------
   utmcoor <- SpatialPoints(cbind(sector$lon, sector$lat), proj4string = CRS("+proj=utm +units=m +zone=4"))
@@ -157,7 +157,7 @@ for (il in 1:length(islands)) {
   summary(sector)
   
   sector %>% 
-    ggplot(aes(longitude, latitude, color = sector)) + 
+    ggplot(aes(longitude, latitude, color = factor(round(sector, 0)))) + 
     geom_point() + 
     coord_fixed() + 
     scale_fill_viridis_b("") + 
@@ -212,7 +212,7 @@ for (il in 1:length(islands)) {
   summary(reef)
   
   reef %>% 
-    ggplot(aes(longitude, latitude, color = reef)) + 
+    ggplot(aes(longitude, latitude, color = factor(round(reef, 0)))) + 
     geom_point() + 
     coord_fixed() + 
     scale_fill_viridis_b("") + 
@@ -254,7 +254,7 @@ for (il in 1:length(islands)) {
   sector = df %>% 
     ggplot( aes(longitude, latitude, fill = factor(sector))) + 
     geom_tile(aes(width = 0.005, height = 0.005)) +
-    scale_fill_discrete("Bottom type") +
+    scale_fill_discrete("sector") +
     coord_fixed() +
     theme_minimal() + 
     ggdark::dark_theme_minimal() +
@@ -264,7 +264,7 @@ for (il in 1:length(islands)) {
   reef = df %>% 
     ggplot( aes(longitude, latitude, fill = as.factor(reef))) + 
     geom_tile(aes(width = 0.005, height = 0.005)) +
-    scale_fill_discrete("Strata") +
+    scale_fill_discrete("reef") +
     coord_fixed() +
     theme_minimal() + 
     ggdark::dark_theme_minimal() +
