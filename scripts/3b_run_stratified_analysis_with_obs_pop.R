@@ -31,7 +31,7 @@ sim = sim_abundance(years = 2000:2020,
 I <- sim$N
 I
 
-# replace sim$ with sdm outputs, pick species and response_scale (n or g/sq.m) --------
+# pick species and response_scale (n or g/sq.m) ---------------------------
 
 # # fish_count
 # list = list.files(path = "outputs/", pattern = "_count"); list
@@ -45,11 +45,14 @@ list = list.files(path = "outputs/", pattern = "_biomass"); list
 # # adult or juvenile coral density
 # list = list.files(path = "outputs/", pattern = "_density"); list
 
-i = 3
+i = 1
 
 load(paste0("outputs/", list[i]))
 sp = strsplit(list[i], split = "_")[[1]][3]
 response_scale = strsplit(list[i], split = "_")[[1]][4]
+
+
+# replace sim$ with sdmTMB outputs  -----------------------------------------
 
 sdm = sdm_output[,c("X", "Y", "longitude", "latitude", "year", "est" )]; rm(sdm_output)
 colnames(sdm)[1:2] = c("x", "y")
@@ -110,7 +113,7 @@ I
 # simulate stratified random surveys --------------------------------------
 
 n_sims = 100 # number of simulations
-total_sample = 100 # total sample efforts you want to deploy
+total_sample = 50 # total sample efforts you want to deploy
 min_sets = 2 # minimum number of sets per strat
 set_den = 2/1000 # number of sets per [grid unit = km] squared)
 trawl_dim = c(0.01, 0.0353) # 0.000353 sq.km (353 sq.m) from two 15-m diameter survey cylinders
@@ -297,6 +300,8 @@ rmse = formatC(sim$total_strat_error_stats[4], digits = 3)
 
 label = paste0("ME = ", me, "\n", "MAE = ", mae, "\n", "MSE = ", mse, "\n", "RMSE = ", rmse)
 
+ggdark::invert_geom_defaults()
+
 strata = sim$grid_xy %>%
   mutate(x = round(x/0.5, digits = 0),
          y = round(y/0.5, digits = 0)) %>%
@@ -305,12 +310,13 @@ strata = sim$grid_xy %>%
             depth = mean(depth)) %>% 
   ggplot(aes(x, y)) +
   coord_fixed() + 
-  scale_fill_discrete("Strata") + 
   geom_raster(aes(fill = factor(strat))) + 
-  dark_theme_minimal() + 
+  theme_minimal() + 
   ylab("Northing (km)") + xlab("Easting (km)") + 
-  theme(legend.position = "bottom") + 
-  ggtitle(island)
+  theme(legend.position = "none") + 
+  labs(
+    title = "",
+    subtitle = paste0(paste0(island, "\n", "# of strata = ", length(unique(sim$grid_xy$strat)))))
 
 if (response_scale == "biomass") ylab_scale = "biomass (g)"
 if (response_scale == "count") ylab_scale = "abundance (n)"
@@ -319,9 +325,10 @@ sim_output = df %>%
   ggplot() + 
   geom_line(aes(year, I_hat, color = factor(sim), alpha = 0.2), show.legend = F) +
   geom_line(aes(year, I), size = 2, color = "red") + 
-  scale_color_viridis_d() + 
-  dark_theme_minimal() + 
-  ylab(ylab_scale)+
+  # scale_color_viridis_d() + 
+  # dark_theme_minimal() + 
+  theme_minimal() + 
+  ylab(ylab_scale) +
   labs(
     title = "",
     subtitle = paste0("Survey target = ", sp, "\n",
@@ -336,5 +343,6 @@ sim_output = df %>%
            hjust = 1,
            vjust = 1) 
 
+png(paste0("outputs/", sp, "_", island, ".png"), res = 100, units = "in", height = 4, width = 8)
 strata + sim_output
-
+dev.off()
