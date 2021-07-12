@@ -47,11 +47,11 @@ for (shp_i in 1:length(shp_list)) {
   # Raster template 
   r <- raster(extent(df))
   projection(r) <- proj4string(df)
-  res(r) <- 100 # spatial resolution in m
+  res(r) <- 1000 # spatial resolution in m
   
   # Per pixel, identify ID covering largest area, try jubilee.mcsapply() or pbsapply(), or future_lapply()
   # r_val <-  simplify2array(future_lapply(1:ncell(r), function(i) {
-  r_val <-  jubilee.mcsapply(1:ncell(r), mc.cores = 48, function(i) {
+  r_val <-  jubilee.mcsapply(1:ncell(r), mc.cores = 64, function(i) {
     
     r_dupl <- r
     r_dupl[i] <- 1
@@ -92,7 +92,7 @@ for (shp_i in 1:length(shp_list)) {
   
   raster_and_table = list(r, table)
   
-  # save(raster_and_table, file = paste0("data/hardsoft_", island_name, ".RData"))
+  save(raster_and_table, file = paste0("/mnt/ldrive/ktanaka/ncrmp_power_analysis/hardsoft_", island_name, ".RData"))
   
   end = Sys.time()
   
@@ -114,7 +114,7 @@ for (shp_i in 1:length(shp_list)) {
   
   start = Sys.time()
   
-  # shp_i = 3
+  # shp_i = 1
   
   # Import shapefile
   df <- readOGR(paste0("/mnt/ldrive/ktanaka/GIS/sector/MHI/", shp_list[shp_i]))[1]
@@ -131,7 +131,7 @@ for (shp_i in 1:length(shp_list)) {
   # Raster template 
   r <- raster(extent(df))
   projection(r) <- proj4string(df)
-  res(r) <- 100 # spatial resolution in m
+  res(r) <- 1000 # spatial resolution in m
   
   # Per pixel, identify ID covering largest area, try jubilee.mcsapply() or pbsapply(), or future_lapply()
   # r_val <-  simplify2array(future_lapply(1:ncell(r), function(i) {
@@ -176,7 +176,7 @@ for (shp_i in 1:length(shp_list)) {
   
   raster_and_table = list(r, table)
   
-  save(raster_and_table, file = paste0("data/sector_", island_name, ".RData"))
+  save(raster_and_table, file = paste0("/mnt/ldrive/ktanaka/ncrmp_power_analysis/sector_", island_name, ".RData"))
   
   end = Sys.time()
   
@@ -198,12 +198,13 @@ for (shp_i in 1:length(shp_list)) {
   
   start = Sys.time()
   
-  # shp_i = 7
+  # shp_i = 1
   
   # Import shapefile
   df <- readOGR(paste0("/mnt/ldrive/ktanaka/GIS/reef/MHI/", shp_list[shp_i]))[1]
   df <- df[df$REEF_ZONE != "Land",]
   df <- df[df$REEF_ZONE != "Other",]
+  df <- df[df$REEF_ZONE != "Reef Crest/Reef Flat",]
   
   df@data
   table = data.frame(df@data, i = 0:(length(df)-1)); table
@@ -215,7 +216,7 @@ for (shp_i in 1:length(shp_list)) {
   # Raster template 
   r <- raster(extent(df))
   projection(r) <- proj4string(df)
-  res(r) <- 100 # spatial resolution in m
+  res(r) <- 1000 # spatial resolution in m
   
   # Per pixel, identify ID covering largest area, try jubilee.mcsapply() or pbsapply(), or future_lapply()
   # r_val <-  simplify2array(future_lapply(1:ncell(r), function(i) {
@@ -230,14 +231,12 @@ for (shp_i in 1:length(shp_list)) {
     if (is.null(sp_df_crp)) {                   
       
       return(NA)
-      
-      
+
       # Case 2: one polygon intersecting current cell  
     } else if (nrow(sp_df_crp@data) < 2) {     
       
       return(rownames(sp_df_crp@data)) 
-      
-      
+
       # Case 3: multiple polygons intersecting current cell
     } else {                                 
       
@@ -251,7 +250,7 @@ for (shp_i in 1:length(shp_list)) {
   
   # Write ID values covering the largest area per pixel into raster template
   r[] <- as.numeric(r_val)
-  plot(r, col = topo.colors(length(unique(r))))
+  # plot(r, col = topo.colors(length(unique(r))))
   # plot(df, border = "grey45", add = TRUE)
   
   island_name = substr(shp_list[shp_i], 1, nchar(shp_list[shp_i])-12)
@@ -260,7 +259,7 @@ for (shp_i in 1:length(shp_list)) {
   
   raster_and_table = list(r, table)
   
-  save(raster_and_table, file = paste0("data/sector_", island_name, ".RData"))
+  save(raster_and_table, file = paste0("/mnt/ldrive/ktanaka/ncrmp_power_analysis/reef_", island_name, ".RData"))
   
   end = Sys.time()
   
