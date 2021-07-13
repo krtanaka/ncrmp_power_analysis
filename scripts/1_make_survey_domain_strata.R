@@ -18,19 +18,19 @@ library(sf)
 ### see raw GIS data ###
 ########################
 
-# load("data/HAW_Grid.RData")
+# load("data/misc/HAW_Grid.RData")
 # 
-# Hawaii_Survey_Grid %>% 
-#   group_by(X, Y) %>% 
+# Hawaii_Survey_Grid %>%
+#   group_by(X, Y) %>%
 #   summarise(X = mean(X),
 #             Y = mean(Y),
-#             depth = mean(DEPTH, na.rm = T)) %>% 
-#   na_if(-9999) %>% 
-#   ggplot( aes(X, Y, fill = depth)) + 
+#             depth = mean(DEPTH, na.rm = T)) %>%
+#   na_if(-9999) %>%
+#   ggplot( aes(X, Y, fill = depth)) +
 #   geom_tile(aes(width = 0.005, height = 0.005)) +
 #   scale_fill_viridis_c("") +
 #   coord_fixed() +
-#   ggdark::dark_theme_minimal() + 
+#   ggdark::dark_theme_minimal() +
 #   theme(axis.title = element_blank())
 # 
 # rm(Hawaii_Survey_Grid)
@@ -59,7 +59,7 @@ library(sf)
 # 
 # save(topo, file = 'data/Topography_NOAA_CRM_vol10.RData')
 
-load("data/Topography_NOAA_CRM_vol10.RData")
+load("data/crm/Topography_NOAA_CRM_vol10.RData")
 
 df_base = topo; rm(topo)
 
@@ -70,7 +70,7 @@ df_base$latitude = df_base$y
 # df_base$longitude = round(df_base$x, digits = res)
 # df_base$latitude = round(df_base$y, digits = res)
 
-MHI_extent = read.csv("data/MHI_Extents.csv")
+MHI_extent = read.csv("data/misc/MHI_Extents.csv")
 
 islands = MHI_extent$ISLAND
 islands = islands[! islands %in% c("Kaula", "Lehua", "Molokini")] #remove islands that are too small
