@@ -111,7 +111,7 @@ for (il in 1:length(islands)) {
   if (island == "Maui") {load("data/shp_sectors/mai_sectors_shp.RData"); load("data/shp_reefzone/mai_reefzone.shp.RData")}
   if (island == "Molokai") {load("data/shp_sectors/mol_sectors_shp.RData"); load("data/shp_reefzone/mol_reefzone.shp.RData")}
   if (island == "Niihau") {load("data/shp_sectors/nii_sectors_shp.RData"); load("data/shp_reefzone/nii_reefzone.shp.RData")}
-  if (island == "Oahu") {load("data/shp_sectors/oah_sectors_shp.RData"); load("data/shp_reefzone/oah_reefzone.shp.RData")}
+  if (island == "Oahu") {load("data/gis_sector/data.frame/oah.RData"); load("data/gis_reef/data.frame/oah.RData")}
   
   # plot(sector$lon, sector$lat, pch = ".", bty = "l", ann = F, col = 4)
   # points(reef$lon, reef$lat, pch = ".", bty = "l", ann = F, col = 2)
@@ -176,7 +176,7 @@ for (il in 1:length(islands)) {
   reef$lon <- coordinates(longlatcoor)[,1]
   reef$lat <- coordinates(longlatcoor)[,2]
   rm(longlatcoor, utmcoor)
-  reef = reef %>% filter(!REEF_ZONE %in% c("Unknown", "Land", "Other"))
+  reef = reef %>% filter(!REEF_ZONE %in% c("Unknown", "Land", "Other", "Reef Crest/Reef Flat"))
   reef$reef_zone = as.numeric(as.factor(reef$REEF_ZONE))
   reef = as.matrix(reef[,c("lon", "lat", "reef_zone")])
   e = extent(reef[,1:2])
@@ -322,7 +322,7 @@ for (il in 1:length(islands)) {
   sp::plot(p)
   
   survey_grid_kt = readAll(survey_grid_kt)
-  save(survey_grid_kt, file = paste0("data/survey_grid_", islands[il], ".RData"))
+  save(survey_grid_kt, file = paste0("data/survey_grid_w_sector_reef/survey_grid_", islands[il], ".RData"))
   
 }
 

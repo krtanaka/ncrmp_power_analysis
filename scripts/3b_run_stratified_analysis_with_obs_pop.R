@@ -45,7 +45,7 @@ list = list.files(path = "outputs/", pattern = "_biomass"); list
 # # adult or juvenile coral density
 # list = list.files(path = "outputs/", pattern = "_density"); list
 
-i = 1
+i = 3
 
 load(paste0("outputs/", list[i]))
 sp = strsplit(list[i], split = "_")[[1]][3]
@@ -87,12 +87,14 @@ df = merge(sim_grid, sdm_grid)
 
 df %>%
   group_by(x, y) %>%
+  mutate(x = round(x, 0),
+         y = round(y, 0)) %>% 
   summarise(est = median(est)) %>%
-  ggplot(aes(x, y, color = est)) +
-  geom_point(size = 2, alpha = 0.5) +
-  scale_color_gradientn(colours = colorRamps::matlab.like(100)) +
+  ggplot(aes(x, y, fill = est)) +
+  geom_raster() +
+  scale_fill_gradientn(colours = colorRamps::matlab.like(100)) +
   coord_fixed() +
-  ggdark::dark_theme_void()
+  ggdark::dark_theme_minimal()
 
 N = df %>% group_by(year) %>% summarise(age = sum(est)) 
 N = matrix(N$age, nrow = 1, ncol = 9)
@@ -113,7 +115,7 @@ I
 # simulate stratified random surveys --------------------------------------
 
 n_sims = 100 # number of simulations
-total_sample = 50 # total sample efforts you want to deploy
+total_sample = 10 # total sample efforts you want to deploy
 min_sets = 2 # minimum number of sets per strat
 set_den = 2/1000 # number of sets per [grid unit = km] squared)
 trawl_dim = c(0.01, 0.0353) # 0.000353 sq.km (353 sq.m) from two 15-m diameter survey cylinders
