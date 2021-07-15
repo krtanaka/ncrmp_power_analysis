@@ -14,7 +14,7 @@ rm(list = ls())
 # Total numerical density estimates (individuals per 100 m2) were obtained by dividing fish counts in each survey by the survey area (353 m2 from two 15-m diameter survey cylinders) and multiplying by 100. - Nadon et al. 2020
 
 region = "MHI"
-uku_or_not = F
+uku_or_not = T
 
 # load("data/ALL_REA_FISH_RAW.rdata")
 # df %>% 
@@ -36,7 +36,7 @@ islands = c("Kauai", #1
             "Lanai", #8
             "Molokini", #9
             "Kahoolawe", #10
-            "Hawaii")[11]
+            "Hawaii")#[11]
 
 response_variable = "fish_count";      sp = ifelse(uku_or_not == T, "Aprion virescens", "Chromis vanderbilti")
 response_variable = "fish_biomass";    sp = ifelse(uku_or_not == T, "Aprion virescens", "Acanthurus olivaceus")
@@ -61,7 +61,7 @@ if (response_variable == "fish_count") {
 
 if (response_variable == "fish_biomass") {
   
-  load("data/ALL_REA_FISH_RAW.rdata")
+  load("data/rea/ALL_REA_FISH_RAW.rdata")
   
   df = df %>% 
     subset(REGION == region & ISLAND %in% islands) %>% 
@@ -72,12 +72,11 @@ if (response_variable == "fish_biomass") {
   
   df %>% ggplot(aes(response)) + geom_histogram() + 
     df %>% group_by(OBS_YEAR) %>% summarise(n = median(response)) %>% ggplot(aes(OBS_YEAR, n)) + geom_line()
-  
 } 
 
 if (response_variable == "trophic_biomass") {
   
-  load("data/ALL_REA_FISH_RAW.rdata")
+  load("data/rea/ALL_REA_FISH_RAW.rdata")
   
   df = df %>% 
     subset(REGION == region & ISLAND %in% islands) %>% 
