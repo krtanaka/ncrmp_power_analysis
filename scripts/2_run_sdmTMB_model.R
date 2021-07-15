@@ -3,6 +3,7 @@ library(dplyr)
 library(ggplot2)
 library(rgdal)
 library(colorRamps)
+library(patchwork)
 
 rm(list = ls())
 
@@ -46,16 +47,17 @@ response_variable = "coral_density";   sp = c("AdColDen", "JuvColDen")[1]
 
 if (response_variable == "fish_count") {
   
-  load("data/ALL_REA_FISH_RAW.rdata")
+  load("data/rea/ALL_REA_FISH_RAW.rdata")
   
   df = df %>% 
     subset(REGION == region & ISLAND %in% islands) %>% 
-    mutate(response = ifelse(TAXONNAME == sp, COUNT*100, 0)) %>%  
+    # mutate(response = ifelse(TAXONNAME == sp, COUNT*100, 0)) %>%  
+    mutate(response = ifelse(TAXONNAME == sp, COUNT, 0)) %>%  
     group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_, DEPTH) %>% 
     summarise(response = sum(response, na.rm = T))
   
   df %>% ggplot(aes(response)) + geom_histogram() + 
-    df %>% group_by(OBS_YEAR) %>% summarise(n = median(response)) %>% ggplot(aes(OBS_YEAR, n)) + geom_line()
+    df %>% group_by(OBS_YEAR) %>% summarise(n = mean(response)) %>% ggplot(aes(OBS_YEAR, n)) + geom_line()
   
 }
 
@@ -131,14 +133,18 @@ df %>%
 
 zone <- (floor((df$LONGITUDE[1] + 180)/6) %% 60) + 1
 xy_utm = as.data.frame(cbind(utm = project(as.matrix(df[, c("LONGITUDE", "LATITUDE")]), paste0("+proj=utm +units=km +zone=", zone))))
-colnames(xy_utm) = c("X", "Y"); plot(xy_utm, pch = ".", bty = 'n')
+colnames(xy_utm) = c("X", "Y")
 df = cbind(df, xy_utm)
 
-n_knots = 300
-# n_knots = 100 # a coarse mesh for speed
+# n_knots = 300
+n_knots = 100 # a coarse mesh for speed
 rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search") 
 
-plot(rea_spde, pch = "."); axis(1); axis(2)
+# png("outputs/SPDE_mesh_field.png", height = 5, width = 5, units = "in", res = 100)
+# par(mfrow = c(1,2))
+# plot(xy_utm, pch = ".", bty = 'n')
+plot(rea_spde, pch = ".", bty = "n"); axis(1); axis(2)
+# dev.off()
 
 df$year = df$OBS_YEAR
 df$depth = df$DEPTH
@@ -157,8 +163,8 @@ density_model <- sdmTMB(
   
   data = df, 
   
-  # formula = response ~ as.factor(year) + depth_scaled + depth_scaled2,
-  formula = response ~ as.factor(year) + s(depth, k=3),
+  formula = response ~ as.factor(year) + depth_scaled + depth_scaled2,
+  # formula = response ~ as.factor(year) + s(depth, k=3),
   
   silent = F, 
   # extra_time = missing_year,
@@ -167,14 +173,17 @@ density_model <- sdmTMB(
   time = "year", 
   spde = rea_spde, 
   anisotropy = T,
-  family = tweedie(link = "log"),
-  # family = poisson(link = "log"),
+  # family = tweedie(link = "log"),
+  family = poisson(link = "log"),
   # family = binomial(link = "logit"), weights = n,
   # family = nbinom2(link = "log"),
   
   control = sdmTMBcontrol(step.min = 0.01, step.max = 1)
   
 )
+
+density_model <- run_extra_optimization(density_model, nlminb_loops = 0, newton_steps = 1)
+
 
 # look at gradients
 max(density_model$gradients)
@@ -184,13 +193,15 @@ qqnorm(df$residuals, ylim = c(-5, 5), xlim = c(-5, 5), bty = "n", pch = 20);abli
 
 m_p <- predict(density_model); m_p = m_p[,c("response", "est")]
 
-ggplot(df, aes_string("X", "Y", fill = "residuals")) +
-  geom_tile(aes(height = 0.5, width = 0.5)) +
+ggplot(df, aes_string("X", "Y", color = "residuals")) +
+  # geom_tile(aes(height = 0.5, width = 0.5)) +
+  geom_point(alpha = 0.8, size = round(abs(df$residuals), digits = 0)) + 
   facet_wrap(.~ISLAND, scales = "free") +
   xlab("Eastings") +
   ylab("Northings") + 
-  scale_fill_gradient2() + 
-  ggdark::dark_theme_void()
+  # scale_fill_gradient2() + 
+  scale_color_gradient2() + 
+  ggdark::dark_theme_minimal()
 
 ggdark::invert_geom_defaults()
 
@@ -198,8 +209,8 @@ m_p  %>%
   ggplot(aes(response, exp(est))) + 
   geom_point(alpha = 0.2) + 
   coord_fixed(ratio = 1) +
-  ylab("predicted_density") + 
-  xlab("observed_density") + 
+  ylab("prediction") + 
+  xlab("observation") + 
   geom_abline(intercept = 0, slope = 1) +
   geom_smooth(method = "lm", se = T)
 
@@ -209,17 +220,16 @@ r <- density_model$tmb_obj$report()
 r
 
 # prediction onto new data grid
-load("data/Topography_NOAA_CRM_vol10.RData")
+load("data/crm/Topography_NOAA_CRM_vol10.RData")
 
-# topo <- topo %>% subset(x < -157.5 & x > -158.5 & y > 21 & y < 22) #oahu
+topo <- topo %>% subset(x < -157.5 & x > -158.5 & y > 21 & y < 22) #oahu
 # topo <- topo %>% subset(x < -154.8 & x > -156.2 & y > 18.8 & y < 20.4) #hawaii
 
 grid = topo
 
-# res = 2
-# 
-# grid$longitude = round(grid$x, digits = res)
-# grid$latitude = round(grid$y, digits = res)
+res = 2
+grid$longitude = round(grid$x, digits = res)
+grid$latitude = round(grid$y, digits = res)
 
 grid$longitude = grid$x
 grid$latitude = grid$y
@@ -281,12 +291,13 @@ p <- predict(density_model,
 p$data$sp = sp
 sdm_output = p$data
 
-save(sdm_output, file = paste0("outputs/density_results_", sp, "_", response_variable, "_", n_knots, "_", region, ".RData"))
+# save(sdm_output, file = paste0("outputs/density_results_", sp, "_", response_variable, "_", n_knots, "_", region, ".RData"))
 
 plot_map_raster <- function(dat, column = "est") {
   
   ggplot(dat, aes_string("X", "Y", fill = column)) +
-    geom_tile(aes(height = 0.5, width = 0.5)) +
+    # geom_tile(aes(height = 0.8, width = 0.8), alpha = 0.8) +
+    geom_raster() +
     facet_wrap(~year) +
     coord_fixed() +
     xlab("Eastings (km)") +
