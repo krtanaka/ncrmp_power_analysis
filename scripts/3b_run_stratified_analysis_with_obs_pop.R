@@ -45,7 +45,7 @@ list = list.files(path = "outputs/", pattern = "_biomass"); list
 # # adult or juvenile coral density
 # list = list.files(path = "outputs/", pattern = "_density"); list
 
-i = 4
+i = 2
 
 load(paste0("outputs/", list[i]))
 sp = strsplit(list[i], split = "_")[[1]][3]; sp
@@ -120,7 +120,7 @@ total_sample = 30 # total sample efforts you want to deploy
 min_sets = 2 # minimum number of sets per strat
 set_den = 2/1000 # number of sets per [grid unit = km] squared)
 trawl_dim = c(0.01, 0.0353) # 0.000353 sq.km (353 sq.m) from two 15-m diameter survey cylinders
-resample_cells = F
+resample_cells = T
 
 n <- id <- division <- strat <- N <- NULL
 
@@ -302,8 +302,6 @@ mse = formatC(sim$total_strat_error_stats[3], digits = 3)
 rmse = formatC(sim$total_strat_error_stats[4], digits = 3)
 
 label = paste0("ME = ", me, "\n", "MAE = ", mae, "\n", "MSE = ", mse, "\n", "RMSE = ", rmse)
-
-ggdark::invert_geom_defaults()
 
 strata = sim$grid_xy %>%
   mutate(x = round(x/0.5, digits = 0),

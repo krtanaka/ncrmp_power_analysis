@@ -15,7 +15,7 @@ rm(list = ls())
 # Total numerical density estimates (individuals per 100 m2) were obtained by dividing fish counts in each survey by the survey area (353 m2 from two 15-m diameter survey cylinders) and multiplying by 100. - Nadon et al. 2020
 
 region = "MHI"
-uku_or_not = T
+uku_or_not = F
 
 # load("data/ALL_REA_FISH_RAW.rdata")
 # df %>% 
@@ -37,7 +37,7 @@ islands = c("Kauai", #1
             "Lanai", #8
             "Molokini", #9
             "Kahoolawe", #10
-            "Hawaii")#[11]
+            "Hawaii")[5]
 
 response_variable = "fish_count";      sp = ifelse(uku_or_not == T, "Aprion virescens", "Chromis vanderbilti")
 response_variable = "fish_biomass";    sp = ifelse(uku_or_not == T, "Aprion virescens", "Acanthurus olivaceus")
@@ -82,7 +82,7 @@ if (response_variable == "trophic_biomass") {
   
   df = df %>% 
     subset(REGION == region & ISLAND %in% islands) %>% 
-    mutate(response = ifelse(TROPHIC_MONREP == sp, BIOMASS_G_M2, 0)) %>%  
+    mutate(response = ifelse(TROPHIC_MONREP == sp, BIOMASS_G_M2*0.001, 0)) %>%  
     group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_, DEPTH) %>% 
     summarise(response = sum(response, na.rm = T))  
   
@@ -136,8 +136,8 @@ xy_utm = as.data.frame(cbind(utm = project(as.matrix(df[, c("LONGITUDE", "LATITU
 colnames(xy_utm) = c("X", "Y")
 df = cbind(df, xy_utm)
 
-# n_knots = 300
-n_knots = 100 # a coarse mesh for speed
+n_knots = 300
+# n_knots = 100 # a coarse mesh for speed
 rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search") 
 
 # png("outputs/SPDE_mesh_field.png", height = 5, width = 5, units = "in", res = 100)
@@ -164,7 +164,7 @@ density_model <- sdmTMB(
   data = df, 
   
   formula = response ~ as.factor(year) + depth_scaled + depth_scaled2,
-  # formula = response ~ as.factor(year) + s(depth, k=3),
+  # formula = response ~ as.factor(year) + s(depth),
   
   silent = F, 
   # extra_time = missing_year,
@@ -173,8 +173,8 @@ density_model <- sdmTMB(
   time = "year", 
   spde = rea_spde, 
   anisotropy = T,
-  # family = tweedie(link = "log"),
-  family = poisson(link = "log"),
+  family = tweedie(link = "log"),
+  # family = poisson(link = "log"),
   # family = binomial(link = "logit"), weights = n,
   # family = nbinom2(link = "log"),
   
@@ -184,7 +184,6 @@ density_model <- sdmTMB(
 
 density_model <- run_extra_optimization(density_model, nlminb_loops = 0, newton_steps = 1)
 
-
 # look at gradients
 max(density_model$gradients)
 
@@ -193,19 +192,14 @@ qqnorm(df$residuals, ylim = c(-5, 5), xlim = c(-5, 5), bty = "n", pch = 20);abli
 
 m_p <- predict(density_model); m_p = m_p[,c("response", "est")]
 
-ggplot(df, aes_string("X", "Y", color = "residuals")) +
-  # geom_tile(aes(height = 0.5, width = 0.5)) +
+p1 = ggplot(df, aes_string("X", "Y", color = "residuals")) +
   geom_point(alpha = 0.8, size = round(abs(df$residuals), digits = 0)) + 
-  facet_wrap(.~ISLAND, scales = "free") +
+  # facet_wrap(.~ISLAND, scales = "free") +
   xlab("Eastings") +
   ylab("Northings") + 
-  # scale_fill_gradient2() + 
-  scale_color_gradient2() + 
-  ggdark::dark_theme_minimal()
+  scale_color_gradient2() 
 
-ggdark::invert_geom_defaults()
-
-m_p  %>% 
+p2 = m_p  %>% 
   ggplot(aes(response, exp(est))) + 
   geom_point(alpha = 0.2) + 
   coord_fixed(ratio = 1) +
@@ -213,6 +207,8 @@ m_p  %>%
   xlab("observation") + 
   geom_abline(intercept = 0, slope = 1) +
   geom_smooth(method = "lm", se = T)
+
+p1 / p2
 
 #  extract some parameter estimates
 sd <- as.data.frame(summary(TMB::sdreport(density_model$tmb_obj)))
@@ -222,10 +218,10 @@ r
 # prediction onto new data grid
 load("data/crm/Topography_NOAA_CRM_vol10.RData")
 
-topo <- topo %>% subset(x < -157.5 & x > -158.5 & y > 21 & y < 22) #oahu
-# topo <- topo %>% subset(x < -154.8 & x > -156.2 & y > 18.8 & y < 20.4) #hawaii
-
 grid = topo
+grid <- topo %>% subset(x < -157.5 & x > -158.5 & y > 21 & y < 22) #oahu
+grid <- topo %>% subset(x < -154.8 & x > -156.2 & y > 18.8 & y < 20.4) #hawaii
+grid <- topo %>% subset(x < -160.0382 & x > -160.262333 & y > 21.77143 & y < 22.03773) #Niihau
 
 res = 2
 grid$longitude = round(grid$x, digits = res)
@@ -236,10 +232,10 @@ grid$latitude = grid$y
 
 grid = grid %>% 
   group_by(longitude, latitude) %>% 
-  subset(longitude > range(df$LONGITUDE)[1]) %>%
-  subset(longitude < range(df$LONGITUDE)[2]) %>%
-  subset(latitude > range(df$LATITUDE)[1]) %>%
-  subset(latitude < range(df$LATITUDE)[2]) %>%
+  # subset(longitude > range(df$LONGITUDE)[1]) %>%
+  # subset(longitude < range(df$LONGITUDE)[2]) %>%
+  # subset(latitude > range(df$LATITUDE)[1]) %>%
+  # subset(latitude < range(df$LATITUDE)[2]) %>%
   summarise(depth = mean(Topography, na.rm = T)*-1) 
 
 zone <- (floor((grid$longitude[1] + 180)/6) %% 60) + 1
@@ -296,8 +292,8 @@ sdm_output = p$data
 plot_map_raster <- function(dat, column = "est") {
   
   ggplot(dat, aes_string("X", "Y", fill = column)) +
-    # geom_tile(aes(height = 0.8, width = 0.8), alpha = 0.8) +
-    geom_raster() +
+    geom_tile(aes(height = 0.8, width = 0.8), alpha = 0.8) +
+    # geom_raster() +
     facet_wrap(~year) +
     coord_fixed() +
     xlab("Eastings (km)") +
@@ -317,15 +313,23 @@ plot_map_raster(p$data, "epsilon_st") + ggtitle("Spatiotemporal random effects o
 # look at just the spatiotemporal random effects:
 plot_map_raster(p$data, "est_rf") + scale_fill_gradient2()
 
-density_map = ggplot(p$data, aes_string("X", "Y", fill = "exp(est)")) +
-  geom_tile(aes(height = 0.5, width = 0.5)) +
+trend = plot_map_raster(filter(p$data, year == 2015), "zeta_s") + ggtitle("Linear trend")
+
+density_map = p$data %>% 
+  # group_by(X, Y) %>% 
+  # summarise(est = mean(est)) %>% 
+  ggplot(aes_string("X", "Y", fill = "exp(est)")) +
+  geom_tile(aes(height = 1, width = 1)) +
+  # geom_point(alpha = 0.5) +
   facet_wrap(~year) +
   coord_fixed() +
   xlab("Eastings (km)") +
   ylab("Northings (km)") + 
-  scale_fill_gradientn(colours = matlab.like(100), "g/m^2") +
-  ggtitle("Uku predicted density (fixed effects + random effects)") + 
-  ggdark::dark_theme_minimal() + 
+  # scale_fill_gradientn(colours = matlab.like(100), "g / m^2") +
+  scale_fill_gradientn(colours = matlab.like(100), "kg/sq.m") +
+  # scale_color_gradientn(colours = matlab.like(100), "# per 353 m^2") +
+  ggtitle(paste0(sp, " predicted density 2015-2019")) + 
+  ggdark::dark_theme_minimal() +
   theme(legend.position = "right")
 
 index <- get_index(p, bias_correct = F)
@@ -338,9 +342,11 @@ relative_biomass = index %>%
   geom_point(size = 3) +
   geom_ribbon(aes(ymin = lwr, ymax = upr), alpha = 0.2, colour = NA) +
   xlab('Year') + 
-  # ylab('metric tonnes') + 
-  ylab('total count (n)') + 
-  ggtitle("Biomass estimate") + 
+  # ylab('biomass') +
+  ylab('metric tonnes') +
+  # ylab('total count (n)') + 
+  ggtitle("Biomass estimate") +
+  # ggtitle("Abundance estimate") + 
   ggdark::dark_theme_minimal()
 # theme_pubr()
 
@@ -367,7 +373,7 @@ density_cog = ggplot(cog, aes(year, est, ymin = lwr, ymax = upr)) +
 plot(data.frame(Y = p$data$Y, est = exp(p$data$est), year = p$data$year) %>%
        group_by(year) %>% summarize(cog = sum(Y * est) / sum(est)), type = "b", bty = "l", ylab = "Northing")
 
-library(patchwork)
+png("/Users/kisei/Desktop/sdmTMB.png", height = 8, width = 12, units = "in", res = 100)
+(density_map + trend )/ (relative_biomass+density_cog)
+dev.off()
 
-density_map
-relative_biomass+density_cog
