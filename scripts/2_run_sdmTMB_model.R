@@ -136,11 +136,11 @@ xy_utm = as.data.frame(cbind(utm = project(as.matrix(df[, c("LONGITUDE", "LATITU
 colnames(xy_utm) = c("X", "Y")
 df = cbind(df, xy_utm)
 
-n_knots = 300
-# n_knots = 100 # a coarse mesh for speed
+# n_knots = 300
+n_knots = 100 # a coarse mesh for speed
 rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search") 
 
-# png("outputs/SPDE_mesh_field.png", height = 5, width = 5, units = "in", res = 100)
+# png(paste0("outputs/SPDE_mesh_field_", n_knots, ".png"), height = 5, width = 5, units = "in", res = 100)
 # par(mfrow = c(1,2))
 # plot(xy_utm, pch = ".", bty = 'n')
 plot(rea_spde, pch = ".", bty = "n"); axis(1); axis(2)
