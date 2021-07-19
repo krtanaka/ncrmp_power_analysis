@@ -45,7 +45,7 @@ list = list.files(path = "outputs/", pattern = "_biomass"); list
 # # adult or juvenile coral density
 # list = list.files(path = "outputs/", pattern = "_density"); list
 
-i = 2
+i = 3
 
 load(paste0("outputs/", list[i]))
 sp = strsplit(list[i], split = "_")[[1]][3]; sp
@@ -116,11 +116,11 @@ I
 # simulate stratified random surveys --------------------------------------
 
 n_sims = 100 # number of simulations
-total_sample = 30 # total sample efforts you want to deploy
+total_sample = 100 # total sample efforts you want to deploy
 min_sets = 2 # minimum number of sets per strat
 set_den = 2/1000 # number of sets per [grid unit = km] squared)
 trawl_dim = c(0.01, 0.0353) # 0.000353 sq.km (353 sq.m) from two 15-m diameter survey cylinders
-resample_cells = T
+resample_cells = F
 
 n <- id <- division <- strat <- N <- NULL
 
@@ -344,6 +344,6 @@ sim_output = df %>%
            hjust = 1,
            vjust = 1) 
 
-# png(paste0("outputs/", sp, "_", island, ".png"), res = 100, units = "in", height = 4, width = 8)
+png(paste0("outputs/", sp, "_", island, ".png"), res = 100, units = "in", height = 4, width = 8)
 strata + sim_output
-# dev.off()
+dev.off()
