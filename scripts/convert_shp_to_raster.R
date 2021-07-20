@@ -17,8 +17,8 @@ rm(list = ls())
 
 # plan(multisession) # Uncomment if you are running this on Windows OS
 
-spatial_resolution = 500 # spatial resolution in m
-cores = 48
+spatial_resolution = 50 # spatial resolution in m
+cores = 64
 
 shp_path = "G:/GIS/"
 shp_path = "/mnt/ldrive/ktanaka/GIS/"
@@ -190,7 +190,7 @@ for (shp_i in 1:length(shp_list)) {
   
   start = Sys.time()
   
-  shp_i = 6
+  # shp_i = 6
   
   # Import shapefile
   df <- readOGR(paste0(shp_path, "reef/MHI/", shp_list[shp_i]))[1]
