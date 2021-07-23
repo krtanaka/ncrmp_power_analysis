@@ -12,8 +12,8 @@ library(colorRamps)
 
 source("/Users/Kisei.Tanaka/env_data_summary/scripts/HelperCode/ExpandingExtract.R")
 
-load("data/BenthicCover_2010-2020_Tier1_SITE.RData")
-load("data/BenthicREA_sitedata_TAXONCODE.RData")
+load("data/rea/BenthicCover_2010-2020_Tier1_SITE.RData")
+load("data/rea/BenthicREA_sitedata_TAXONCODE.RData")
 
 SM = df %>% subset(REGION == "MHI") %>% as.data.frame()
 
