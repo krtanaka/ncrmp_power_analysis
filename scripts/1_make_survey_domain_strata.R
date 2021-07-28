@@ -104,7 +104,7 @@ for (il in 1:length(islands)) {
   ### these are outputs from "convert_shp_to_data.frame.R   ###
   #############################################################
   
-  if (island == "Hawaii") {load("data/shp_sectors/haw_sectors_shp.RData"); load("data/shp_reefzone/haw_reefzone.shp.RData")}
+  if (island == "Hawaii") {load("data/gis_sector/raster/HAW.RData")[[1]]; load("data/shp_reefzone/haw_reefzone.shp.RData")}
   # if (island == "Kahoolawe") {load("data/shp_sectors/kah_sectors_shp.RData")}
   if (island == "Kauai") {load("data/shp_sectors/kau_sectors_shp.RData"); load("data/shp_reefzone/kau_reefzone.shp.RData")}
   if (island == "Lanai") {load("data/shp_sectors/lan_sectors_shp.RData"); load("data/shp_reefzone/lan_reefzone.shp.RData")}
