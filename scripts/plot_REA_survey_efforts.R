@@ -8,7 +8,7 @@ library(sf)
 library(ggplot2)
 library(stringr)
 
-load("data/SURVEY MASTER.RData"); df = SURVEY_MASTER
+load("data/rea/SURVEY MASTER.RData"); df = SURVEY_MASTER
 
 df <- df %>% subset(ISLAND == "Hawaii")
 
