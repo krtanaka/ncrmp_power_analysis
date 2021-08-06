@@ -220,7 +220,8 @@ r
 
 # prediction onto new data grid
 load("data/crm/Topography_NOAA_CRM_vol10.RData")
-load("data/crm/Topography_NOAA_CRM_vol10_SST_CRW_Monthly.RData"); topo$x = ifelse(topo$x > 180, topo$x - 360, topo$x)
+load("data/crm/Topography_NOAA_CRM_vol10_SST_CRW_Monthly.RData")
+# topo$x = ifelse(topo$x > 180, topo$x - 360, topo$x)
 
 grid = topo
 grid <- topo %>% subset(x < -157.5 & x > -158.5 & y > 21 & y < 22) #oahu
