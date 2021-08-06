@@ -228,9 +228,9 @@ grid <- topo %>% subset(x < -157.5 & x > -158.5 & y > 21 & y < 22) #oahu
 grid <- topo %>% subset(x < -154.8 & x > -156.2 & y > 18.8 & y < 20.4) #hawaii
 grid <- topo %>% subset(x < -160.0382 & x > -160.262333 & y > 21.77143 & y < 22.03773) #Niihau
 
-res = 2
-grid$longitude = round(grid$x, digits = res)
-grid$latitude = round(grid$y, digits = res)
+# res = 2
+# grid$longitude = round(grid$x, digits = res)
+# grid$latitude = round(grid$y, digits = res)
 
 grid$longitude = grid$x
 grid$latitude = grid$y
