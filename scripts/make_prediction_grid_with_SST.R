@@ -39,6 +39,3 @@ colnames(df) = gsub(".12.00.00", "", colnames(df))
 
 topo = df
 save(topo, file = 'data/crm/Topography_NOAA_CRM_vol10_SST_CRW_Monthly.RData')
-
-
-
