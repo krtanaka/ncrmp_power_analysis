@@ -235,13 +235,13 @@ grid$latitude = round(grid$y, digits = res)
 grid$longitude = grid$x
 grid$latitude = grid$y
 
-grid = grid %>% 
-  group_by(longitude, latitude) %>% 
-  # subset(longitude > range(df$LONGITUDE)[1]) %>%
-  # subset(longitude < range(df$LONGITUDE)[2]) %>%
-  # subset(latitude > range(df$LATITUDE)[1]) %>%
-  # subset(latitude < range(df$LATITUDE)[2]) %>%
-  summarise(depth = mean(Topography, na.rm = T)*-1) 
+# grid = grid %>% 
+#   group_by(longitude, latitude) %>% 
+#   # subset(longitude > range(df$LONGITUDE)[1]) %>%
+#   # subset(longitude < range(df$LONGITUDE)[2]) %>%
+#   # subset(latitude > range(df$LATITUDE)[1]) %>%
+#   # subset(latitude < range(df$LATITUDE)[2]) %>%
+#   summarise(depth = mean(Topography, na.rm = T)*-1) 
 
 zone <- (floor((grid$longitude[1] + 180)/6) %% 60) + 1
 xy_utm = as.data.frame(cbind(utm = project(as.matrix(grid[, c("longitude", "latitude")]),
@@ -260,6 +260,8 @@ for (y in 1:length(year)) {
   # y = 1
   
   grid_y = grid  
+  grid_y = grid[,c("X","Y", )]
+  
   grid_y$year = year[[y]]  
   
   grid_year = rbind(grid_year, grid_y)
