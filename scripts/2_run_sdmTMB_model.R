@@ -47,13 +47,13 @@ response_variable = "coral_density";   sp = c("AdColDen", "JuvColDen")[1]
 
 if (response_variable == "fish_count") {
   
-  load("data/rea/ALL_REA_FISH_RAW.rdata")
+  load("data/rea/ALL_REA_FISH_RAW_SST.RData")
   
   df = df %>% 
     subset(REGION == region & ISLAND %in% islands) %>% 
     # mutate(response = ifelse(TAXONNAME == sp, COUNT*100, 0)) %>%  
     mutate(response = ifelse(TAXONNAME == sp, COUNT, 0)) %>%  
-    group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_, DEPTH) %>% 
+    group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE, DEPTH) %>% 
     summarise(response = sum(response, na.rm = T))
   
   df %>% ggplot(aes(response)) + geom_histogram() + 
@@ -78,13 +78,17 @@ if (response_variable == "fish_biomass") {
 
 if (response_variable == "trophic_biomass") {
   
-  load("data/rea/ALL_REA_FISH_RAW.rdata")
-  
+  load("data/rea/ALL_REA_FISH_RAW_SST.RData")
+  df[df == -9991] <- NA
+
   df = df %>% 
     subset(REGION == region & ISLAND %in% islands) %>% 
     mutate(response = ifelse(TROPHIC_MONREP == sp, BIOMASS_G_M2*0.001, 0)) %>%  
-    group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_, DEPTH) %>% 
-    summarise(response = sum(response, na.rm = T))  
+    group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE) %>% 
+    summarise(response = sum(response, na.rm = T), 
+              depth = mean(DEPTH, na.rm = T),
+              temp = mean(mean_SST_CRW_Daily_DY01, na.rm = T))  %>% 
+    na.omit()
   
   df %>% ggplot(aes(response)) + geom_histogram() + 
     df %>% group_by(OBS_YEAR) %>% summarise(n = median(response)) %>% ggplot(aes(OBS_YEAR, n)) + geom_line()
@@ -147,12 +151,11 @@ plot(rea_spde, pch = ".", bty = "n"); axis(1); axis(2)
 # dev.off()
 
 df$year = df$OBS_YEAR
-df$depth = df$DEPTH
 df$depth_scaled = scale(log(df$depth))
 df$depth_scaled2 = df$depth_scaled ^ 2
 
 plot(df$depth, df$response, pch = 20, bty = "n")
-plot(df[11:13], pch = ".")
+plot(df$temp, df$response, pch = 20, bty = "n")
 
 obs_year = unique(df$year)
 full_year = seq(min(df$year), max(df$year), by = 1)
@@ -163,8 +166,8 @@ density_model <- sdmTMB(
   
   data = df, 
   
-  formula = response ~ as.factor(year) + depth_scaled + depth_scaled2,
-  # formula = response ~ as.factor(year) + s(depth),
+  # formula = response ~ as.factor(year) + depth_scaled + depth_scaled2,
+  formula = response ~ as.factor(year) + s(depth, k=5) + s(temp, k=5),
   
   silent = F, 
   # extra_time = missing_year,
@@ -217,26 +220,28 @@ r
 
 # prediction onto new data grid
 load("data/crm/Topography_NOAA_CRM_vol10.RData")
+load("data/crm/Topography_NOAA_CRM_vol10_SST_CRW_Monthly.RData")
+# topo$x = ifelse(topo$x > 180, topo$x - 360, topo$x)
 
 grid = topo
 grid <- topo %>% subset(x < -157.5 & x > -158.5 & y > 21 & y < 22) #oahu
 grid <- topo %>% subset(x < -154.8 & x > -156.2 & y > 18.8 & y < 20.4) #hawaii
 grid <- topo %>% subset(x < -160.0382 & x > -160.262333 & y > 21.77143 & y < 22.03773) #Niihau
 
-res = 2
-grid$longitude = round(grid$x, digits = res)
-grid$latitude = round(grid$y, digits = res)
+# res = 2
+# grid$longitude = round(grid$x, digits = res)
+# grid$latitude = round(grid$y, digits = res)
 
 grid$longitude = grid$x
 grid$latitude = grid$y
 
-grid = grid %>% 
-  group_by(longitude, latitude) %>% 
-  # subset(longitude > range(df$LONGITUDE)[1]) %>%
-  # subset(longitude < range(df$LONGITUDE)[2]) %>%
-  # subset(latitude > range(df$LATITUDE)[1]) %>%
-  # subset(latitude < range(df$LATITUDE)[2]) %>%
-  summarise(depth = mean(Topography, na.rm = T)*-1) 
+# grid = grid %>% 
+#   group_by(longitude, latitude) %>% 
+#   # subset(longitude > range(df$LONGITUDE)[1]) %>%
+#   # subset(longitude < range(df$LONGITUDE)[2]) %>%
+#   # subset(latitude > range(df$LATITUDE)[1]) %>%
+#   # subset(latitude < range(df$LATITUDE)[2]) %>%
+#   summarise(depth = mean(Topography, na.rm = T)*-1) 
 
 zone <- (floor((grid$longitude[1] + 180)/6) %% 60) + 1
 xy_utm = as.data.frame(cbind(utm = project(as.matrix(grid[, c("longitude", "latitude")]),
@@ -255,6 +260,8 @@ for (y in 1:length(year)) {
   # y = 1
   
   grid_y = grid  
+  grid_y = grid[,c("X","Y", )]
+  
   grid_y$year = year[[y]]  
   
   grid_year = rbind(grid_year, grid_y)
