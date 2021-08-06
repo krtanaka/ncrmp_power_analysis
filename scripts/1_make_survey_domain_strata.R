@@ -104,13 +104,13 @@ for (il in 1:length(islands)) {
   ### these are outputs from "convert_shp_to_data.frame.R   ###
   #############################################################
   
-  if (island == "Hawaii") {load("data/gis_sector/raster/HAW.RData")[[1]]; load("data/shp_reefzone/haw_reefzone.shp.RData")}
-  # if (island == "Kahoolawe") {load("data/shp_sectors/kah_sectors_shp.RData")}
-  if (island == "Kauai") {load("data/shp_sectors/kau_sectors_shp.RData"); load("data/shp_reefzone/kau_reefzone.shp.RData")}
-  if (island == "Lanai") {load("data/shp_sectors/lan_sectors_shp.RData"); load("data/shp_reefzone/lan_reefzone.shp.RData")}
-  if (island == "Maui") {load("data/shp_sectors/mai_sectors_shp.RData"); load("data/shp_reefzone/mai_reefzone.shp.RData")}
-  if (island == "Molokai") {load("data/shp_sectors/mol_sectors_shp.RData"); load("data/shp_reefzone/mol_reefzone.shp.RData")}
-  if (island == "Niihau") {load("data/shp_sectors/nii_sectors_shp.RData"); load("data/shp_reefzone/nii_reefzone.shp.RData")}
+  if (island == "Hawaii") {load("data/gis_sector/raster/HAW.RData")[[1]]; load("data/gis_reef/data.frame/haw.RData")}
+  # if (island == "Kahoolawe") {load("data/gis_sector/data.frame/kah.RData")}
+  if (island == "Kauai") {load("data/gis_sector/data.frame/kau.RData"); load("data/gis_reef/data.frame/kau.RData")}
+  if (island == "Lanai") {load("data/gis_sector/data.frame/lan.RData"); load("data/gis_reef/data.frame/lan.RData")}
+  if (island == "Maui") {load("data/gis_sector/data.frame/mai.RData"); load("data/gis_reef/data.frame/mai.RData")}
+  if (island == "Molokai") {load("data/gis_sector/data.frame/mol.RData"); load("data/gis_reef/data.frame/mol.RData")}
+  if (island == "Niihau") {load("data/gis_sector/data.frame/nii.RData"); load("data/gis_reef/data.frame/nii.RData")}
   if (island == "Oahu") {load("data/gis_sector/data.frame/oah.RData"); load("data/gis_reef/data.frame/oah.RData")}
   
   # plot(sector$lon, sector$lat, pch = ".", bty = "l", ann = F, col = 4)
