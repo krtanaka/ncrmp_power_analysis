@@ -141,9 +141,8 @@ colnames(xy_utm) = c("X", "Y")
 df = cbind(df, xy_utm)
 
 n_knots = 300
-# n_knots = 100 # a coarse mesh for speed
+n_knots = 100 # a coarse mesh for speed
 rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search") 
-rea_spde <- make_mesh(df, c("X", "Y"), cutoff = 100, type = "cutoff")
 
 # png(paste0("outputs/SPDE_mesh_field_", n_knots, ".png"), height = 5, width = 5, units = "in", res = 100)
 # par(mfrow = c(1,2))
@@ -226,8 +225,8 @@ load("data/crm/Topography_NOAA_CRM_vol10_SST_CRW_Monthly.RData")
 
 grid = topo
 grid <- topo %>% subset(x < -157.5 & x > -158.5 & y > 21 & y < 22) #oahu
-grid <- topo %>% subset(x < -154.8 & x > -156.2 & y > 18.8 & y < 20.4) #hawaii
-grid <- topo %>% subset(x < -160.0382 & x > -160.262333 & y > 21.77143 & y < 22.03773) #Niihau
+# grid <- topo %>% subset(x < -154.8 & x > -156.2 & y > 18.8 & y < 20.4) #hawaii
+# grid <- topo %>% subset(x < -160.0382 & x > -160.262333 & y > 21.77143 & y < 22.03773) #Niihau
 
 # res = 2
 # grid$longitude = round(grid$x, digits = res)
