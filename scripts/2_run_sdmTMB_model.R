@@ -39,11 +39,11 @@ islands = c("Kauai", #1
             "Kahoolawe", #10
             "Hawaii")[5]
 
-response_variable = "fish_count";      sp = ifelse(uku_or_not == T, "Aprion virescens", "Chromis vanderbilti")
-response_variable = "fish_biomass";    sp = ifelse(uku_or_not == T, "Aprion virescens", "Acanthurus olivaceus")
+# response_variable = "fish_count";      sp = ifelse(uku_or_not == T, "Aprion virescens", "Chromis vanderbilti")
+# response_variable = "fish_biomass";    sp = ifelse(uku_or_not == T, "Aprion virescens", "Acanthurus olivaceus")
 response_variable = "trophic_biomass"; sp = c("PISCIVORE", "PLANKTIVORE", "PRIMARY", "SECONDARY")[2]
-response_variable = "coral_cover";     sp = c("CCA", "CORAL", "EMA", "HAL", "I", "MA", "SC", "SED", "TURF")[2]
-response_variable = "coral_density";   sp = c("AdColDen", "JuvColDen")[1]
+# response_variable = "coral_cover";     sp = c("CCA", "CORAL", "EMA", "HAL", "I", "MA", "SC", "SED", "TURF")[2]
+# response_variable = "coral_density";   sp = c("AdColDen", "JuvColDen")[1]
 
 if (response_variable == "fish_count") {
   
@@ -80,7 +80,7 @@ if (response_variable == "trophic_biomass") {
   
   load("data/rea/ALL_REA_FISH_RAW_SST.RData")
   df[df == -9991] <- NA
-
+  
   df = df %>% 
     subset(REGION == region & ISLAND %in% islands) %>% 
     mutate(response = ifelse(TROPHIC_MONREP == sp, BIOMASS_G_M2*0.001, 0)) %>%  
@@ -140,7 +140,7 @@ xy_utm = as.data.frame(cbind(utm = project(as.matrix(df[, c("LONGITUDE", "LATITU
 colnames(xy_utm) = c("X", "Y")
 df = cbind(df, xy_utm)
 
-# n_knots = 300
+n_knots = 300
 n_knots = 100 # a coarse mesh for speed
 rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search") 
 
@@ -225,8 +225,8 @@ load("data/crm/Topography_NOAA_CRM_vol10_SST_CRW_Monthly.RData")
 
 grid = topo
 grid <- topo %>% subset(x < -157.5 & x > -158.5 & y > 21 & y < 22) #oahu
-grid <- topo %>% subset(x < -154.8 & x > -156.2 & y > 18.8 & y < 20.4) #hawaii
-grid <- topo %>% subset(x < -160.0382 & x > -160.262333 & y > 21.77143 & y < 22.03773) #Niihau
+# grid <- topo %>% subset(x < -154.8 & x > -156.2 & y > 18.8 & y < 20.4) #hawaii
+# grid <- topo %>% subset(x < -160.0382 & x > -160.262333 & y > 21.77143 & y < 22.03773) #Niihau
 
 # res = 2
 # grid$longitude = round(grid$x, digits = res)
@@ -253,20 +253,72 @@ grid = cbind(grid, xy_utm)
 
 grid_year = NULL
 
-year = as.vector(unique(df$year))
+years = sort(as.vector(unique(df$year)))
 
-for (y in 1:length(year)) {
+# aggregating SST annually
+for (y in 1:length(years)) {
   
   # y = 1
   
-  grid_y = grid  
-  grid_y = grid[,c("X","Y", )]
+  grid_year_sst = grid %>% select(contains(as.character(years[[y]])))
   
-  grid_y$year = year[[y]]  
+  grid_y = NULL
+  
+  grid_depth = grid[,3]
+  grid_xy = grid[,442:443]
+  
+  for (m in 1:12) {
+    
+    grid_m = cbind(grid_xy, grid_depth, grid_year_sst[,m])
+    colnames(grid_m)[4] = "temp"
+    grid_y = rbind(grid_y, grid_m)
+    
+  }
+  
+  grid_y = grid_y %>% 
+    group_by(X, Y) %>% 
+    summarise(temp = mean(temp), 
+              depth = mean(grid_depth)*-1)
+  
+  grid_y$year = years[[y]]
   
   grid_year = rbind(grid_year, grid_y)
   
+  rm(grid_depth, grid_xy, grid_y, grid_year_sst, grid_m)
+  
 }
+
+# # aggregating SST at each month-year time step, e.g., 03/1985 - 03/2021
+# for (t in 1:435) { 
+#   
+#   # t = 1
+#   
+#   grid_t = grid[,c(442, 443, t+3)]
+#   grid_t$time = colnames(grid_t)[3]
+#   colnames(grid_t)[3] = "temp"
+#   
+#   
+#   grid_year = rbind(grid_year, grid_t)
+#   print(t/435)
+#   
+# }
+# 
+# grid_year$year = substr(grid_year$time, 1, 4)
+# grid_year = grid_year %>% subset(year %in% years)
+
+# # only depth covariate
+# for (y in 1:length(years)) {
+# 
+#   y = 1
+# 
+#   grid_y = grid[,c("X", "Y", "layer")]
+#   colnames(grid_y)[3] = "depth"
+# 
+#   grid_y$year = years[[y]]
+# 
+#   grid_year = rbind(grid_year, grid_y)
+# 
+# }
 
 grid_year$depth_scaled = scale(log(grid_year$depth+0.0001))
 grid_year$depth_scaled2 = grid_year$depth_scaled ^ 2
