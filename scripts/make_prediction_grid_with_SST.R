@@ -9,10 +9,10 @@ df = NULL
 
 for (i in 1:length(islands)) {
   
-  # i = 11
+  i = 11
   
-  d = stack(paste0('~/Desktop/EDS/DataDownload/Bathymetry_SRTM15/Island_By_Blocks_Level_Data/', islands[i], '_Bathymetry_SRTM15_Bathy_M.nc'))
-  # d = stack(paste0('~/Desktop/EDS/DataDownload/NOAA Coastal Relief Model/Island_By_Blocks_Level_Data/', islands[i], '_NOAA Coastal Relief Model_Bathy_M.nc'))
+  # d = stack(paste0('~/Desktop/EDS/DataDownload/Bathymetry_SRTM15/Island_By_Blocks_Level_Data/', islands[i], '_Bathymetry_SRTM15_Bathy_M.nc'))
+  d = stack(paste0('~/Desktop/EDS/DataDownload/NOAA Coastal Relief Model/Island_By_Blocks_Level_Data/', islands[i], '_NOAA Coastal Relief Model_Bathy_M.nc'))
   
   d[d > 0] <- NA
   d[d < -30] <- NA
