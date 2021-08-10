@@ -52,8 +52,9 @@ hist(gdf$sd)
 zone <- (floor((gdf$LONGITUDE[1] + 180)/6) %% 60) + 1
 
 gdf = cbind(gdf, LongLatToUTM(gdf$LONGITUDE, gdf$LATITUDE, zone))
+colnames(gdf)[6:7] = c("x", "y")
 
-g = gam(sd ~ s(X, Y),
+g = gam(sd ~ s(x, y),
         # + s(DEPTH) + OBS_YEAR, 
         family = "tw(theta = NULL, link = 'log', a = 1.01, b = 1.99)", 
         gamma = 1.4,
