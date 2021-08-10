@@ -15,7 +15,7 @@ rm(list = ls())
 
 load("data/modeled_survey_variability.RData")
 
-set.seed(50)
+# set.seed(50)
 # options(scipen = 999, digits = 2)
 
 # pick an island ----------------------------------------------------------
@@ -350,6 +350,6 @@ sim_output = df %>%
            hjust = 1,
            vjust = 1) 
 
-png(paste0("outputs/", sp, "_", island, ".png"), res = 100, units = "in", height = 4, width = 8)
+# png(paste0("outputs/", sp, "_", island, ".png"), res = 100, units = "in", height = 4, width = 8)
 strata + sim_output
-dev.off()
+# dev.off()
