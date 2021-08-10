@@ -13,6 +13,8 @@ library(patchwork)
 
 rm(list = ls())
 
+load("data/modeled_survey_variability.RData")
+
 set.seed(50)
 # options(scipen = 999, digits = 2)
 
