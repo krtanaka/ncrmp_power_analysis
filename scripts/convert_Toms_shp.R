@@ -2,11 +2,15 @@ library(raster)
 library(rgdal)
 library(rasterVis)
 
-# Load a SpatialPolygonsDataFrame example shapefile
-df <- readOGR('data/eco_zones/Fish_AUTO_1X/Fish_AUTO_1X_sectorshapefile.shp', stringsAsFactors = FALSE)
-df <- readOGR('data/eco_zones/BenthicCover_AUTO_1X/BenthicCover_AUTO_1X_sectorshapefile.shp', stringsAsFactors = FALSE)
+rm(list = ls())
 
-dat = df[1]
+type = c("fish", "benthic")[2]
+
+# Load a SpatialPolygonsDataFrame example shapefile
+if (type == "fish") dat <- readOGR('data/eco_zones/Fish_AUTO_1X/Fish_AUTO_1X_sectorshapefile.shp', stringsAsFactors = F)
+if (type == "benthic") dat <- readOGR('data/eco_zones/BenthicCover_AUTO_1X/BenthicCover_AUTO_1X_sectorshapefile.shp', stringsAsFactors = F)
+
+dat = dat[1]
 class(dat)
 
 # get names
@@ -42,4 +46,6 @@ levels(r) <- rat
 levelplot(r)
 plot(r)
 
+tom = r
 
+save(tom, file = paste0("data/eco_zones/", type, "_ecozones.RData"))
