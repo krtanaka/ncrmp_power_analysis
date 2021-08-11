@@ -5,11 +5,11 @@ library(stringr)
 
 rm(list = ls())
 
-type = c("fish", "benthic")[2]
+type = c("fish", "benthic")[1]
 
 # Load a SpatialPolygonsDataFrame example shapefile
-if (type == "fish") dat <- readOGR('data/eco_zones/Fish_AUTO_1X/Fish_AUTO_1X_sectorshapefile.shp', stringsAsFactors = F)
-if (type == "benthic") dat <- readOGR('data/eco_zones/BenthicCover_AUTO_1X/BenthicCover_AUTO_1X_sectorshapefile.shp', stringsAsFactors = F)
+if (type == "fish") dat <- readOGR('data/gis_eco_zones/fish/Fish_AUTO_1X/Fish_AUTO_1X_sectorshapefile.shp', stringsAsFactors = F)
+if (type == "benthic") dat <- readOGR('data/gis_eco_zones/benthic/BenthicCover_AUTO_1X/BenthicCover_AUTO_1X_sectorshapefile.shp', stringsAsFactors = F)
 
 dat = dat[1]
 class(dat)
@@ -21,6 +21,14 @@ isl = c('Hawaii', 'Kauai', 'Lanai', 'Maui', 'Molokai', 'Niihau', 'Oahu')
 for (i in 1:length(isl)) {
   
   # i = 3
+  
+  if (isl[i] == "Hawaii") il = "haw"
+  if (isl[i] == "Kauai") il = "kau"
+  if (isl[i] == "Lanai") il = "lan"
+  if (isl[i] == "Maui") il = "mai"
+  if (isl[i] == "Molokai") il = "mol"
+  if (isl[i] == "Niihau") il = "nii"
+  if (isl[i] == "Oahu") il = "oah"
   
   zones_i = str_subset(zones, isl[i], negate = F)
   
@@ -63,6 +71,6 @@ for (i in 1:length(isl)) {
   
   tom = r
   
-  save(tom, file = paste0("data/eco_zones/", isl[i], "_", type, "_ecozones.RData"))
+  save(tom, file = paste0("data/gis_eco_zones/", type, "/", il, ".RData"))
   
 }
