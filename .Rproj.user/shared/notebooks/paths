@@ -1,12 +1,5 @@
-<<<<<<< HEAD
-C:/Users/Kisei.Tanaka/ncrmp_power_analysis/scripts/1_make_survey_domain_strata.R="47A91942"
-C:/Users/Kisei.Tanaka/ncrmp_power_analysis/scripts/2_run_sdmTMB_model.R="A0B452DB"
-C:/Users/Kisei.Tanaka/ncrmp_power_analysis/scripts/3b_run_stratified_analysis_with_obs_pop.R="48D75DC2"
-C:/Users/Kisei.Tanaka/ncrmp_power_analysis/scripts/attach_external_bathymetry_data.R="2F71E27F"
-C:/Users/Kisei.Tanaka/ncrmp_power_analysis/scripts/plot_REA_survey_efforts.R="3776D533"
-M:/Environmental Data Summary/HelperCode/ExpandingExtract_Flex.R="F6D6E3C3"
-=======
+/Users/kisei/ncrmp_power_analysis/scripts/2_run_sdmTMB_model.R="A3CAFEBF"
 /Users/kisei/ncrmp_power_analysis/scripts/3b_run_stratified_analysis_with_obs_pop.R="EED1ACB8"
 /Users/kisei/ncrmp_power_analysis/scripts/attach_external_bathymetry_data.R="6299CDAA"
+/Users/kisei/ncrmp_power_analysis/scripts/convert shp_to_data.frame.R="43B99596"
 /Users/kisei/ncrmp_power_analysis/scripts/make_prediction_grid_with_SST.R="62AF02BC"
->>>>>>> f74ed37f659636e892b26069cccdadbc4dd2441e
