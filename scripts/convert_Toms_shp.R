@@ -3,8 +3,8 @@ library(rgdal)
 library(rasterVis)
 
 # Load a SpatialPolygonsDataFrame example shapefile
-df <- readOGR('/Users/Kisei/Downloads/Fish_AUTO_1X/Fish_AUTO_1X_sectorshapefile.shp', stringsAsFactors = FALSE)
-df <- readOGR('/Users/Kisei/Downloads/BenthicCover_AUTO_1X/BenthicCover_AUTO_1X_sectorshapefile.shp', stringsAsFactors = FALSE)
+df <- readOGR('data/eco_zones/Fish_AUTO_1X/Fish_AUTO_1X_sectorshapefile.shp', stringsAsFactors = FALSE)
+df <- readOGR('data/eco_zones/BenthicCover_AUTO_1X/BenthicCover_AUTO_1X_sectorshapefile.shp', stringsAsFactors = FALSE)
 
 dat = df[1]
 class(dat)
