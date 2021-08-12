@@ -5,7 +5,7 @@ library(stringr)
 
 rm(list = ls())
 
-type = c("fish", "benthic")[1]
+type = c("fish", "benthic")[2]
 
 # Load a SpatialPolygonsDataFrame example shapefile
 if (type == "fish") dat <- readOGR('data/gis_eco_zones/fish/Fish_AUTO_1X/Fish_AUTO_1X_sectorshapefile.shp', stringsAsFactors = F)
@@ -35,7 +35,7 @@ islands = islands[! islands %in% c("Kahoolawe")] %>% as.vector() # remove this i
 
 for (i in 1:length(islands)) {
   
-  # i = 1
+  # i = 7
   
   island = islands[i]
   extent = subset(MHI_extent, ISLAND == island)
@@ -116,13 +116,6 @@ for (i in 1:length(islands)) {
   colnames(tom) = c("longitude", "latitude", "cell", "zone")
   summary(tom)
   
-  tom %>% 
-    ggplot(aes(longitude, latitude, color = factor(round(zone, 0)))) + 
-    geom_point() + 
-    coord_fixed() + 
-    scale_color_viridis_d("") + 
-    ggdark::dark_theme_minimal()
-  
   df = merge(df, tom, by = c("cell"))
   
   df$zone = round(df$zone, digits = 0)
@@ -131,11 +124,26 @@ for (i in 1:length(islands)) {
   colnames(df)[2:3] = c("longitude", "latitude")
   df$zone = as.character(df$zone)
   
-  df$strat = as.numeric(as.factor(df$zone))
+  df$depth_bin = ""
+  df$depth_bin = ifelse(df$Topography <= 0  & df$Topography >= -6, 1L, df$depth_bin) 
+  df$depth_bin = ifelse(df$Topography < -6  & df$Topography >= -18, 2L, df$depth_bin) 
+  df$depth_bin = ifelse(df$Topography < -18, 3L, df$depth_bin) 
+  
+  df$strat = paste(df$depth_bin, df$zone, sep = "_")
+  df$strat = as.numeric(as.factor(df$strat))
   
   df$depth = as.numeric(df$Topography*-1)
   
+  df$strat = as.numeric(as.factor(df$strat))
+  
   df = as.data.frame(df)
+  
+  df %>% 
+    ggplot(aes(longitude, latitude, color = factor(strat)))+ 
+    geom_point() + 
+    coord_fixed() + 
+    scale_color_viridis_d("") + 
+    ggdark::dark_theme_minimal()
   
   cell = rasterFromXYZ(df[,c("longitude", "latitude", "cell")]); plot(cell)
   division = rasterFromXYZ(df[,c("longitude", "latitude", "division")]); plot(division)
