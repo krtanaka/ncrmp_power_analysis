@@ -8,6 +8,7 @@ C%3A%2FUsers%2FKisei%2Fncrmp_power_analysis%2Fscripts%2F1_make_survey_domain_str
 C%3A%2FUsers%2FKisei%2Fncrmp_power_analysis%2Fscripts%2F1_make_survey_domain_strata_w_reef_sector.R="8B5447E9"
 C%3A%2FUsers%2FKisei%2Fncrmp_power_analysis%2Fscripts%2F1_make_survey_domain_strata_w_toms_zones.R="96DBCFD4"
 C%3A%2FUsers%2FKisei%2Fncrmp_power_analysis%2Fscripts%2F2_run_sdmTMB_model.R="E9647E4"
+C%3A%2FUsers%2FKisei%2Fncrmp_power_analysis%2Fscripts%2F3a_run_stratified_analysis_with_sim_pop.R="44E818FA"
 C%3A%2FUsers%2FKisei%2Fncrmp_power_analysis%2Fscripts%2F3b_run_stratified_analysis_with_obs_pop.R="B8E1B00D"
 C%3A%2FUsers%2FKisei%2Fncrmp_power_analysis%2Fscripts%2FSimulate_rea_survey_commonmap.R="9409FE0D"
 C%3A%2FUsers%2FKisei%2Fncrmp_power_analysis%2Fscripts%2Fattach_external_bathymetry_data.R="37F6B1F6"

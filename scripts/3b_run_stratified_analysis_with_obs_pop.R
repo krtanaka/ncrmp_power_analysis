@@ -17,11 +17,15 @@ load("data/modeled_survey_variability.RData")
 # set.seed(50)
 # options(scipen = 999, digits = 2)
 
+design = c("traditional", "ecological")[2]
+
 # pick an island ----------------------------------------------------------
 island = c("Hawaii", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:7, 1)]
-load(paste0("data/survey_grid_w_sector_reef/survey_grid_", island, ".RData")) #survey domain with sector & reef
-load(paste0("data/survey_grid_w_zones/fish/survey_grid_", island, ".RData")) #survey domain with tom's downscaled zones
 print(island)
+
+# pick survey design ------------------------------------------------------
+if (design == "traditional") load(paste0("data/survey_grid_w_sector_reef/survey_grid_", island, ".RData")) #survey domain with sector & reef & depth_bins
+if (design == "ecological") load(paste0("data/survey_grid_w_zones/fish/survey_grid_", island, ".RData")) #survey domain with tom's downscaled zones
 
 # bring in sim$ as a place holder -----------------------------------------
 sim = sim_abundance(years = 2000:2020, 
@@ -35,16 +39,16 @@ I
 
 # pick species and response_scale (n or g/sq.m) ---------------------------
 
-# # fish_count
+# fish_count
 # list = list.files(path = "outputs/", pattern = "_count"); list
 
 # fish_or_trophic_biomass
 list = list.files(path = "outputs/", pattern = "_biomass"); list
 
-# # coral_cover
+# coral_cover
 # list = list.files(path = "outputs/", pattern = "_cover"); list
 
-# # adult or juvenile coral density
+# adult or juvenile coral density
 # list = list.files(path = "outputs/", pattern = "_density"); list
 
 i = 3
