@@ -8,7 +8,7 @@ library(raster)
 library(data.table)
 library(ggplot2)
 library(dplyr)
-library(ggdark)
+# library(ggdark)
 library(patchwork)
 
 rm(list = ls())
@@ -19,8 +19,9 @@ load("data/modeled_survey_variability.RData")
 # options(scipen = 999, digits = 2)
 
 # pick an island ----------------------------------------------------------
-island = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:8, 1)]
-load(paste0("data/survey_grid_w_sector_reef/survey_grid_", island, ".RData"))
+island = c("Hawaii", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:7, 1)]
+# load(paste0("data/survey_grid_w_sector_reef/survey_grid_", island, ".RData")) #survey domain with sector & reef
+load(paste0("data/survey_grid_w_zones/fish/survey_grid_", island, ".RData")) #survey domain with tom's zones
 print(island)
 
 # bring in sim$ as a place holder -----------------------------------------
@@ -97,7 +98,6 @@ df %>%
   scale_fill_gradientn(colours = colorRamps::matlab.like(100)) +
   coord_fixed() +
   ggdark::dark_theme_minimal()  
-  ggdark::invert_geom_defaults()
 
 N = df %>% group_by(year) %>% summarise(age = sum(est)) 
 N = matrix(N$age, nrow = 1, ncol = 9)
@@ -118,7 +118,7 @@ I
 # simulate stratified random surveys --------------------------------------
 
 n_sims = 100 # number of simulations
-total_sample = 30 # total sample efforts you want to deploy
+total_sample = 15 # total sample efforts you want to deploy
 min_sets = 2 # minimum number of sets per strat
 set_den = 2/1000 # number of sets per [grid unit = km] squared)
 trawl_dim = c(0.01, 0.0353) # 0.000353 sq.km (353 sq.m) from two 15-m diameter survey cylinders

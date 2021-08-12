@@ -194,7 +194,7 @@ for (il in 1:length(islands)) {
     ggplot(aes(x, y, fill = layer)) + 
     geom_raster() + 
     coord_fixed() +
-    scale_fill_viridis_b("") + 
+    # scale_fill_viridis_b("") + 
     ggdark::dark_theme_minimal()
   dim(reef)
   reef
@@ -215,7 +215,7 @@ for (il in 1:length(islands)) {
     ggplot(aes(longitude, latitude, color = factor(round(reef, 0)))) + 
     geom_point() + 
     coord_fixed() + 
-    scale_fill_viridis_b("") + 
+    # scale_fill_viridis_b("") + 
     ggdark::dark_theme_minimal()
   
   df = merge(df, reef, by = "cell")
