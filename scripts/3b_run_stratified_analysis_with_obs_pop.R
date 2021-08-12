@@ -14,14 +14,13 @@ library(patchwork)
 rm(list = ls())
 
 load("data/modeled_survey_variability.RData")
-
 # set.seed(50)
 # options(scipen = 999, digits = 2)
 
 # pick an island ----------------------------------------------------------
 island = c("Hawaii", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:7, 1)]
-# load(paste0("data/survey_grid_w_sector_reef/survey_grid_", island, ".RData")) #survey domain with sector & reef
-load(paste0("data/survey_grid_w_zones/fish/survey_grid_", island, ".RData")) #survey domain with tom's zones
+load(paste0("data/survey_grid_w_sector_reef/survey_grid_", island, ".RData")) #survey domain with sector & reef
+load(paste0("data/survey_grid_w_zones/fish/survey_grid_", island, ".RData")) #survey domain with tom's downscaled zones
 print(island)
 
 # bring in sim$ as a place holder -----------------------------------------
@@ -88,16 +87,16 @@ head(sim_grid)
 
 df = merge(sim_grid, sdm_grid)
 
-df %>%
-  group_by(x, y) %>%
-  mutate(x = round(x, 0),
-         y = round(y, 0)) %>% 
-  summarise(est = median(est)) %>%
-  ggplot(aes(x, y, fill = est)) +
-  geom_raster() +
-  scale_fill_gradientn(colours = colorRamps::matlab.like(100)) +
-  coord_fixed() +
-  ggdark::dark_theme_minimal()  
+# df %>%
+#   group_by(x, y) %>%
+#   mutate(x = round(x, 0),
+#          y = round(y, 0)) %>% 
+#   summarise(est = median(est)) %>%
+#   ggplot(aes(x, y, fill = est)) +
+#   geom_raster() +
+#   scale_fill_gradientn(colours = colorRamps::matlab.like(100)) +
+#   coord_fixed() +
+#   ggdark::dark_theme_minimal()  
 
 N = df %>% group_by(year) %>% summarise(age = sum(est)) 
 N = matrix(N$age, nrow = 1, ncol = 9)
@@ -117,8 +116,12 @@ I
 
 # simulate stratified random surveys --------------------------------------
 
+load("data/survey_effort_MHI_2014-2019.RData")
+effort = c("high", "median", "low")[2]
+t_sample = survey_effort_MHI %>% subset(ISLAND == island) %>% select(effort) %>% as.character() %>% as.numeric()
+
 n_sims = 100 # number of simulations
-total_sample = 15 # total sample efforts you want to deploy
+total_sample = t_sample # total sample efforts you want to deploy
 min_sets = 2 # minimum number of sets per strat
 set_den = 2/1000 # number of sets per [grid unit = km] squared)
 trawl_dim = c(0.01, 0.0353) # 0.000353 sq.km (353 sq.m) from two 15-m diameter survey cylinders
