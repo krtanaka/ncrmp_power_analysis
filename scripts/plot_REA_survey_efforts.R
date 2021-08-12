@@ -13,7 +13,10 @@ load("data/rea/SURVEY MASTER.RData"); df = SURVEY_MASTER
 
 # look at > 2013 for representative survey efforts
 
-df <- df %>% subset(REGION == "MHI") %>% subset(OBS_YEAR > 2014) %>% subset(ISLAND != "Kahoolawe")
+df <- df %>% 
+  subset(REGION == "MHI") %>% 
+  subset(OBS_YEAR %in% c(2013, 2016, 2019)) %>% 
+  subset(ISLAND != "Kahoolawe")
 
 p1 = df %>% 
   group_by(
@@ -60,16 +63,16 @@ p2 = df %>%
 p1 + p2
 
 survey_effort_MHI = df %>% 
+  subset(OBS_YEAR %in% c(2013, 2016, 2019)) %>% 
   group_by(ISLAND, OBS_YEAR) %>% 
   summarise(n = n()) %>% 
   group_by(ISLAND) %>% 
   summarise(high = quantile(n, probs = 0.75),
             median = median(n),
             low = quantile(n, probs = 0.25)) %>% 
-   mutate(across(2:4, round, 0))
   as.data.frame()
 
-  save(survey_effort_MHI, file = "data/survey_effort_MHI_2014-2019.RData")
+save(survey_effort_MHI, file = "data/survey_effort_MHI_2014-2019.RData")
 
 
 df$LONGITUDE_LOV = ifelse(df$LONGITUDE_LOV < 0, 

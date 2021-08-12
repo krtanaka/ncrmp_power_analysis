@@ -5,7 +5,7 @@ library(stringr)
 
 rm(list = ls())
 
-type = c("fish", "benthic")[2]
+type = c("fish", "benthic")[1]
 
 # Load a SpatialPolygonsDataFrame example shapefile
 if (type == "fish") dat <- readOGR('data/gis_eco_zones/fish/Fish_AUTO_1X/Fish_AUTO_1X_sectorshapefile.shp', stringsAsFactors = F)
