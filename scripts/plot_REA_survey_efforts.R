@@ -6,26 +6,71 @@ library(rnaturalearth)
 library(rgeos)
 library(sf)
 library(ggplot2)
+library(patchwork)
 library(stringr)
 
 load("data/rea/SURVEY MASTER.RData"); df = SURVEY_MASTER
 
-df <- df %>% subset(ISLAND == "Hawaii")
+# look at > 2013 for representative survey efforts
 
-df %>% group_by(
-  DEPTH_BIN,
-  SEC_NAME, 
-  REEF_ZONE,
-  OBS_YEAR) %>% 
+df <- df %>% subset(REGION == "MHI") %>% subset(OBS_YEAR > 2014) %>% subset(ISLAND != "Kahoolawe")
+
+p1 = df %>% 
+  group_by(
+    ISLAND, 
+    # DEPTH_BIN,
+    # SEC_NAME, 
+    # REEF_ZONE,
+    OBS_YEAR
+  ) %>% 
   summarise(n = n()) %>% 
   na.omit() %>% 
-  ggplot(aes(OBS_YEAR, n, color = n)) + 
-  geom_line() + 
-  scale_fill_viridis_c() + 
-  facet_grid(SEC_NAME~DEPTH_BIN ) +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+  ggplot(aes(OBS_YEAR, n, color = ISLAND)) + 
+  geom_point(show.legend = F) +
+  geom_line(show.legend = F) + 
+  # facet_grid(SEC_NAME~DEPTH_BIN ) +
+  facet_wrap(~ISLAND, nrow = 3) + 
+  theme_minimal() + 
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
-# look at > 2013 for representative survey efforts
+p2 = df %>% 
+  group_by(ISLAND, OBS_YEAR) %>% 
+  summarise(n = n()) %>% 
+  na.omit() %>% 
+  ggplot(aes(ISLAND, n, color = ISLAND, fill = ISLAND)) + 
+  geom_boxplot(outlier.colour = NULL, show.legend = F) +
+  stat_summary(geom = "crossbar", 
+               width = 0.65, 
+               fatten = 0, 
+               color = "white", 
+               show.legend = F, 
+               fun.data = function(x){ return(c(y = median(x), ymin = median(x), ymax = median(x))) }) + 
+  # geom_text(data = stat, aes(label = median, y = median, colour = "white"), show.legend = F) + 
+  theme_minimal() + 
+  theme(
+    legend.title = element_blank(), 
+    panel.grid.major.x = element_blank(),
+    axis.ticks.x = element_blank(), 
+    axis.line.x = element_blank(), 
+    axis.title.x=element_blank(),
+    axis.line.y = element_blank(),
+    axis.title.y = element_blank())
+
+p1 + p2
+
+survey_effort_MHI = df %>% 
+  group_by(ISLAND, OBS_YEAR) %>% 
+  summarise(n = n()) %>% 
+  group_by(ISLAND) %>% 
+  summarise(high = quantile(n, probs = 0.75),
+            median = median(n),
+            low = quantile(n, probs = 0.25)) %>% 
+   mutate(across(2:4, round, 0))
+  as.data.frame()
+
+  save(survey_effort_MHI, file = "data/survey_effort_MHI_2014-2019.RData")
+
 
 df$LONGITUDE_LOV = ifelse(df$LONGITUDE_LOV < 0, 
                           df$LONGITUDE_LOV + 360, 
