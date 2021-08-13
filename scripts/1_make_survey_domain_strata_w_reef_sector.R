@@ -78,7 +78,7 @@ islands = islands[! islands %in% c("Kahoolawe")] # remove this island because it
 
 for (il in 1:length(islands)) {
   
-  il = 7
+  # il = 2
   island = islands[il]
   extent = subset(MHI_extent, ISLAND == island)
   
@@ -104,33 +104,58 @@ for (il in 1:length(islands)) {
   ### these are outputs from "convert_shp_to_data.frame.R   ###
   #############################################################
   
-  if (island == "Hawaii") {load("data/gis_sector/data.frame/HAW.RData")[[1]]; load("data/gis_reef/data.frame/haw.RData")}
+  if (island == "Hawaii") {
+    load("data/gis_sector/raster/HAW.RData"); sector = raster_and_table[[1]]
+    load("data/gis_reef/raster/haw.RData"); reef = raster_and_table[[1]]
+  }
+  if (island == "Kauai") {
+    load("data/gis_sector/raster/kau.RData"); sector = raster_and_table[[1]]
+    load("data/gis_reef/raster/kau.RData"); reef = raster_and_table[[1]]
+  }
+  if (island == "Lanai") {
+    load("data/gis_sector/raster/lan.RData"); sector = raster_and_table[[1]]
+    load("data/gis_reef/raster/lan.RData"); reef = raster_and_table[[1]]
+  }
+  if (island == "Maui") {
+    load("data/gis_sector/raster/mai.RData"); sector = raster_and_table[[1]]
+    load("data/gis_reef/raster/mai.RData"); reef = raster_and_table[[1]]
+  }
+  if (island == "Molokai") {
+    load("data/gis_sector/raster/mol.RData"); sector = raster_and_table[[1]]
+    load("data/gis_reef/raster/mol.RData"); reef = raster_and_table[[1]]
+  }
+  if (island == "Niihau") {
+    load("data/gis_sector/raster/nii.RData"); sector = raster_and_table[[1]]
+    load("data/gis_reef/raster/nii.RData"); reef = raster_and_table[[1]]
+  }
+  if (island == "Oahu") {
+    load("data/gis_sector/raster/oah.RData"); sector = raster_and_table[[1]]
+    load("data/gis_reef/raster/oah.RData"); reef = raster_and_table[[1]]
+  }
   # if (island == "Kahoolawe") {load("data/gis_sector/data.frame/kah.RData")}
-  if (island == "Kauai") {load("data/gis_sector/data.frame/kau.RData"); load("data/gis_reef/data.frame/kau.RData")}
-  if (island == "Lanai") {load("data/gis_sector/data.frame/lan.RData"); load("data/gis_reef/data.frame/lan.RData")}
-  if (island == "Maui") {load("data/gis_sector/data.frame/mai.RData"); load("data/gis_reef/data.frame/mai.RData")}
-  if (island == "Molokai") {load("data/gis_sector/data.frame/mol.RData"); load("data/gis_reef/data.frame/mol.RData")}
-  if (island == "Niihau") {load("data/gis_sector/data.frame/nii.RData"); load("data/gis_reef/data.frame/nii.RData")}
-  if (island == "Oahu") {load("data/gis_sector/data.frame/oah.RData"); load("data/gis_reef/data.frame/oah.RData")}
+  
+  rm(raster_and_table)
+  
+  sector = rasterToPoints(sector) %>% as.data.frame(); colnames(sector) = c("x", "y", "z")
+  reef = rasterToPoints(reef) %>% as.data.frame(); colnames(reef) = c("x", "y", "z")
   
   # plot(sector$lon, sector$lat, pch = ".", bty = "l", ann = F, col = 4)
   # points(reef$lon, reef$lat, pch = ".", bty = "l", ann = F, col = 2)
   
   # merge sectors -----------------------------------------------------------
-  utmcoor <- SpatialPoints(cbind(sector$lon, sector$lat), proj4string = CRS("+proj=utm +units=m +zone=4"))
+  utmcoor <- SpatialPoints(cbind(sector$x, sector$y), proj4string = CRS("+proj=utm +units=m +zone=4"))
   longlatcoor <- spTransform(utmcoor,CRS("+proj=longlat"))
   sector$lon <- coordinates(longlatcoor)[,1]
   sector$lat <- coordinates(longlatcoor)[,2]
   rm(longlatcoor, utmcoor)
-  # sector = sector %>% filter(!HardSoft %in% c("Unknown", "Land", "Other"))
-  sector$sector_name = as.numeric(as.factor(sector$SEC_NAME))
+  sector$sector_name = as.numeric(as.factor(sector$z))
   sector = as.matrix(sector[,c("lon", "lat", "sector_name")])
   e = extent(sector[,1:2])
   
   crm_res = rasterFromXYZ(df[,c("longitude", "latitude", "cell")])
   dim(crm_res); crm_res
   
-  res = 50  # rasterize it, but be careful with resolutions, lower = better but more missing points
+  res = 10  # rasterize it, but be careful with resolutions, lower = better but more missing points
   r <- raster(e, ncol = round((dim(crm_res)[2]/res), digits = 0), nrow = round(dim(crm_res)[1]/res, digits = 0))
   sector <- rasterize(sector[, 1:2], r, sector[,3], fun = mean)
   sector %>% 
@@ -171,21 +196,20 @@ for (il in 1:length(islands)) {
   colnames(df)[2:3] = c("longitude", "latitude")
   
   # merge reefzones ---------------------------------------------------------
-  utmcoor <- SpatialPoints(cbind(reef$lon, reef$lat), proj4string = CRS("+proj=utm +units=m +zone=4"))
+  utmcoor <- SpatialPoints(cbind(reef$x, reef$y), proj4string = CRS("+proj=utm +units=m +zone=4"))
   longlatcoor <- spTransform(utmcoor,CRS("+proj=longlat"))
   reef$lon <- coordinates(longlatcoor)[,1]
   reef$lat <- coordinates(longlatcoor)[,2]
   rm(longlatcoor, utmcoor)
-  reef = reef %>% filter(!REEF_ZONE %in% c("Unknown", "Land", "Other", "Reef Crest/Reef Flat"))
-  reef$reef_zone = as.numeric(as.factor(reef$REEF_ZONE))
+  # reef = reef %>% filter(!REEF_ZONE %in% c("Unknown", "Land", "Other", "Reef Crest/Reef Flat"))
+  reef$reef_zone = as.numeric(as.factor(reef$z))
   reef = as.matrix(reef[,c("lon", "lat", "reef_zone")])
   e = extent(reef[,1:2])
   
   crm_res = rasterFromXYZ(df[,c("longitude", "latitude", "cell")])
   dim(crm_res); crm_res
   
-  # rasterize it, but be careful with resolutions
-  res = 50
+  res = 10  # rasterize it, but be careful with resolutions, lower = better but more missing points
   r <- raster(e, ncol = round((dim(crm_res)[2]/res), digits = 0), nrow = round(dim(crm_res)[1]/res, digits = 0))
   reef <- rasterize(reef[, 1:2], r, reef[,3], fun = mean)
   reef %>% 
@@ -226,7 +250,7 @@ for (il in 1:length(islands)) {
   df = df[ , -which(names(df) %in% c("longitude.y", "latitude.y", "longitude.y", "latitude.y"))]
   
   # make strata by depth * sector * reef type -------------------------------
-
+  
   df$depth_bin = ""
   df$depth_bin = ifelse(df$Topography <= 0  & df$Topography >= -6, 1L, df$depth_bin) 
   df$depth_bin = ifelse(df$Topography < -6  & df$Topography >= -18, 2L, df$depth_bin) 

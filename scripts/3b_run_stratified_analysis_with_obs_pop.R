@@ -17,13 +17,14 @@ load("data/modeled_survey_variability.RData")
 # set.seed(50)
 # options(scipen = 999, digits = 2)
 
-design = c("traditional", "downscaled")[2]
-
 # pick an island ----------------------------------------------------------
 island = c("Hawaii", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:7, 1)]
 print(island)
 
 # pick survey design ------------------------------------------------------
+
+design = c("traditional", "downscaled")[1]
+
 if (design == "traditional") load(paste0("data/survey_grid_w_sector_reef/survey_grid_", island, ".RData")) #survey domain with sector & reef & depth_bins
 if (design == "downscaled") load(paste0("data/survey_grid_w_zones/fish/survey_grid_", island, ".RData")) #survey domain with tom's downscaled zones
 
@@ -91,16 +92,18 @@ head(sim_grid)
 
 df = merge(sim_grid, sdm_grid)
 
-df %>%
-  mutate(x = round(x, 0),
-         y = round(y, 0)) %>%
-  group_by(x, y) %>%
-  summarise(est = median(est)) %>%
-  ggplot(aes(x, y, fill = est)) +
-  geom_raster() +
-  scale_fill_gradientn(colours = colorRamps::matlab.like(100)) +
-  coord_fixed() +
-  ggdark::dark_theme_minimal()
+# df %>%
+#   mutate(x = round(x, 0),
+#          y = round(y, 0)) %>%
+#   group_by(x, y) %>%
+#   summarise(est = median(est)) %>%
+#   ggplot(aes(x, y, fill = est)) +
+#   geom_raster() +
+#   scale_fill_gradientn(colours = colorRamps::matlab.like(100)) +
+#   coord_fixed() +
+#   ggdark::dark_theme_minimal()
+# 
+# ggdark::invert_geom_defaults()
 
 N = df %>% group_by(year) %>% summarise(age = sum(est)) 
 N = matrix(N$age, nrow = 1, ncol = 9)
@@ -121,13 +124,15 @@ I
 # simulate stratified random surveys --------------------------------------
 
 load("data/survey_effort_MHI_2014-2019.RData")
-effort = c("high", "median", "low")[3]
+
+effort = c("high", "median", "low")[2]
+
 t_sample = survey_effort_MHI %>% subset(ISLAND == island) %>% select(effort) %>% as.character() %>% as.numeric() %>% round(0)
 
-n_sims = 100 # number of simulations
-total_sample = 30 # total sample efforts you want to deploy
+n_sims = 10 # number of simulations
+total_sample = t_sample # total sample efforts you want to deploy
 min_sets = 2 # minimum number of sets per strat
-set_den = 2/1000 # number of sets per [grid unit = km] squared)
+# set_den = 2/1000 # number of sets per [grid unit = km] squared)
 trawl_dim = c(0.01, 0.0353) # 0.000353 sq.km (353 sq.m) from two 15-m diameter survey cylinders
 resample_cells = F
 
@@ -150,7 +155,7 @@ strat_det$cell_area <- prod(res(sim$grid)); strat_det
 strat_det$strat_area <- strat_det$strat_cells * prod(res(sim$grid)); strat_det
 strat_det = right_join(strat_det, sd); strat_det
 # strat_det$strat_sets <- round(strat_det$strat_area * set_den); strat_det
-strat_det$weight = strat_det$strat_area * strat_det$sd
+strat_det$weight = strat_det$strat_area * strat_det$sd; strat_det
 strat_det$strat_sets = round((total_sample * strat_det$weight) / sum(strat_det$weight), 0); strat_det
 # strat_det$strat_sets = round((total_sample * strat_det$strat_area) / sum(strat_det$strat_area), 0); strat_det
 strat_det$strat_sets[strat_det$strat_sets < min_sets] <- min_sets; strat_det # make sure minimum number of sets per strat is not 0 or 1
@@ -330,7 +335,7 @@ strata = sim$grid_xy %>%
   theme(legend.position = "none") + 
   labs(
     title = "",
-    subtitle = paste0(paste0(island, 
+    subtitle = paste0(paste0("Island = ", island, 
                              "\n", 
                              "Number of strata = ", length(unique(sim$grid_xy$strat)),
                              "\n", 
