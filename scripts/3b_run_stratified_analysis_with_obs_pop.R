@@ -23,7 +23,7 @@ print(island)
 
 # pick survey design ------------------------------------------------------
 
-design = c("traditional", "downscaled")[1]
+design = c("traditional", "downscaled")[2]
 
 if (design == "traditional") load(paste0("data/survey_grid_w_sector_reef/survey_grid_", island, ".RData")) #survey domain with sector & reef & depth_bins
 if (design == "downscaled") load(paste0("data/survey_grid_w_zones/fish/survey_grid_", island, ".RData")) #survey domain with tom's downscaled zones
@@ -127,7 +127,7 @@ load("data/survey_effort_MHI_2014-2019.RData")
 
 effort = c("high", "median", "low")[2]
 
-t_sample = survey_effort_MHI %>% subset(ISLAND == island) %>% select(effort) %>% as.character() %>% as.numeric() %>% round(0)
+t_sample = survey_effort_MHI %>% subset(ISLAND == island) %>% dplyr::select(effort) %>% as.character() %>% as.numeric() %>% round(0)
 
 n_sims = 10 # number of simulations
 total_sample = t_sample # total sample efforts you want to deploy
