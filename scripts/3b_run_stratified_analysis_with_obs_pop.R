@@ -23,7 +23,7 @@ print(island)
 
 # pick survey design ------------------------------------------------------
 
-design = c("traditional", "downscaled")[2]
+design = c("traditional", "downscaled")[1]
 
 if (design == "traditional") load(paste0("data/survey_grid_w_sector_reef/survey_grid_", island, ".RData")) #survey domain with sector & reef & depth_bins
 if (design == "downscaled") load(paste0("data/survey_grid_w_zones/fish/survey_grid_", island, ".RData")) #survey domain with tom's downscaled zones
@@ -125,7 +125,7 @@ I
 
 load("data/survey_effort_MHI_2014-2019.RData")
 
-effort = c("high", "median", "low")[2]
+effort = c("high", "median", "low")[1]
 
 t_sample = survey_effort_MHI %>% subset(ISLAND == island) %>% dplyr::select(effort) %>% as.character() %>% as.numeric() %>% round(0)
 
@@ -335,13 +335,10 @@ strata = sim$grid_xy %>%
   theme(legend.position = "none") + 
   labs(
     title = "",
-    subtitle = paste0(paste0("Island = ", island, 
-                             "\n", 
-                             "Number of strata = ", length(unique(sim$grid_xy$strat)),
-                             "\n", 
-                             "Survey Design = ", design,
-                             "\n", 
-                             "Survey Effort = ", effort, " w/ ", t_sample, " sites")))
+    subtitle = paste0(paste0("Island = ", island, "\n", 
+                             "Number of strata = ", length(unique(sim$grid_xy$strat)), "\n", 
+                             "Survey design = ", design, "\n", 
+                             "Survey effort = ", effort, " effort w/ ", t_sample, " sites")))
 
 if (response_scale == "biomass") ylab_scale = "biomass (g)"
 if (response_scale == "count") ylab_scale = "abundance (n)"
