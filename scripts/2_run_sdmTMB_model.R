@@ -37,7 +37,7 @@ islands = c("Kauai", #1
             "Lanai", #8
             "Molokini", #9
             "Kahoolawe", #10
-            "Hawaii")[5]
+            "Hawaii")#[1]
 
 # response_variable = "fish_count";      sp = ifelse(uku_or_not == T, "Aprion virescens", "Chromis vanderbilti")
 # response_variable = "fish_biomass";    sp = ifelse(uku_or_not == T, "Aprion virescens", "Acanthurus olivaceus")
@@ -166,8 +166,10 @@ density_model <- sdmTMB(
   
   data = df, 
   
-  # formula = response ~ as.factor(year) + depth_scaled + depth_scaled2,
-  formula = response ~ as.factor(year) + s(depth, k=5) + s(temp, k=5),
+  formula = response ~ as.factor(year) + depth_scaled + depth_scaled2,
+  # formula = response ~ as.factor(year) + s(depth, k=5) + s(temp, k=5),
+  # formula = response ~ as.factor(year) + s(temp, k=5) + s(depth, k=5) + depth_scaled + depth_scaled2,
+
   
   silent = F, 
   # extra_time = missing_year,

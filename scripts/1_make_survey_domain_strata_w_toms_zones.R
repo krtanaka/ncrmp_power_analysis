@@ -1,9 +1,13 @@
+###################################################
+### prep survey_grid for subsequent simulations ###
+###################################################
+
+rm(list = ls())
+
 library(raster)
 library(rgdal)
 library(rasterVis)
 library(stringr)
-
-rm(list = ls())
 
 type = c("fish", "benthic")[2]
 
