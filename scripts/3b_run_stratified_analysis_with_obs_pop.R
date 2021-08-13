@@ -18,7 +18,7 @@ load("data/modeled_survey_variability.RData")
 # options(scipen = 999, digits = 2)
 
 # pick an island ----------------------------------------------------------
-island = c("Hawaii", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:7, 1)]
+island = c("Hawaii", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[4]#[sample(1:7, 1)]
 print(island)
 
 # pick survey design ------------------------------------------------------
@@ -125,7 +125,7 @@ I
 
 load("data/survey_effort_MHI_2014-2019.RData")
 
-effort = c("high", "median", "low")[1]
+effort = c("high", "median", "low")[3]
 
 t_sample = survey_effort_MHI %>% subset(ISLAND == island) %>% dplyr::select(effort) %>% as.character() %>% as.numeric() %>% round(0)
 
@@ -200,6 +200,9 @@ setdet$n <- stats::rbinom(rep(1, nrow(setdet)),
                           size = round(setdet$N/setdet$cell_sets), 
                           # prob = (setdet$tow_area/setdet$cell_area) * q(setdet$age))
                           prob = (setdet$tow_area/setdet$cell_area))
+
+setdet$detection = ifelse(setdet$N > 0 & setdet$n == 0, 0, 1)
+setdet$detection = ifelse(setdet$N > 0 & setdet$n == 0, 0, 1)
 
 setkeyv(setdet, "set")
 setkeyv(sets, "set")
@@ -365,6 +368,10 @@ sim_output = df %>%
            hjust = 1,
            vjust = 1) 
 
+error = df %>% 
+  ggplot(aes(year, error, group = year)) + 
+  geom_boxplot()
+
 # png(paste0("outputs/", sp, "_", island, ".png"), res = 100, units = "in", height = 4, width = 8)
-strata + sim_output
+strata + sim_output / error
 # dev.off()
