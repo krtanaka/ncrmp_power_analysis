@@ -13,7 +13,7 @@ library(patchwork)
 
 rm(list = ls())
 
-load("data/modeled_survey_variability.RData")
+load("data/modeled_survey_variability.RData") #modeled at grid scale
 # set.seed(50)
 # options(scipen = 999, digits = 2)
 
@@ -35,6 +35,7 @@ sim = sim_abundance(years = 2000:2020,
                     Z = sim_Z(log_mean = log(0.2))) %>% 
   sim_distribution(grid = survey_grid_kt)
 
+#population variable that we will replace...
 I <- sim$N
 I
 
@@ -60,7 +61,7 @@ response_scale = strsplit(list[i], split = "_")[[1]][4]; response_scale
 
 
 # replace sim$ with sdmTMB outputs  -----------------------------------------
-
+## Need to match sim and sdm
 sdm = sdm_output[,c("X", "Y", "longitude", "latitude", "year", "est" )]; rm(sdm_output)
 colnames(sdm)[1:2] = c("x", "y")
 sdm$est = exp(sdm$est)
@@ -105,6 +106,15 @@ df %>%
 
 ggdark::invert_geom_defaults()
 
+########################
+########################
+########################
+# Tom thinks if we're going to keep th rbinom sampling, we need to convert this to g from g/m2 by multiplying by the cell area
+#and later redividing sampled biomass by tow_area to return to g/m2
+########################
+########################
+########################
+
 N = df %>% group_by(year) %>% summarise(age = sum(est)) 
 N = matrix(N$age, nrow = 1, ncol = 9)
 rownames(N) <- "1"
@@ -114,12 +124,16 @@ N
 sim$N = N
 
 # replace sim$sp_N
-sp_N = df %>% group_by(year, cell) %>% summarise(N = sum(est))
+sp_N = df %>% group_by(year, cell) %>% summarise(N = sum(est)) ##TAO I want to use mean, not sum here???
 sim$sp_N = sp_N
+#sp_Nn = df %>% group_by(year, cell) %>% summarise(N = sum(est),nN=length(est)) ##TAO I want to use mean, not sum here???
+#table(sp_Nn$nN)
+#Weird that there is more than one cell value here...
 
 # replace sim$I
 I <- sim$N
 I
+#each of these sums N and sp_N 
 
 # simulate stratified random surveys --------------------------------------
 
@@ -127,7 +141,12 @@ load("data/survey_effort_MHI_2014-2019.RData")
 
 effort = c("high", "median", "low")[2]
 
-t_sample = survey_effort_MHI %>% subset(ISLAND == island) %>% dplyr::select(effort) %>% as.character() %>% as.numeric() %>% round(0)
+t_sample = survey_effort_MHI %>%
+  subset(ISLAND == island) %>%
+  dplyr::select(effort) %>%
+  as.character() %>%
+  as.numeric() %>%
+  round(0)
 
 n_sims = 10 # number of simulations
 total_sample = t_sample # total sample efforts you want to deploy
@@ -148,7 +167,7 @@ n <- id <- division <- strat <- N <- NULL
 strat_sets <- cell_sets <- NULL
 
 cells <- data.table(rasterToPoints(sim$grid))
-cells$sd = predict(g, cells); sd = cells[,c("strat", "sd")]; sd = sd %>% group_by(strat) %>% summarise(sd = mean(sd)) # add modeled trophic biomass variability
+cells$sd = predict(g, cells); sd = cells[,c("strat", "sd")]; sd = sd %>% group_by(strat) %>% summarise(sd = mean(sd,na.rm=T)) # add modeled trophic biomass variability
 strat_det <- cells[, list(strat_cells = .N), by = "strat"]; strat_det
 strat_det$tow_area <- prod(trawl_dim); strat_det
 strat_det$cell_area <- prod(res(sim$grid)); strat_det
@@ -157,6 +176,8 @@ strat_det = right_join(strat_det, sd); strat_det
 # strat_det$strat_sets <- round(strat_det$strat_area * set_den); strat_det
 strat_det$weight = strat_det$strat_area * strat_det$sd; strat_det
 strat_det$strat_sets = round((total_sample * strat_det$weight) / sum(strat_det$weight), 0); strat_det
+
+## Area vs Area*sd allocation
 # strat_det$strat_sets = round((total_sample * strat_det$strat_area) / sum(strat_det$strat_area), 0); strat_det
 strat_det$strat_sets[strat_det$strat_sets < min_sets] <- min_sets; strat_det # make sure minimum number of sets per strat is not 0 or 1
 
