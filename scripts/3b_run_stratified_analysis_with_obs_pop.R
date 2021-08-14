@@ -23,7 +23,7 @@ print(island)
 
 # pick survey design ------------------------------------------------------
 
-design = c("traditional", "downscaled")[1]
+design = c("traditional", "downscaled")[2]
 
 if (design == "traditional") load(paste0("data/survey_grid_w_sector_reef/survey_grid_", island, ".RData")) #survey domain with sector & reef & depth_bins
 if (design == "downscaled") load(paste0("data/survey_grid_w_zones/fish/survey_grid_", island, ".RData")) #survey domain with tom's downscaled zones
@@ -92,18 +92,18 @@ head(sim_grid)
 
 df = merge(sim_grid, sdm_grid)
 
-# df %>%
-#   mutate(x = round(x, 0),
-#          y = round(y, 0)) %>%
-#   group_by(x, y) %>%
-#   summarise(est = median(est)) %>%
-#   ggplot(aes(x, y, fill = est)) +
-#   geom_raster() +
-#   scale_fill_gradientn(colours = colorRamps::matlab.like(100)) +
-#   coord_fixed() +
-#   ggdark::dark_theme_minimal()
-# 
-# ggdark::invert_geom_defaults()
+df %>%
+  mutate(x = round(x, 0),
+         y = round(y, 0)) %>%
+  group_by(x, y) %>%
+  summarise(est = median(est)) %>%
+  ggplot(aes(x, y, fill = est)) +
+  geom_raster() +
+  scale_fill_gradientn(colours = colorRamps::matlab.like(100)) +
+  coord_fixed() +
+  ggdark::dark_theme_minimal()
+
+ggdark::invert_geom_defaults()
 
 N = df %>% group_by(year) %>% summarise(age = sum(est)) 
 N = matrix(N$age, nrow = 1, ncol = 9)
@@ -125,7 +125,7 @@ I
 
 load("data/survey_effort_MHI_2014-2019.RData")
 
-effort = c("high", "median", "low")[3]
+effort = c("high", "median", "low")[2]
 
 t_sample = survey_effort_MHI %>% subset(ISLAND == island) %>% dplyr::select(effort) %>% as.character() %>% as.numeric() %>% round(0)
 
@@ -201,7 +201,9 @@ setdet$n <- stats::rbinom(rep(1, nrow(setdet)),
                           # prob = (setdet$tow_area/setdet$cell_area) * q(setdet$age))
                           prob = (setdet$tow_area/setdet$cell_area))
 
-setdet$detection = ifelse(setdet$N > 0 & setdet$n == 0, 0, 1)
+# detection probability = 1:sucess, 0:fail
+setdet$detection = 0
+setdet$detection = ifelse(setdet$N == 0 & setdet$n == 0, 1, 0)
 setdet$detection = ifelse(setdet$N > 0 & setdet$n == 0, 0, 1)
 
 setkeyv(setdet, "set")
@@ -350,10 +352,9 @@ sim_output = df %>%
   ggplot() + 
   geom_line(aes(year, I_hat, color = factor(sim), alpha = 0.2), show.legend = F) +
   geom_line(aes(year, I), size = 2, color = "red") + 
-  # scale_color_viridis_d() + 
-  # dark_theme_minimal() + 
   theme_minimal() + 
   ylab(ylab_scale) +
+  xlab("") + 
   labs(
     title = "",
     subtitle = paste0("Target = ", sp, "\n",
@@ -370,8 +371,19 @@ sim_output = df %>%
 
 error = df %>% 
   ggplot(aes(year, error, group = year)) + 
-  geom_boxplot()
+  geom_boxplot(outlier.colour = NULL) +
+  xlab("") + 
+  theme_minimal()
+
+detection = setdet %>% 
+  group_by(year, sim) %>% 
+  summarise(detection = mean(detection)) %>% 
+  ggplot(aes(year, detection, group = year)) + 
+  ylab("detection prob (%)") + 
+  xlab("") + 
+  geom_boxplot(outlier.colour = NULL) +
+  theme_minimal()
 
 # png(paste0("outputs/", sp, "_", island, ".png"), res = 100, units = "in", height = 4, width = 8)
-strata + sim_output / error
+strata + (sim_output / (error + detection))
 # dev.off()
