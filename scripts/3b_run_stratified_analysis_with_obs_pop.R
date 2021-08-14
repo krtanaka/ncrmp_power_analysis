@@ -106,6 +106,15 @@ df = merge(sim_grid, sdm_grid)
 # 
 # ggdark::invert_geom_defaults()
 
+########################
+########################
+########################
+# Tom thinks if we're going to keep th rbinom sampling, we need to convert this to g from g/m2 by multiplying by the cell area
+#and later redividing sampled biomass by tow_area to return to g/m2
+########################
+########################
+########################
+
 N = df %>% group_by(year) %>% summarise(age = sum(est)) 
 N = matrix(N$age, nrow = 1, ncol = 9)
 rownames(N) <- "1"
