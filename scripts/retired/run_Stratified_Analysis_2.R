@@ -9,7 +9,7 @@ library(ggplot2)
 
 rm(list = ls())
 
-load("data/survey_grid_kt.RData")
+load("data/survey_grid_w_sector_reef/survey_grid_Maui.RData")
 
 n_sims = 10
 min_sets = 2

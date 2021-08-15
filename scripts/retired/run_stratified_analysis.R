@@ -8,7 +8,7 @@ library(data.table)
 
 rm(list = ls())
 
-load("data/survey_grid_kt.RData")
+load("data/survey_grid_w_sector_reef/survey_grid_Hawaii.RData")
 
 source('scripts/key_functions.R')
 
@@ -63,13 +63,13 @@ sim1a[10:12]
 sim1b[10:12]
 
 sim2a = sim1a %>% 
-  sim_survey_rea(min_sets = 10, 
+  sim_survey(min_sets = 10, 
                  ages_cap = 500,
                  lengths_cap = 100,
                  set_den = 2/1000)
 
 sim2b = sim1b %>% 
-  sim_survey_rea(min_sets = 10, 
+  sim_survey(min_sets = 10, 
                  ages_cap = 500,
                  lengths_cap = 100,
                  set_den = 2/1000)
