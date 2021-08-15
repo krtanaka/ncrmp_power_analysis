@@ -19,8 +19,8 @@ raster::plot(r)
 p <- raster::rasterToPolygons(r$strat, dissolve = TRUE)
 sp::plot(p)
 
-sim <- sim_abundance(ages = 1:10, years = 1:5) %>%
-  sim_distribution(grid = make_grid(res = c(10, 10))) %>%
-  sim_survey(n_sims = 5, q = sim_logistic(k = 2, x0 = 3))
+sim <- sim_abundance(ages = 1:10, years = 1:3) %>%
+  sim_distribution(grid = survey_grid) %>%
+  sim_survey(set_den = 1/10000, min_sets = 1, resample_cells = T)
 plot_survey(sim, which_year = 2, which_sim = 1)
 
