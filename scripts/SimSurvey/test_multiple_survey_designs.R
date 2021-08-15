@@ -22,7 +22,7 @@ plot(survey_grid_kt, pch = ".")
 
 # base populations with MHI survey grids
 pop = sim_abundance() %>% 
-  sim_distribution(grid = survey_grid_kt)
+  sim_distribution(grid = survey_grid)
 
 # Set-up a series of surveys from all combinations of settings supplied
 surveys = expand_surveys(
