@@ -1,6 +1,6 @@
 library(dplyr)
 
-load("data/ALL_REA_FISH_RAW.rdata")
+load("data/rea/ALL_REA_FISH_RAW.rdata")
 
 df %>% 
   group_by(TAXONNAME) %>% 
