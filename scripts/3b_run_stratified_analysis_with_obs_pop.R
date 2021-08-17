@@ -13,6 +13,8 @@ library(patchwork)
 
 rm(list = ls())
 
+source('scripts/ExpandingExtract.R')
+
 load("data/modeled_survey_variability.RData") #modeled at grid scale
 # set.seed(50)
 # options(scipen = 999, digits = 2)
@@ -59,12 +61,13 @@ load(paste0("outputs/", list[i]))
 sp = strsplit(list[i], split = "_")[[1]][3]; sp
 response_scale = strsplit(list[i], split = "_")[[1]][4]; response_scale
 
-
 # replace sim$ with sdmTMB outputs  -----------------------------------------
-## Need to match sim and sdm
+
+# Need to match sim and sdm
 sdm = sdm_output[,c("X", "Y", "longitude", "latitude", "year", "est" )]; rm(sdm_output)
 colnames(sdm)[1:2] = c("x", "y")
-sdm$est = exp(sdm$est)
+sdm$est = exp(sdm$est); hist(sdm$est);summary(sdm$est)
+sdm$est = sdm$est*(res(survey_grid_kt)[1] * res(survey_grid_kt)[2]*1000000); hist(sdm$est); summary(sdm$est) # convert g/sq.m to q/ what ever given cell size
 
 # replace sim$years and sim$ages
 sim$years = sort(unique(sdm$year))
@@ -74,46 +77,47 @@ sim$ages = 1
 sim_grid = sim$grid_xy
 
 sim_grid = sim_grid %>%
-  mutate(x = round(x, 1),
-         y = round(y, 1)) %>%
+  # mutate(x = round(x, 1),
+         # y = round(y, 1)) %>%
   group_by(x, y) %>%
-  summarise(cell = round(median(cell), 0))
+  summarise(cell = round(median(cell), 0)) %>% 
+  as.data.frame()
 
 sdm_grid = sdm %>%
-  mutate(x = round(x, 1),
-         y = round(y, 1)) %>%
+  # mutate(x = round(x, 1),
+         # y = round(y, 1)) %>%
   group_by(x, y, year) %>%
-  summarise(est = sum(est))
+  summarise(est = sum(est)) %>% 
+  as.data.frame()
 
-sdm_grid = as.data.frame(sdm_grid)
-sim_grid = as.data.frame(sim_grid)
+# use ExpandExtract to assign nearest cell #
+sim_grid = rasterFromXYZ(sim_grid)
+sdm_grid = sdm_grid[complete.cases(sdm_grid[,c("x", "y")]), ]
+coordinates(sdm_grid) = ~x + y
+df = ExpandingExtract(sim_grid, sdm_grid, Dists = c(0,1))
+sdm_grid$cell = round(df$values, 0)
+df = as.data.frame(sdm_grid)
+df = df %>% subset(cell != "NaN")
+df = df %>% group_by(x, y, cell, year) %>% summarise(est = mean(est, na.rm = T))
 
 head(sdm_grid)
 head(sim_grid)
 
-df = merge(sim_grid, sdm_grid)
+# df = merge(sim_grid, sdm_grid)
 
 df %>%
   mutate(x = round(x, 0),
          y = round(y, 0)) %>%
-  group_by(x, y) %>%
-  summarise(est = median(est)) %>%
+  group_by(x, y, year) %>%
+  summarise(est = sum(est)) %>%
   ggplot(aes(x, y, fill = est)) +
   geom_raster() +
+  facet_wrap(.~year) + 
   scale_fill_gradientn(colours = colorRamps::matlab.like(100)) +
   coord_fixed() +
   ggdark::dark_theme_minimal()
-
+  
 ggdark::invert_geom_defaults()
-
-########################
-########################
-########################
-# Tom thinks if we're going to keep th rbinom sampling, we need to convert this to g from g/m2 by multiplying by the cell area
-#and later redividing sampled biomass by tow_area to return to g/m2
-########################
-########################
-########################
 
 N = df %>% group_by(year) %>% summarise(age = sum(est)) 
 N = matrix(N$age, nrow = 1, ncol = 9)
@@ -133,13 +137,12 @@ sim$sp_N = sp_N
 # replace sim$I
 I <- sim$N
 I
-#each of these sums N and sp_N 
 
 # simulate stratified random surveys --------------------------------------
 
 load("data/survey_effort_MHI_2014-2019.RData")
 
-effort = c("high", "median", "low")[2]
+effort = c("high", "median", "low")[3]
 
 t_sample = survey_effort_MHI %>%
   subset(ISLAND == island) %>%
@@ -148,7 +151,7 @@ t_sample = survey_effort_MHI %>%
   as.numeric() %>%
   round(0)
 
-n_sims = 10 # number of simulations
+n_sims = 100 # number of simulations
 total_sample = t_sample # total sample efforts you want to deploy
 min_sets = 2 # minimum number of sets per strat
 # set_den = 2/1000 # number of sets per [grid unit = km] squared)
@@ -167,18 +170,16 @@ n <- id <- division <- strat <- N <- NULL
 strat_sets <- cell_sets <- NULL
 
 cells <- data.table(rasterToPoints(sim$grid))
-cells$sd = predict(g, cells); sd = cells[,c("strat", "sd")]; sd = sd %>% group_by(strat) %>% summarise(sd = mean(sd,na.rm=T)) # add modeled trophic biomass variability
+cells$sd = predict(g, cells); sd = cells[,c("strat", "sd")]; sd = sd %>% group_by(strat) %>% summarise(sd = mean(sd,na.rm = T)) # add modeled trophic biomass variability
 strat_det <- cells[, list(strat_cells = .N), by = "strat"]; strat_det
 strat_det$tow_area <- prod(trawl_dim); strat_det
 strat_det$cell_area <- prod(res(sim$grid)); strat_det
 strat_det$strat_area <- strat_det$strat_cells * prod(res(sim$grid)); strat_det
 strat_det = right_join(strat_det, sd); strat_det
-# strat_det$strat_sets <- round(strat_det$strat_area * set_den); strat_det
+# strat_det$strat_sets <- round(strat_det$strat_area * set_den); strat_det #turning it off because set_den is commented out
 strat_det$weight = strat_det$strat_area * strat_det$sd; strat_det
-strat_det$strat_sets = round((total_sample * strat_det$weight) / sum(strat_det$weight), 0); strat_det
-
-## Area vs Area*sd allocation
-# strat_det$strat_sets = round((total_sample * strat_det$strat_area) / sum(strat_det$strat_area), 0); strat_det
+strat_det$strat_sets = round((total_sample * strat_det$weight) / sum(strat_det$weight), 0); strat_det # site allocation by area * sd
+# strat_det$strat_sets = round((total_sample * strat_det$strat_area) / sum(strat_det$strat_area), 0); strat_det # site allocation by area
 strat_det$strat_sets[strat_det$strat_sets < min_sets] <- min_sets; strat_det # make sure minimum number of sets per strat is not 0 or 1
 
 cells <- merge(cells, strat_det, by = c("strat")) # add "strat" "strat_cells" "tow_area" ...
@@ -217,11 +218,12 @@ sp_I <- sp_I[i, ]
 sp_I$sim <- s
 setdet <- merge(sets, sp_I, by = c("sim", "year", "cell"))
 
-setdet$n <- stats::rbinom(rep(1, nrow(setdet)), 
-                          size = round(setdet$N/setdet$cell_sets), 
-                          # prob = (setdet$tow_area/setdet$cell_area) * q(setdet$age))
-                          prob = (setdet$tow_area/setdet$cell_area))
+# setdet$n <- stats::rbinom(rep(1, nrow(setdet)),
+#                           size = round(setdet$N/setdet$cell_sets),
+#                           prob = (setdet$tow_area/setdet$cell_area))
 
+setdet$n <- round((setdet$N/setdet$cell_sets) * (setdet$tow_area/setdet$cell_area))
+                                                 
 # detection probability = 1:sucess, 0:fail
 setdet$detection = 0
 setdet$detection = ifelse(setdet$N == 0 & setdet$n == 0, 1, 0)
