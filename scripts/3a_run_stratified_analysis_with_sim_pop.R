@@ -17,8 +17,8 @@ set.seed(42)
 # options(scipen = 999, digits = 2)
 
 # pick an island ----------------------------------------------------------
-island = c("Hawaii", "Kahoolawe", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:8, 1)]
-load(paste0("data/survey_grid_", island, ".RData"))
+island = c("Hawaii", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:7, 1)]
+load(paste0("data/survey_grid_w_sector_reef/survey_grid_", island, ".RData"))
 print(island)
 
 # simulate spatiotemporal dyamic LMR --------------------------------------
