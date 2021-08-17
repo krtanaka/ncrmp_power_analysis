@@ -218,11 +218,11 @@ sp_I <- sp_I[i, ]
 sp_I$sim <- s
 setdet <- merge(sets, sp_I, by = c("sim", "year", "cell"))
 
-# setdet$n <- stats::rbinom(rep(1, nrow(setdet)),
-#                           size = round(setdet$N/setdet$cell_sets),
-#                           prob = (setdet$tow_area/setdet$cell_area))
+setdet$n <- stats::rbinom(rep(1, nrow(setdet)),
+                          size = round(setdet$N/setdet$cell_sets),
+                          prob = (setdet$tow_area/setdet$cell_area))
 
-setdet$n <- round((setdet$N/setdet$cell_sets) * (setdet$tow_area/setdet$cell_area))
+# setdet$n <- round((setdet$N/setdet$cell_sets) * (setdet$tow_area/setdet$cell_area))
                                                  
 # detection probability = 1:sucess, 0:fail
 setdet$detection = 0
