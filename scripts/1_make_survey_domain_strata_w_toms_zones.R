@@ -20,10 +20,6 @@ class(dat)
 
 zones = dat$ClustID
 
-###################################################
-### prep survey_grid for subsequent simulations ###
-###################################################
-
 load("data/crm/Topography_NOAA_CRM_vol10.RData")
 
 df_base = topo; rm(topo)
