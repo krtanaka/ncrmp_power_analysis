@@ -16,11 +16,11 @@ rm(list = ls())
 source('scripts/ExpandingExtract.R')
 
 load("data/modeled_survey_variability.RData") #modeled at grid scale
-# set.seed(50)
-# options(scipen = 999, digits = 2)
+set.seed(50)
+options(scipen = 999, digits = 2)
 
 # pick an island ----------------------------------------------------------
-island = c("Hawaii", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[4]#[sample(1:7, 1)]
+island = c("Hawaii", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:7, 1)]
 print(island)
 
 # pick survey design ------------------------------------------------------
@@ -106,9 +106,9 @@ head(sim_grid)
 # df = merge(sim_grid, sdm_grid)
 
 df %>%
+  group_by(x, y, year) %>%
   mutate(x = round(x, 0),
          y = round(y, 0)) %>%
-  group_by(x, y, year) %>%
   summarise(est = sum(est)) %>%
   ggplot(aes(x, y, fill = est)) +
   geom_raster() +
@@ -130,9 +130,6 @@ sim$N = N
 # replace sim$sp_N
 sp_N = df %>% group_by(year, cell) %>% summarise(N = sum(est)) ##TAO I want to use mean, not sum here???
 sim$sp_N = sp_N
-#sp_Nn = df %>% group_by(year, cell) %>% summarise(N = sum(est),nN=length(est)) ##TAO I want to use mean, not sum here???
-#table(sp_Nn$nN)
-#Weird that there is more than one cell value here...
 
 # replace sim$I
 I <- sim$N
@@ -142,7 +139,7 @@ I
 
 load("data/survey_effort_MHI_2014-2019.RData")
 
-effort = c("high", "median", "low")[3]
+effort = c("high", "median", "low")[2]
 
 t_sample = survey_effort_MHI %>%
   subset(ISLAND == island) %>%
@@ -151,10 +148,10 @@ t_sample = survey_effort_MHI %>%
   as.numeric() %>%
   round(0)
 
-n_sims = 100 # number of simulations
+n_sims = 10 # number of simulations
 total_sample = t_sample # total sample efforts you want to deploy
-min_sets = 2 # minimum number of sets per strat
-# set_den = 2/1000 # number of sets per [grid unit = km] squared)
+min_sets = 0 # minimum number of sets per strat
+set_den = 5 # number of sets per [grid unit = km] squared)
 trawl_dim = c(0.01, 0.0353) # 0.000353 sq.km (353 sq.m) from two 15-m diameter survey cylinders
 resample_cells = F
 
@@ -170,17 +167,28 @@ n <- id <- division <- strat <- N <- NULL
 strat_sets <- cell_sets <- NULL
 
 cells <- data.table(rasterToPoints(sim$grid))
-cells$sd = predict(g, cells); sd = cells[,c("strat", "sd")]; sd = sd %>% group_by(strat) %>% summarise(sd = mean(sd,na.rm = T)) # add modeled trophic biomass variability
+
+# add modeled trophic biomass variability
+cells$sd = predict(g, cells); sd = cells[,c("strat", "sd")]; sd = sd %>% group_by(strat) %>% summarise(sd = mean(sd,na.rm = T))
+
 strat_det <- cells[, list(strat_cells = .N), by = "strat"]; strat_det
 strat_det$tow_area <- prod(trawl_dim); strat_det
 strat_det$cell_area <- prod(res(sim$grid)); strat_det
 strat_det$strat_area <- strat_det$strat_cells * prod(res(sim$grid)); strat_det
 strat_det = right_join(strat_det, sd); strat_det
-# strat_det$strat_sets <- round(strat_det$strat_area * set_den); strat_det #turning it off because set_den is commented out
-strat_det$weight = strat_det$strat_area * strat_det$sd; strat_det
-strat_det$strat_sets = round((total_sample * strat_det$weight) / sum(strat_det$weight), 0); strat_det # site allocation by area * sd
-# strat_det$strat_sets = round((total_sample * strat_det$strat_area) / sum(strat_det$strat_area), 0); strat_det # site allocation by area
-strat_det$strat_sets[strat_det$strat_sets < min_sets] <- min_sets; strat_det # make sure minimum number of sets per strat is not 0 or 1
+
+## allocate sampling units by set_den
+strat_det$strat_sets <- round(strat_det$strat_area * set_den); strat_det
+
+## allocate sampling units by area * sd
+# strat_det$weight = strat_det$strat_area * strat_det$sd; strat_det
+# strat_det$strat_sets = round((total_sample * strat_det$weight) / sum(strat_det$weight), 0); strat_det
+
+# allocate sampling units by area
+# strat_det$strat_sets = round((total_sample * strat_det$strat_area) / sum(strat_det$strat_area), 0); strat_det
+
+# make sure minimum number of sets per strat is not 0 or 1
+strat_det$strat_sets[strat_det$strat_sets < min_sets] <- min_sets; strat_det 
 
 cells <- merge(cells, strat_det, by = c("strat")) # add "strat" "strat_cells" "tow_area" ...
 
@@ -218,11 +226,11 @@ sp_I <- sp_I[i, ]
 sp_I$sim <- s
 setdet <- merge(sets, sp_I, by = c("sim", "year", "cell"))
 
-setdet$n <- stats::rbinom(rep(1, nrow(setdet)),
-                          size = round(setdet$N/setdet$cell_sets),
-                          prob = (setdet$tow_area/setdet$cell_area))
+# setdet$n <- stats::rbinom(rep(1, nrow(setdet)),
+#                           size = round(setdet$N/setdet$cell_sets),
+#                           prob = (setdet$tow_area/setdet$cell_area))
 
-# setdet$n <- round((setdet$N/setdet$cell_sets) * (setdet$tow_area/setdet$cell_area))
+setdet$n <- round((setdet$N/setdet$cell_sets) * (setdet$tow_area/setdet$cell_area))
                                                  
 # detection probability = 1:sucess, 0:fail
 setdet$detection = 0
