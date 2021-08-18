@@ -8,7 +8,6 @@ library(raster)
 library(data.table)
 library(ggplot2)
 library(dplyr)
-# library(ggdark)
 library(patchwork)
 
 rm(list = ls())
@@ -16,7 +15,8 @@ rm(list = ls())
 source('scripts/ExpandingExtract.R')
 
 load("data/modeled_survey_variability.RData") #modeled at grid scale
-set.seed(50)
+
+set.seed(42)
 options(scipen = 999, digits = 2)
 
 # pick an island ----------------------------------------------------------
@@ -25,7 +25,7 @@ print(island)
 
 # pick survey design ------------------------------------------------------
 
-design = c("traditional", "downscaled")[2]
+design = c("traditional", "downscaled")[1]
 
 if (design == "traditional") load(paste0("data/survey_grid_w_sector_reef/survey_grid_", island, ".RData")) #survey domain with sector & reef & depth_bins
 if (design == "downscaled") load(paste0("data/survey_grid_w_zones/fish/survey_grid_", island, ".RData")) #survey domain with tom's downscaled zones
@@ -55,7 +55,7 @@ list = list.files(path = "outputs/", pattern = "_biomass"); list
 # adult or juvenile coral density
 # list = list.files(path = "outputs/", pattern = "_density"); list
 
-i = 4
+i = 3
 
 load(paste0("outputs/", list[i]))
 sp = strsplit(list[i], split = "_")[[1]][3]; sp
@@ -77,15 +77,15 @@ sim$ages = 1
 sim_grid = sim$grid_xy
 
 sim_grid = sim_grid %>%
-  # mutate(x = round(x, 1),
-         # y = round(y, 1)) %>%
+  mutate(x = round(x, 1),
+         y = round(y, 1)) %>%
   group_by(x, y) %>%
   summarise(cell = round(median(cell), 0)) %>% 
   as.data.frame()
 
 sdm_grid = sdm %>%
-  # mutate(x = round(x, 1),
-         # y = round(y, 1)) %>%
+  mutate(x = round(x, 1),
+  y = round(y, 1)) %>%
   group_by(x, y, year) %>%
   summarise(est = sum(est)) %>% 
   as.data.frame()
@@ -103,24 +103,22 @@ df = df %>% group_by(x, y, cell, year) %>% summarise(est = mean(est, na.rm = T))
 head(sdm_grid)
 head(sim_grid)
 
-# df = merge(sim_grid, sdm_grid)
+df = merge(sim_grid, sdm_grid)
 
 df %>%
-  group_by(x, y, year) %>%
+  as.data.frame() %>% 
   mutate(x = round(x, 0),
          y = round(y, 0)) %>%
+  group_by(x, y, year) %>%
   summarise(est = sum(est)) %>%
   ggplot(aes(x, y, fill = est)) +
   geom_raster() +
   facet_wrap(.~year) + 
   scale_fill_gradientn(colours = colorRamps::matlab.like(100)) +
-  coord_fixed() +
-  ggdark::dark_theme_minimal()
-  
-ggdark::invert_geom_defaults()
+  coord_fixed()
 
-N = df %>% group_by(year) %>% summarise(age = sum(est)) 
-N = matrix(N$age, nrow = 1, ncol = 9)
+N = df %>% group_by(year) %>% summarise(age = sum(est)); N
+N = matrix(N$age, nrow = 1, ncol = 9); N
 rownames(N) <- "1"
 colnames(N) = sort(unique(sdm$year))
 names(dimnames(N)) = c("age", "year")
@@ -128,7 +126,7 @@ N
 sim$N = N
 
 # replace sim$sp_N
-sp_N = df %>% group_by(year, cell) %>% summarise(N = sum(est)) ##TAO I want to use mean, not sum here???
+sp_N = df %>% group_by(year, cell) %>% summarise(N = sum(est))
 sim$sp_N = sp_N
 
 # replace sim$I
@@ -150,8 +148,8 @@ t_sample = survey_effort_MHI %>%
 
 n_sims = 10 # number of simulations
 total_sample = t_sample # total sample efforts you want to deploy
-min_sets = 0 # minimum number of sets per strat
-set_den = 5 # number of sets per [grid unit = km] squared)
+min_sets = 2 # minimum number of sets per strat
+# set_den = 5 # number of sets per [grid unit = km] squared)
 trawl_dim = c(0.01, 0.0353) # 0.000353 sq.km (353 sq.m) from two 15-m diameter survey cylinders
 resample_cells = F
 
@@ -178,14 +176,14 @@ strat_det$strat_area <- strat_det$strat_cells * prod(res(sim$grid)); strat_det
 strat_det = right_join(strat_det, sd); strat_det
 
 ## allocate sampling units by set_den
-strat_det$strat_sets <- round(strat_det$strat_area * set_den); strat_det
+# strat_det$strat_sets <- round(strat_det$strat_area * set_den); strat_det
 
 ## allocate sampling units by area * sd
 # strat_det$weight = strat_det$strat_area * strat_det$sd; strat_det
 # strat_det$strat_sets = round((total_sample * strat_det$weight) / sum(strat_det$weight), 0); strat_det
 
 # allocate sampling units by area
-# strat_det$strat_sets = round((total_sample * strat_det$strat_area) / sum(strat_det$strat_area), 0); strat_det
+strat_det$strat_sets = round((total_sample * strat_det$strat_area) / sum(strat_det$strat_area), 0); strat_det
 
 # make sure minimum number of sets per strat is not 0 or 1
 strat_det$strat_sets[strat_det$strat_sets < min_sets] <- min_sets; strat_det 
@@ -226,11 +224,11 @@ sp_I <- sp_I[i, ]
 sp_I$sim <- s
 setdet <- merge(sets, sp_I, by = c("sim", "year", "cell"))
 
-# setdet$n <- stats::rbinom(rep(1, nrow(setdet)),
-#                           size = round(setdet$N/setdet$cell_sets),
-#                           prob = (setdet$tow_area/setdet$cell_area))
+setdet$n <- stats::rbinom(rep(1, nrow(setdet)),
+                          size = round(setdet$N/setdet$cell_sets),
+                          prob = (setdet$tow_area/setdet$cell_area))
 
-setdet$n <- round((setdet$N/setdet$cell_sets) * (setdet$tow_area/setdet$cell_area))
+# setdet$n <- round((setdet$N/setdet$cell_sets) * (setdet$tow_area/setdet$cell_area))
                                                  
 # detection probability = 1:sucess, 0:fail
 setdet$detection = 0
@@ -283,8 +281,8 @@ strat_tab <- d[, list(sumYh = sum(metric), # sum of samples (n)
                       nh = .N), # number of strata
                by = strat_groups]; strat_tab
 
-strat_tab[, `:=`(Nh, strat_area/tow_area)]; strat_tab
-strat_tab[, `:=`(Wh, Nh/sum(Nh)), by = survey_groups]; strat_tab
+strat_tab[, `:=`(Nh, strat_area/tow_area)]; strat_tab # Nh = strat_area / 353 sq.m
+strat_tab[, `:=`(Wh, Nh/sum(Nh)), by = survey_groups]; strat_tab # (strat_area / 353 sq.m)
 strat_tab[, `:=`(total, Nh * sumYh/nh)]; strat_tab
 strat_tab[, `:=`(gh, Nh * (Nh - nh)/nh)]; strat_tab
 
