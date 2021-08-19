@@ -137,7 +137,7 @@ I
 
 load("data/survey_effort_MHI_2014-2019.RData")
 
-effort = c("high", "median", "low")[1]
+effort = c("high", "median", "low")[2]
 
 t_sample = survey_effort_MHI %>%
   subset(ISLAND == island) %>%
@@ -216,7 +216,7 @@ sets <- cells[, .SD[sample(.N, strat_sets, replace = resample_cells)],
 
 # count number of distinct sim*year*cell combinations
 sets[, `:=`(cell_sets, .N), by = c("sim", "year", "cell")]
-sets = sets %>% subset(cell_sets == 1)
+# sets = sets %>% subset(cell_sets == 1)
 sets$set <- seq(nrow(sets))
 sets
 
