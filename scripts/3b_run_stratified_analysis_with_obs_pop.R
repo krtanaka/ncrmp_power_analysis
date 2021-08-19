@@ -18,7 +18,7 @@ load("data/modeled_survey_variability.RData") #modeled at grid scale
 # options(scipen = 999, digits = 2)
 
 # pick an island ----------------------------------------------------------
-island = c("Hawaii", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[7]#[sample(1:7, 1)]
+island = c("Hawaii", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:7, 1)]
 print(island)
 
 # pick survey design ------------------------------------------------------
@@ -150,7 +150,7 @@ t_sample = survey_effort_MHI %>%
   as.numeric() %>%
   round(0)
 
-t_samples=seq(3,1000,length.out=12)#c(42,10,100,1000)*42#c(42,30,300,3000)#3,10,20,50,100,200,300,500,1000)
+t_samples=seq(100,1000, by = 10)#c(42,10,100,1000)*42#c(42,30,300,3000)#3,10,20,50,100,200,300,500,1000)
 df_power=data.frame(N=t_samples,RMSE=NA)
 for (i_sampling in 1:length(t_samples)){
   t_sample=t_samples[i_sampling]
@@ -159,7 +159,7 @@ for (i_sampling in 1:length(t_samples)){
   min_sets = 2 # minimum number of sets per strat
   # set_den = 2/1000 # number of sets per [grid unit = km] squared)
   trawl_dim = c(0.01, 0.0353) # 0.000353 sq.km (353 sq.m) from two 15-m diameter survey cylinders
-  resample_cells = F
+  resample_cells = T
   
   n <- id <- division <- strat <- N <- NULL
   
@@ -226,9 +226,8 @@ for (i_sampling in 1:length(t_samples)){
   setdet <- merge(sets, sp_I, by = c("sim", "year", "cell"))
   
   setdet$n <- stats::rbinom(rep(1, nrow(setdet)), 
-                            size = round(setdet$N/setdet$cell_sets), 
-                            # prob = (setdet$tow_area/setdet$cell_area) * q(setdet$age))
-                            prob = .95)#(setdet$tow_area/setdet$cell_area))## DEBUGGGING !!!!!
+                            size = round(setdet$N/1),
+                            prob = (setdet$tow_area/setdet$cell_area)*0.5)## DEBUGGGING !!!!!
   
   setdet$detection = ifelse(setdet$N > 0 & setdet$n == 0, 0, 1)
   setdet$detection = ifelse(setdet$N > 0 & setdet$n == 0, 0, 1)
@@ -358,7 +357,7 @@ for (i_sampling in 1:length(t_samples)){
   print(i_sampling)
 }
 
-ggplot(df_power,aes(N,RMSE))+geom_point()+geom_line()+scale_x_log10()
+ggplot(df_power,aes(N,as.numeric(RMSE)))+geom_point()+geom_line()+scale_x_log10()
 
 
 
