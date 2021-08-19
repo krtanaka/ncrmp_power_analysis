@@ -16,8 +16,8 @@ source('scripts/ExpandingExtract.R')
 
 load("data/modeled_survey_variability.RData") #modeled at grid scale
 
-set.seed(42)
-options(scipen = 999, digits = 2)
+# set.seed(42)
+# options(scipen = 999, digits = 2)
 
 # pick an island ----------------------------------------------------------
 island = c("Hawaii", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:7, 1)]
@@ -55,7 +55,7 @@ list = list.files(path = "outputs/", pattern = "_biomass"); list
 # adult or juvenile coral density
 # list = list.files(path = "outputs/", pattern = "_density"); list
 
-i = 3
+i = 4
 
 load(paste0("outputs/", list[i]))
 sp = strsplit(list[i], split = "_")[[1]][3]; sp
@@ -90,15 +90,15 @@ sdm_grid = sdm %>%
   summarise(est = sum(est)) %>% 
   as.data.frame()
 
-# use ExpandExtract to assign nearest cell #
-sim_grid = rasterFromXYZ(sim_grid)
-sdm_grid = sdm_grid[complete.cases(sdm_grid[,c("x", "y")]), ]
-coordinates(sdm_grid) = ~x + y
-df = ExpandingExtract(sim_grid, sdm_grid, Dists = c(0,1))
-sdm_grid$cell = round(df$values, 0)
-df = as.data.frame(sdm_grid)
-df = df %>% subset(cell != "NaN")
-df = df %>% group_by(x, y, cell, year) %>% summarise(est = mean(est, na.rm = T))
+# # use ExpandExtract to assign nearest cell #
+# sim_grid = rasterFromXYZ(sim_grid)
+# sdm_grid = sdm_grid[complete.cases(sdm_grid[,c("x", "y")]), ]
+# coordinates(sdm_grid) = ~x + y
+# df = ExpandingExtract(sim_grid, sdm_grid, Dists = c(0,1))
+# sdm_grid$cell = round(df$values, 0)
+# df = as.data.frame(sdm_grid)
+# df = df %>% subset(cell != "NaN")
+# df = df %>% group_by(x, y, cell, year) %>% summarise(est = mean(est, na.rm = T))
 
 head(sdm_grid)
 head(sim_grid)
@@ -137,7 +137,7 @@ I
 
 load("data/survey_effort_MHI_2014-2019.RData")
 
-effort = c("high", "median", "low")[2]
+effort = c("high", "median", "low")[1]
 
 t_sample = survey_effort_MHI %>%
   subset(ISLAND == island) %>%
@@ -146,9 +146,9 @@ t_sample = survey_effort_MHI %>%
   as.numeric() %>%
   round(0)
 
-n_sims = 10 # number of simulations
-total_sample = t_sample # total sample efforts you want to deploy
-min_sets = 2 # minimum number of sets per strat
+n_sims = 5 # number of simulations
+total_sample = t_sample*10 # total sample efforts you want to deploy
+min_sets = 0 # minimum number of sets per strat
 # set_den = 5 # number of sets per [grid unit = km] squared)
 trawl_dim = c(0.01, 0.0353) # 0.000353 sq.km (353 sq.m) from two 15-m diameter survey cylinders
 resample_cells = F
@@ -166,7 +166,7 @@ strat_sets <- cell_sets <- NULL
 
 cells <- data.table(rasterToPoints(sim$grid))
 
-# add modeled trophic biomass variability
+# add modeled trophic biomass variability, summarize by strata
 cells$sd = predict(g, cells); sd = cells[,c("strat", "sd")]; sd = sd %>% group_by(strat) %>% summarise(sd = mean(sd,na.rm = T))
 
 strat_det <- cells[, list(strat_cells = .N), by = "strat"]; strat_det
@@ -179,16 +179,18 @@ strat_det = right_join(strat_det, sd); strat_det
 # strat_det$strat_sets <- round(strat_det$strat_area * set_den); strat_det
 
 ## allocate sampling units by area * sd
-# strat_det$weight = strat_det$strat_area * strat_det$sd; strat_det
-# strat_det$strat_sets = round((total_sample * strat_det$weight) / sum(strat_det$weight), 0); strat_det
+strat_det$weight = strat_det$strat_area * strat_det$sd; strat_det
+strat_det$strat_sets = round((total_sample * strat_det$weight) / sum(strat_det$weight), 0); strat_det
 
 # allocate sampling units by area
-strat_det$strat_sets = round((total_sample * strat_det$strat_area) / sum(strat_det$strat_area), 0); strat_det
+# strat_det$strat_sets = round((total_sample * strat_det$strat_area) / sum(strat_det$strat_area), 0); strat_det
 
 # make sure minimum number of sets per strat is not 0 or 1
 strat_det$strat_sets[strat_det$strat_sets < min_sets] <- min_sets; strat_det 
 
-cells <- merge(cells, strat_det, by = c("strat")) # add "strat" "strat_cells" "tow_area" ...
+# add "strat" "strat_cells" "tow_area" ...
+strat_det = strat_det[,c("strat", "strat_cells", "tow_area", "cell_area", "strat_area", "strat_sets" )]
+cells <- merge(cells, strat_det, by = c("strat")) 
 
 i <- rep(seq(nrow(cells)), times = length(sim$years)) # number of cells * number of years
 y <- rep(sim$years, each = nrow(cells)) # number of years * number of cells
@@ -202,19 +204,25 @@ s <- rep(seq(n_sims), each = nrow(cells)) # number of simulations * number of ce
 cells <- cells[i, ] # increase the number of rows by number or simulations
 cells$sim <- s
 
-# .SD = "Subset of Data.table"
-# .N = number of instances
-# strat_sets, see unique(cells$strat_sets)
+############################################
+# .SD = "Subset of Data.table"             #
+# .N = number of instances                 #
+# strat_sets, see unique(cells$strat_sets) #
+############################################
 
+# subset "cells" by sim, year, and strat
 sets <- cells[, .SD[sample(.N, strat_sets, replace = resample_cells)], 
               by = c("sim", "year", "strat")]
 
+# count number of distinct sim*year*cell combinations
 sets[, `:=`(cell_sets, .N), by = c("sim", "year", "cell")]
+sets = sets %>% subset(cell_sets == 1)
 sets$set <- seq(nrow(sets))
 sets
 
 setkeyv(sets, c("sim", "year", "cell"))
 
+# bring in LMR biomass/abundance data
 sp_I <- data.table(sim$sp_N[, c("cell", "year", "N")])
 
 i <- rep(seq(nrow(sp_I)), times = n_sims)
@@ -226,7 +234,7 @@ setdet <- merge(sets, sp_I, by = c("sim", "year", "cell"))
 
 setdet$n <- stats::rbinom(rep(1, nrow(setdet)),
                           size = round(setdet$N/setdet$cell_sets),
-                          prob = (setdet$tow_area/setdet$cell_area))
+                          prob = (setdet$tow_area/setdet$cell_area)*0.5)
 
 # setdet$n <- round((setdet$N/setdet$cell_sets) * (setdet$tow_area/setdet$cell_area))
                                                  
