@@ -25,7 +25,7 @@ print(island)
 
 # pick survey design ------------------------------------------------------
 
-design = c("traditional", "downscaled")[2]
+design = c("traditional", "downscaled")[sample(1:7, 1)]
 
 if (design == "traditional") load(paste0("data/survey_grid_w_sector_reef/survey_grid_", island, ".RData")) #survey domain with sector & reef & depth_bins
 if (design == "downscaled") load(paste0("data/survey_grid_w_zones/fish/survey_grid_", island, ".RData")) #survey domain with tom's downscaled zones
