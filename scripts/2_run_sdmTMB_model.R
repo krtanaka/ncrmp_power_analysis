@@ -41,7 +41,7 @@ islands = c("Kauai", #1
 
 # response_variable = "fish_count";      sp = ifelse(uku_or_not == T, "Aprion virescens", "Chromis vanderbilti")
 # response_variable = "fish_biomass";    sp = ifelse(uku_or_not == T, "Aprion virescens", "Acanthurus olivaceus")
-response_variable = "trophic_biomass"; sp = c("PISCIVORE", "PLANKTIVORE", "PRIMARY", "SECONDARY")[2]
+response_variable = "trophic_biomass"; sp = c("PISCIVORE", "PLANKTIVORE", "PRIMARY", "SECONDARY", "TOTAL")[5]
 # response_variable = "coral_cover";     sp = c("CCA", "CORAL", "EMA", "HAL", "I", "MA", "SC", "SED", "TURF")[2]
 # response_variable = "coral_density";   sp = c("AdColDen", "JuvColDen")[1]
 
@@ -81,14 +81,29 @@ if (response_variable == "trophic_biomass") {
   load("data/rea/ALL_REA_FISH_RAW_SST.RData")
   df[df == -9991] <- NA
   
-  df = df %>% 
-    subset(REGION == region & ISLAND %in% islands) %>% 
-    mutate(response = ifelse(TROPHIC_MONREP == sp, BIOMASS_G_M2*0.001, 0)) %>%  
-    group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE) %>% 
-    summarise(response = sum(response, na.rm = T), 
-              depth = mean(DEPTH, na.rm = T),
-              temp = mean(mean_SST_CRW_Daily_DY01, na.rm = T))  %>% 
-    na.omit()
+  if (sp == "TOTAL") {
+    
+    df = df %>% 
+      subset(REGION == region & ISLAND %in% islands) %>% 
+      mutate(response = ifelse(TROPHIC_MONREP %in% c("PISCIVORE", "PLANKTIVORE", "PRIMARY", "SECONDARY"), BIOMASS_G_M2*0.001, 0)) %>%  
+      group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE) %>% 
+      summarise(response = sum(response, na.rm = T), 
+                depth = mean(DEPTH, na.rm = T),
+                temp = mean(mean_SST_CRW_Daily_DY01, na.rm = T))  %>% 
+      na.omit()
+    
+  } else {
+    
+    df = df %>% 
+      subset(REGION == region & ISLAND %in% islands) %>% 
+      mutate(response = ifelse(TROPHIC_MONREP == sp, BIOMASS_G_M2*0.001, 0)) %>%  
+      group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE) %>% 
+      summarise(response = sum(response, na.rm = T), 
+                depth = mean(DEPTH, na.rm = T),
+                temp = mean(mean_SST_CRW_Daily_DY01, na.rm = T))  %>% 
+      na.omit()
+    
+  }
   
   df %>% ggplot(aes(response)) + geom_histogram() + 
     df %>% group_by(OBS_YEAR) %>% summarise(n = median(response)) %>% ggplot(aes(OBS_YEAR, n)) + geom_line()
@@ -169,7 +184,7 @@ density_model <- sdmTMB(
   formula = response ~ as.factor(year) + depth_scaled + depth_scaled2,
   # formula = response ~ as.factor(year) + s(depth, k=5) + s(temp, k=5),
   # formula = response ~ as.factor(year) + s(temp, k=5) + s(depth, k=5) + depth_scaled + depth_scaled2,
-
+  
   
   silent = F, 
   # extra_time = missing_year,
