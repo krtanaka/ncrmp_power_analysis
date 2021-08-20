@@ -137,7 +137,7 @@ I
 
 load("data/survey_effort_MHI_2014-2019.RData")
 
-effort = c("high", "median", "low")[2]
+effort = c("high", "median", "low")[1]
 
 t_sample = survey_effort_MHI %>%
   subset(ISLAND == island) %>%
@@ -147,11 +147,11 @@ t_sample = survey_effort_MHI %>%
   round(0)
 
 n_sims = 10 # number of simulations
-total_sample = t_sample*1000 # total sample efforts you want to deploy
-min_sets = 0 # minimum number of sets per strat
+total_sample = t_sample # total sample efforts you want to deploy
+min_sets = 1 # minimum number of sets per strat
 # set_den = 5 # number of sets per [grid unit = km] squared)
 trawl_dim = c(0.01, 0.0353) # 0.000353 sq.km (353 sq.m) from two 15-m diameter survey cylinders
-resample_cells = T
+resample_cells = F
 
 n <- id <- division <- strat <- N <- NULL
 
