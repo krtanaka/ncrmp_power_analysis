@@ -25,7 +25,7 @@ print(island)
 
 # pick survey design ------------------------------------------------------
 
-design = c("traditional", "downscaled")[1]
+design = c("traditional", "downscaled")[2]
 
 if (design == "traditional") load(paste0("data/survey_grid_w_sector_reef/survey_grid_", island, ".RData")) #survey domain with sector & reef & depth_bins
 if (design == "downscaled") load(paste0("data/survey_grid_w_zones/fish/survey_grid_", island, ".RData")) #survey domain with tom's downscaled zones
@@ -41,18 +41,18 @@ sim = sim_abundance(years = 2000:2020,
 I <- sim$N
 I
 
-# pick species and response_scale (n or g/sq.m) ---------------------------
+# pick target and response_scale (n or g/sq.m) ---------------------------
 
-# fish_count
+## fish_count
 # list = list.files(path = "outputs/", pattern = "_count"); list
 
 # fish_or_trophic_biomass
 list = list.files(path = "outputs/", pattern = "_biomass"); list
 
-# coral_cover
+## coral_cover
 # list = list.files(path = "outputs/", pattern = "_cover"); list
 
-# adult or juvenile coral density
+## adult or juvenile coral density
 # list = list.files(path = "outputs/", pattern = "_density"); list
 
 i = 4
@@ -67,7 +67,7 @@ response_scale = strsplit(list[i], split = "_")[[1]][4]; response_scale
 sdm = sdm_output[,c("X", "Y", "longitude", "latitude", "year", "est" )]; rm(sdm_output)
 colnames(sdm)[1:2] = c("x", "y")
 sdm$est = exp(sdm$est); hist(sdm$est);summary(sdm$est)
-sdm$est = sdm$est*(res(survey_grid_kt)[1] * res(survey_grid_kt)[2]*1000000); hist(sdm$est); summary(sdm$est) # convert g/sq.m to q/ what ever given cell size
+sdm$est = sdm$est*(res(survey_grid_kt)[1] * res(survey_grid_kt)[2]*1000000); hist(sdm$est); summary(sdm$est) # convert g/sq.m to q/ whatever given cell size
 
 # replace sim$years and sim$ages
 sim$years = sort(unique(sdm$year))
@@ -137,7 +137,7 @@ I
 
 load("data/survey_effort_MHI_2014-2019.RData")
 
-effort = c("high", "median", "low")[1]
+effort = c("high", "median", "low")[2]
 
 t_sample = survey_effort_MHI %>%
   subset(ISLAND == island) %>%
@@ -146,7 +146,7 @@ t_sample = survey_effort_MHI %>%
   as.numeric() %>%
   round(0)
 
-n_sims = 10 # number of simulations
+n_sims = 100 # number of simulations
 total_sample = t_sample # total sample efforts you want to deploy
 min_sets = 1 # minimum number of sets per strat
 # set_den = 5 # number of sets per [grid unit = km] squared)
@@ -233,11 +233,11 @@ sp_I$sim <- s
 setdet <- merge(sets, sp_I, by = c("sim", "year", "cell"))
 
 setdet$n <- stats::rbinom(rep(1, nrow(setdet)),
-                          # size = round(setdet$N/setdet$cell_sets),
-                          size = round(setdet$N/1),
+                          size = round(setdet$N/setdet$cell_sets),
+                          # size = round(setdet$N/1),
                           prob = (setdet$tow_area/setdet$cell_area)*0.5)
 
-# setdet$n <- round((setdet$N/setdet$cell_sets) * (setdet$tow_area/setdet$cell_area))
+# setdet$n <- round((setdet$N/setdet$cell_sets) * (setdet$tow_area/setdet$cell_area)*
                                                  
 # detection probability = 1:sucess, 0:fail
 setdet$detection = 0
@@ -425,3 +425,4 @@ detection = setdet %>%
 # png(paste0("outputs/", sp, "_", island, ".png"), res = 100, units = "in", height = 4, width = 8)
 strata + (sim_output / (error + detection))
 # dev.off()
+
