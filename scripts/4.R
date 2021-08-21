@@ -323,5 +323,5 @@ isl_power %>%
   geom_smooth() + 
   geom_point() + 
   geom_line() +
-  scale_x_log10() + 
-  ggtitle(island)
+  facet_grid(~isl) + 
+  scale_x_log10()
