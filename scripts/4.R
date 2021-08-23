@@ -114,7 +114,7 @@ for (isl in 1:length(islands)){
       #   as.numeric() %>%
       #   round(0)
       
-      t_samples = seq(10, 500, by = 100)
+      t_samples = seq(10, 1000, by = 200)
       
       df_power = data.frame(N = t_samples, RMSE = NA)
       
@@ -315,6 +315,7 @@ for (isl in 1:length(islands)){
     }
     
     ds_sp$design = design[ds]
+    ds_sp$strata = length(unique(sim$grid_xy$strat))
     
     power = rbind(ds_sp, power)
 
@@ -327,12 +328,39 @@ for (isl in 1:length(islands)){
   
 }
 
+save(isl_power, file = paste0('outputs/rmse_power_results_', Sys.Date(), '.RData'))
+load(paste0('outputs/rmse_power_results_', Sys.Date(), '.RData'))
+
+
+traditional_strata = isl_power %>% 
+  subset(design == "traditional") %>%
+  group_by(design, isl) %>% 
+  summarise(traditional = mean(strata)) %>% 
+  as.data.frame() %>% 
+  select(isl, traditional)
+
+downscaled_strata = isl_power %>% 
+  subset(design == "downscaled") %>%
+  group_by(design, isl) %>% 
+  summarise(downscaled = mean(strata)) %>% 
+  as.data.frame() %>% 
+  select(isl, downscaled)
+
+strata_num = merge(downscaled_strata, traditional_strata)
+
 isl_power %>% 
   mutate(RMSE = as.numeric(RMSE)) %>% 
   ggplot(aes(N, RMSE, color = design)) + 
-  geom_smooth() + 
+  geom_smooth() +
   geom_point() + 
-  geom_line() +
-  facet_wrap(isl ~ sp, scales = "free_y") + 
-  # facet_grid(isl ~ sp) + 
+  facet_wrap(sp ~ isl, scales = "free_y", ncol = 7) +
+  # facet_grid(sp~isl) +
   scale_x_log10()
+  # geom_text(
+  #   data = text,
+  #   size = 10,
+  #   mapping = aes(x = -Inf, y = -Inf, label = strata),
+  #   hjust   = 1,
+  #   vjust   = 1
+  # )
+
