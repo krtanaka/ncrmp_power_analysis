@@ -14,7 +14,7 @@ rm(list = ls())
 
 load("data/modeled_survey_variability.RData") #modeled at grid scale
 
-# pick an island ----------------------------------------------------------
+# pick an island
 islands = c("Hawaii", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )#[sample(1:7, 1)]
 
 isl_power = NULL
@@ -330,6 +330,7 @@ for (isl in 1:length(islands)){
 
 save(isl_power, file = paste0('outputs/rmse_power_results_', Sys.Date(), '.RData'))
 load(paste0('outputs/rmse_power_results_', Sys.Date(), '.RData'))
+load(paste0('outputs/rmse_power_results_2021-08-23.RData'))
 
 
 traditional_strata = isl_power %>% 
