@@ -9,6 +9,8 @@ library(data.table)
 library(ggplot2)
 library(dplyr)
 library(patchwork)
+library(scales)
+library(ggnewscale)
 
 rm(list = ls())
 
@@ -332,6 +334,27 @@ save(isl_power, file = paste0('outputs/rmse_power_results_', Sys.Date(), '.RData
 load(paste0('outputs/rmse_power_results_', Sys.Date(), '.RData'))
 load(paste0('outputs/rmse_power_results_2021-08-23.RData'))
 
+load("data/survey_effort_MHI_2014-2019.RData")
+
+low = survey_effort_MHI %>%
+  select(ISLAND, low) %>% 
+  rename(isl = ISLAND, 
+         sites = low) %>% 
+  mutate(effort = "low")
+
+mid = survey_effort_MHI %>%
+  select(ISLAND, median) %>% 
+  rename(isl = ISLAND, 
+         sites = median) %>% 
+  mutate(effort = "mid")
+
+high = survey_effort_MHI %>%
+  select(ISLAND, high) %>% 
+  rename(isl = ISLAND, 
+         sites = high) %>% 
+  mutate(effort = "high")
+
+efforts = rbind(low, mid, high)
 
 traditional_strata = isl_power %>% 
   subset(design == "traditional") %>%
@@ -339,6 +362,7 @@ traditional_strata = isl_power %>%
   summarise(traditional = mean(strata)) %>% 
   as.data.frame() %>% 
   select(isl, traditional)
+  rename(strata = traditional)
 
 downscaled_strata = isl_power %>% 
   subset(design == "downscaled") %>%
@@ -346,22 +370,27 @@ downscaled_strata = isl_power %>%
   summarise(downscaled = mean(strata)) %>% 
   as.data.frame() %>% 
   select(isl, downscaled)
+  rename(strata = downscaled)
 
 strata_num = merge(downscaled_strata, traditional_strata)
 
 isl_power %>% 
   mutate(RMSE = as.numeric(RMSE)) %>% 
-  ggplot(aes(N, RMSE, color = design)) + 
-  geom_smooth() +
-  geom_point() + 
+  ggplot() + 
+  geom_smooth(aes(N, RMSE, color = design)) +
+  geom_point(aes(N, RMSE, color = design)) + 
   facet_wrap(sp ~ isl, scales = "free_y", ncol = 7) +
-  # facet_grid(sp~isl) +
-  scale_x_log10() 
-  # geom_text(
-  #   data = text,
-  #   size = 10,
-  #   mapping = aes(x = -Inf, y = -Inf, label = strata),
-  #   hjust   = 1,
-  #   vjust   = 1
-  # )
+  ggnewscale::new_scale_color() +
+  geom_vline(aes(xintercept = sites, color = effort), data = efforts) +
+  # scale_y_log10()
+  scale_x_log10(breaks = trans_breaks('log10', function(x) 10^x),
+                labels = trans_format('log10', math_format(10^.x))) +
+  scale_y_log10(breaks = trans_breaks('log10', function(x) 10^x),
+                labels = trans_format('log10', math_format(10^.x))) + 
+  geom_text(data = strata_num,
+            aes(label = paste0("\n d=", downscaled, "\n t=", traditional)),
+            x = -Inf, y = -Inf,
+            hjust = -0.1,
+            vjust = -0.2,
+            size = 3)
 
