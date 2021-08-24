@@ -114,7 +114,7 @@ for (isl in 1:length(islands)){
       #   as.numeric() %>%
       #   round(0)
       
-      t_samples = seq(10, 1000, by = 200)
+      t_samples = seq(10, 500, by = 10)
       
       df_power = data.frame(N = t_samples, RMSE = NA)
       
@@ -355,7 +355,7 @@ isl_power %>%
   geom_point() + 
   facet_wrap(sp ~ isl, scales = "free_y", ncol = 7) +
   # facet_grid(sp~isl) +
-  scale_x_log10()
+  scale_x_log10() 
   # geom_text(
   #   data = text,
   #   size = 10,
