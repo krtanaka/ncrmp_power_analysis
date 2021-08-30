@@ -17,15 +17,17 @@ rm(list = ls())
 region = "MHI"
 uku_or_not = F
 
-# load("data/ALL_REA_FISH_RAW.rdata")
-# df %>% 
-#   subset(REGION == region) %>% 
+
+## top 5 taxa by abundance or biomass
+# load("data/rea/ALL_REA_FISH_RAW.rdata")
+# df %>%
+#   subset(REGION == region) %>%
 #   group_by(TAXONNAME) %>%
-#   summarise(n = sum(BIOMASS_G_M2, na.rm = T)) %>%
-#   # summarise(n = sum(COUNT, na.rm = T)) %>% 
-#   mutate(freq = n/sum(n)) %>% 
-#   arrange(desc(freq)) %>% 
-#   top_n(5) 
+#   # summarise(n = sum(BIOMASS_G_M2, na.rm = T)) %>%
+#   summarise(n = sum(COUNT, na.rm = T)) %>%
+#   mutate(freq = n/sum(n)) %>%
+#   arrange(desc(freq)) %>%
+#   top_n(5)
 
 islands = c("Kauai", #1
             "Lehua", #2
@@ -37,11 +39,11 @@ islands = c("Kauai", #1
             "Lanai", #8
             "Molokini", #9
             "Kahoolawe", #10
-            "Hawaii")[5]
+            "Hawaii")#[1]
 
 # response_variable = "fish_count";      sp = ifelse(uku_or_not == T, "Aprion virescens", "Chromis vanderbilti")
 # response_variable = "fish_biomass";    sp = ifelse(uku_or_not == T, "Aprion virescens", "Acanthurus olivaceus")
-response_variable = "trophic_biomass"; sp = c("PISCIVORE", "PLANKTIVORE", "PRIMARY", "SECONDARY", "TOTAL")[5]
+response_variable = "trophic_biomass"; sp = c("PISCIVORE", "PLANKTIVORE", "PRIMARY", "SECONDARY", "TOTAL")[1]
 # response_variable = "coral_cover";     sp = c("CCA", "CORAL", "EMA", "HAL", "I", "MA", "SC", "SED", "TURF")[2]
 # response_variable = "coral_density";   sp = c("AdColDen", "JuvColDen")[1]
 
@@ -85,7 +87,7 @@ if (response_variable == "trophic_biomass") {
     
     df = df %>% 
       subset(REGION == region & ISLAND %in% islands) %>% 
-      mutate(response = ifelse(TROPHIC_MONREP %in% c("PISCIVORE", "PLANKTIVORE", "PRIMARY", "SECONDARY"), BIOMASS_G_M2*0.001, 0)) %>%  
+      mutate(response = ifelse(TROPHIC_MONREP %in% c("PISCIVORE", "PLANKTIVORE", "PRIMARY", "SECONDARY"), BIOMASS_G_M2, 0)) %>%  
       group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE) %>% 
       summarise(response = sum(response, na.rm = T), 
                 depth = mean(DEPTH, na.rm = T),
@@ -96,7 +98,7 @@ if (response_variable == "trophic_biomass") {
     
     df = df %>% 
       subset(REGION == region & ISLAND %in% islands) %>% 
-      mutate(response = ifelse(TROPHIC_MONREP == sp, BIOMASS_G_M2*0.001, 0)) %>%  
+      mutate(response = ifelse(TROPHIC_MONREP == sp, BIOMASS_G_M2, 0)) %>%  
       group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE) %>% 
       summarise(response = sum(response, na.rm = T), 
                 depth = mean(DEPTH, na.rm = T),
@@ -160,8 +162,8 @@ n_knots = 100 # a coarse mesh for speed
 rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search") 
 
 # png(paste0("outputs/SPDE_mesh_field_", n_knots, ".png"), height = 5, width = 5, units = "in", res = 100)
-# par(mfrow = c(1,2))
-# plot(xy_utm, pch = ".", bty = 'n')
+par(mfrow = c(2,2))
+plot(xy_utm, pch = ".", bty = 'n')
 plot(rea_spde, pch = ".", bty = "n"); axis(1); axis(2)
 # dev.off()
 
@@ -185,7 +187,6 @@ density_model <- sdmTMB(
   # formula = response ~ as.factor(year) + s(depth, k=5) + s(temp, k=5),
   # formula = response ~ as.factor(year) + s(temp, k=5) + s(depth, k=5) + depth_scaled + depth_scaled2,
   
-  
   silent = F, 
   # extra_time = missing_year,
   spatial_trend = T, 
@@ -197,6 +198,7 @@ density_model <- sdmTMB(
   # family = poisson(link = "log"),
   # family = binomial(link = "logit"), weights = n,
   # family = nbinom2(link = "log"),
+  # family = Beta(link = "logit"),
   
   control = sdmTMBcontrol(step.min = 0.01, step.max = 1)
   
@@ -236,8 +238,8 @@ r <- density_model$tmb_obj$report()
 r
 
 # prediction onto new data grid
-load("data/crm/Topography_NOAA_CRM_vol10.RData")
-load("data/crm/Topography_NOAA_CRM_vol10_SST_CRW_Monthly.RData")
+load("data/crm/Topography_NOAA_CRM_vol10.RData") # bathymetry 
+load("data/crm/Topography_NOAA_CRM_vol10_SST_CRW_Monthly.RData") # bathymetry with monthly SST
 # topo$x = ifelse(topo$x > 180, topo$x - 360, topo$x)
 
 grid = topo
@@ -245,9 +247,9 @@ grid <- topo %>% subset(x < -157.5 & x > -158.5 & y > 21 & y < 22) #oahu
 # grid <- topo %>% subset(x < -154.8 & x > -156.2 & y > 18.8 & y < 20.4) #hawaii
 # grid <- topo %>% subset(x < -160.0382 & x > -160.262333 & y > 21.77143 & y < 22.03773) #Niihau
 
-# res = 2
-# grid$longitude = round(grid$x, digits = res)
-# grid$latitude = round(grid$y, digits = res)
+res = 2
+grid$longitude = round(grid$x, digits = res)
+grid$latitude = round(grid$y, digits = res)
 
 grid$longitude = grid$x
 grid$latitude = grid$y
@@ -323,19 +325,19 @@ for (y in 1:length(years)) {
 # grid_year$year = substr(grid_year$time, 1, 4)
 # grid_year = grid_year %>% subset(year %in% years)
 
-# # only depth covariate
-# for (y in 1:length(years)) {
-# 
-#   y = 1
-# 
-#   grid_y = grid[,c("X", "Y", "layer")]
-#   colnames(grid_y)[3] = "depth"
-# 
-#   grid_y$year = years[[y]]
-# 
-#   grid_year = rbind(grid_year, grid_y)
-# 
-# }
+# only depth covariate
+for (y in 1:length(years)) {
+
+  y = 1
+
+  grid_y = grid[,c("X", "Y", "layer")]
+  colnames(grid_y)[3] = "depth"
+
+  grid_y$year = years[[y]]
+
+  grid_year = rbind(grid_year, grid_y)
+
+}
 
 grid_year$depth_scaled = scale(log(grid_year$depth+0.0001))
 grid_year$depth_scaled2 = grid_year$depth_scaled ^ 2
