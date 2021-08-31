@@ -40,10 +40,10 @@ islands = c("Kauai", #1
             "Hawaii")[5]
 
 response_variable = "fish_count";      sp = ifelse(uku_or_not == T, "Aprion virescens", "Chromis vanderbilti")
-# response_variable = "fish_biomass";    sp = ifelse(uku_or_not == T, "Aprion virescens", "Acanthurus olivaceus")
-# response_variable = "trophic_biomass"; sp = c("PISCIVORE", "PLANKTIVORE", "PRIMARY", "SECONDARY", "TOTAL")[5]
-# response_variable = "coral_cover";     sp = c("CCA", "CORAL", "EMA", "HAL", "I", "MA", "SC", "SED", "TURF")[2]
-# response_variable = "coral_density";   sp = c("AdColDen", "JuvColDen")[1]
+response_variable = "fish_biomass";    sp = ifelse(uku_or_not == T, "Aprion virescens", "Acanthurus olivaceus")
+response_variable = "trophic_biomass"; sp = c("PISCIVORE", "PLANKTIVORE", "PRIMARY", "SECONDARY", "TOTAL")[5]
+response_variable = "coral_cover";     sp = c("CCA", "CORAL", "EMA", "HAL", "I", "MA", "SC", "SED", "TURF")[2]
+response_variable = "coral_density";   sp = c("AdColDen", "JuvColDen")[1]
 
 if (response_variable == "fish_count") {
   
@@ -131,7 +131,7 @@ if (response_variable == "coral_cover") {
 
 if (response_variable == "coral_density") {
   
-  load("data/BenthicREA_sitedata_TAXONCODE.RData_MHI_w_CRM.RData") #live coral cover, only for MHI, with CRM_Bathy data
+  load("data/rea/BenthicREA_sitedata_TAXONCODE.RData_MHI_w_CRM.RData") #live coral cover, only for MHI, with CRM_Bathy data
   
   if (sp == "AdColDen") df = df %>% mutate(response = AdColDen)
   if (sp == "JuvColDen") df = df %>% mutate(response = JuvColDen)
@@ -140,7 +140,8 @@ if (response_variable == "coral_density") {
     subset(REGION == region & ISLAND %in% islands) %>% 
     mutate( DEPTH = ifelse(DEPTH_e == 0, DEPTH_e*-1 + 0.1, DEPTH_e*-1)) %>%  
     group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_, DEPTH) %>% 
-    summarise(response = sum(response, na.rm = T))
+    summarise(response = sum(response, na.rm = T), 
+              depth = mean(DEPTH, na.rm = T))
   
   hist(df$response, main = paste0(sp, "_coral_density"))
   
@@ -188,7 +189,6 @@ density_model <- sdmTMB(
   formula = response ~ as.factor(year) + depth_scaled + depth_scaled2,
   # formula = response ~ as.factor(year) + s(depth, k=5) + s(temp, k=5),
   # formula = response ~ as.factor(year) + s(temp, k=5) + s(depth, k=5) + depth_scaled + depth_scaled2,
-  
   
   silent = F, 
   # extra_time = missing_year,
@@ -245,7 +245,7 @@ load("data/crm/Topography_NOAA_CRM_vol10_SST_CRW_Monthly.RData") # depth and SST
 # topo$x = ifelse(topo$x > 180, topo$x - 360, topo$x)
 
 grid = topo
-grid <- topo %>% subset(x < -157.5 & x > -158.5 & y > 21 & y < 22) #oahu
+# grid <- topo %>% subset(x < -157.5 & x > -158.5 & y > 21 & y < 22) #oahu
 # grid <- topo %>% subset(x < -154.8 & x > -156.2 & y > 18.8 & y < 20.4) #hawaii
 # grid <- topo %>% subset(x < -160.0382 & x > -160.262333 & y > 21.77143 & y < 22.03773) #Niihau
 
@@ -408,7 +408,7 @@ density_map = p$data %>%
   # scale_fill_gradientn(colours = matlab.like(100), "g / m^2") +
   scale_fill_gradientn(colours = matlab.like(100), "kg/sq.m") +
   # scale_color_gradientn(colours = matlab.like(100), "# per 353 m^2") +
-  ggtitle(paste0(sp, " predicted density 2015-2019")) + 
+  # ggtitle(paste0(sp, " predicted density 2015-2019")) + 
   ggdark::dark_theme_minimal() +
   theme(legend.position = "right")
 
@@ -453,7 +453,7 @@ density_cog = ggplot(cog, aes(year, est, ymin = lwr, ymax = upr)) +
 plot(data.frame(Y = p$data$Y, est = exp(p$data$est), year = p$data$year) %>%
        group_by(year) %>% summarize(cog = sum(Y * est) / sum(est)), type = "b", bty = "l", ylab = "Northing")
 
-png("/Users/kisei/Desktop/sdmTMB.png", height = 8, width = 12, units = "in", res = 100)
+# png("/Users/kisei/Desktop/sdmTMB.png", height = 8, width = 12, units = "in", res = 100)
 (density_map + trend )/ (relative_biomass+density_cog)
-dev.off()
+# dev.off()
 
