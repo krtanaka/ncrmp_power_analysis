@@ -17,7 +17,6 @@ rm(list = ls())
 region = "MHI"
 uku_or_not = F
 
-
 ## top 5 taxa by abundance or biomass
 # load("data/rea/ALL_REA_FISH_RAW.rdata")
 # df %>%
@@ -39,11 +38,11 @@ islands = c("Kauai", #1
             "Lanai", #8
             "Molokini", #9
             "Kahoolawe", #10
-            "Hawaii")#[1]
+            "Hawaii")[5]
 
-# response_variable = "fish_count";      sp = ifelse(uku_or_not == T, "Aprion virescens", "Chromis vanderbilti")
+response_variable = "fish_count";      sp = ifelse(uku_or_not == T, "Aprion virescens", "Chromis vanderbilti")
 # response_variable = "fish_biomass";    sp = ifelse(uku_or_not == T, "Aprion virescens", "Acanthurus olivaceus")
-response_variable = "trophic_biomass"; sp = c("PISCIVORE", "PLANKTIVORE", "PRIMARY", "SECONDARY", "TOTAL")[1]
+# response_variable = "trophic_biomass"; sp = c("PISCIVORE", "PLANKTIVORE", "PRIMARY", "SECONDARY", "TOTAL")[1]
 # response_variable = "coral_cover";     sp = c("CCA", "CORAL", "EMA", "HAL", "I", "MA", "SC", "SED", "TURF")[2]
 # response_variable = "coral_density";   sp = c("AdColDen", "JuvColDen")[1]
 
@@ -159,7 +158,8 @@ df = cbind(df, xy_utm)
 
 n_knots = 300
 n_knots = 100 # a coarse mesh for speed
-rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search") 
+rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search") # search
+rea_spde <- make_mesh(df, c("X", "Y"), cutoff  = n_knots, type = "cutoff") # predefined
 
 # png(paste0("outputs/SPDE_mesh_field_", n_knots, ".png"), height = 5, width = 5, units = "in", res = 100)
 par(mfrow = c(2,2))
