@@ -2,8 +2,12 @@ library(sdmTMB)
 library(dplyr)
 library(ggplot2)
 library(rgdal)
+library(sp)
+library(raster)
 library(colorRamps)
 library(patchwork)
+library(fitdistrplus)
+library(sf)
 
 rm(list = ls())
 
@@ -43,7 +47,9 @@ response_variable = "fish_count";      sp = ifelse(uku_or_not == T, "Aprion vire
 response_variable = "fish_biomass";    sp = ifelse(uku_or_not == T, "Aprion virescens", "Acanthurus olivaceus")
 response_variable = "trophic_biomass"; sp = c("PISCIVORE", "PLANKTIVORE", "PRIMARY", "SECONDARY", "TOTAL")[5]
 response_variable = "coral_cover";     sp = c("CCA", "CORAL", "EMA", "HAL", "I", "MA", "SC", "SED", "TURF")[2]
-response_variable = "coral_density";   sp = c("AdColDen", "JuvColDen")[1]
+#response_variable = "coral_density";   sp = c("AdColDen", "JuvColDen")[1]
+
+EDS=read.csv("M:/Environmental Data Summary/Outputs/Survey_Master_Timeseries_2021-02-27.csv")
 
 if (response_variable == "fish_count") {
   
@@ -115,18 +121,24 @@ if (response_variable == "trophic_biomass") {
 
 if (response_variable == "coral_cover") {
   
-  load("data/BenthicCover_2010-2020_Tier1_SITE_MHI_w_CRM.RData") #live coral cover, only for MHI, with CRM_Bathy data
-  
+  load("data/rea/BenthicCover_2010-2020_Tier1_SITE_MHI_w_CRM.RData") #live coral cover, only for MHI, with CRM_Bathy data
+  df$LONGITUDE360=df$LONGITUDE
+  df$LONGITUDE=df$LONGITUDE360-180
   df = df %>% 
     subset(REGION == region & ISLAND %in% islands) %>% 
     mutate(response = CORAL,
            DEPTH = ifelse(DEPTH_e == 0, DEPTH_e*-1 + 0.1, DEPTH_e*-1)) %>%  
-    group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_, DEPTH) %>% 
+    group_by(SITEVISITID,LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_, DEPTH) %>% 
     summarise(response = median(response, na.rm = T),
               n = n())
-  
+  df=left_join(df,
+               EDS[,
+                   c(which(names(EDS)=="SITEVISITID"),
+                     which(names(EDS)=="DHW.Np10y_Degree_Heating_Weeks_MO03"):length(names(EDS)))
+                     ],
+               by="SITEVISITID",)
   hist(df$response, main = paste0(sp, "_cover"))
-  
+  descdist(df$response)
 }
 
 if (response_variable == "coral_density") {
@@ -140,10 +152,10 @@ if (response_variable == "coral_density") {
     subset(REGION == region & ISLAND %in% islands) %>% 
     mutate( DEPTH = ifelse(DEPTH_e == 0, DEPTH_e*-1 + 0.1, DEPTH_e*-1)) %>%  
     group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_, DEPTH) %>% 
-    summarise(response = sum(response, na.rm = T), 
+    summarise(response = mean(response, na.rm = T), 
               depth = mean(DEPTH, na.rm = T))
   
-  hist(df$response, main = paste0(sp, "_coral_density"))
+  hist(df$response, main = paste0(sp, "_coral_density"),30)
   
 }
 
@@ -161,21 +173,40 @@ df = cbind(df, xy_utm)
 
 n_knots = 300
 n_knots = 100 # a coarse mesh for speed
-rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search") 
-rea_spde <- make_mesh(df, c("X", "Y"), cutoff = 5, type = "cutoff") 
+#rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search") 
+rea_spde <- make_mesh(df, c("X", "Y"), cutoff = 1, type = "cutoff") 
+(rea_spde$mesh$n)
 
-# png(paste0("outputs/SPDE_mesh_field_", n_knots, ".png"), height = 5, width = 5, units = "in", res = 100)
-par(mfrow = c(2,2))
-plot(xy_utm, pch = ".", bty = 'n')
-plot(rea_spde, pch = ".", bty = "n"); axis(1); axis(2)
+#Read in Island Boundaries
+#"T:/Common/Maps/Island/islands"
+ISL_bounds=readOGR(dsn="T:/Common/Maps/Island",
+                   layer = "islands")
+crs(ISL_bounds)="+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
+
+ISL_this=ISL_bounds[which(ISL_bounds$ISLAND%in%toupper(islands)),]
+ISL_this_utm=spTransform(ISL_this,CRS(paste0("+proj=utm +units=km +zone=",zone)))
+ISL_this_sf=st_transform(st_as_sf(ISL_this),crs=paste0("+proj=utm +units=km +zone=",zone))
+
+#build barrier to mesh
+rea_spde_coast=add_barrier_mesh(rea_spde,ISL_this_sf)
+
 # dev.off()
+#par(mfrow = c(2,2))
+#plot(xy_utm, pch = ".", bty = 'n')
+plot(rea_spde_coast); axis(1); axis(2)
+plot(ISL_this_utm,add=TRUE)
+points(rea_spde_coast$loc_xy,col="blue")
+bar_i=rea_spde_coast$barrier_triangles
+norm_i=rea_spde_coast$normal_triangles
+points(rea_spde_coast$mesh_sf$V1[bar_i],rea_spde_coast$mesh_sf$V2[bar_i],col="red",pch=4,cex=.5)
+points(rea_spde_coast$mesh_sf$V1[norm_i],rea_spde_coast$mesh_sf$V2[norm_i],col="green",pch=1,cex=.5)
 
 df$year = df$OBS_YEAR
-df$depth_scaled = scale(log(df$depth))
+df$depth_scaled = scale(log(df$DEPTH))
 df$depth_scaled2 = df$depth_scaled ^ 2
 
-plot(df$depth, df$response, pch = 20, bty = "n")
-plot(df$temp, df$response, pch = 20, bty = "n")
+plot(df$DEPTH, df$response, pch = 20, bty = "n")
+plot(df$mean_SST_CRW_Daily_YR03, df$response, pch = 20, bty = "n")
 
 obs_year = unique(df$year)
 full_year = seq(min(df$year), max(df$year), by = 1)
@@ -186,7 +217,10 @@ density_model <- sdmTMB(
   
   data = df, 
   
-  formula = response ~ as.factor(year) + depth_scaled + depth_scaled2,
+  formula = response ~ as.factor(year) + 
+    s(DEPTH, k=5)  + 
+    s(mean_SST_CRW_Daily_YR03, k=5) + 
+    s(DHW.MeanMax_Degree_Heating_Weeks_YR03, k=5) ,
   # formula = response ~ as.factor(year) + s(depth, k=5) + s(temp, k=5),
   # formula = response ~ as.factor(year) + s(temp, k=5) + s(depth, k=5) + depth_scaled + depth_scaled2,
   
@@ -201,12 +235,12 @@ density_model <- sdmTMB(
   # family = poisson(link = "log"),
   # family = binomial(link = "logit"), weights = n,
   # family = nbinom2(link = "log"),
-  
+  #family=Beta(link="logit"),
   control = sdmTMBcontrol(step.min = 0.01, step.max = 1)
   
 )
 
-density_model <- run_extra_optimization(density_model, nlminb_loops = 0, newton_steps = 1)
+density_model <- run_extra_optimization(density_model, nlminb_loops = 0)#, newton_steps = 1)
 
 # look at gradients
 max(density_model$gradients)
@@ -311,36 +345,36 @@ for (y in 1:length(years)) {
 
 # aggregating SST at each month-year time step, e.g., 03/1985 - 03/2021
 for (t in 1:435) {
-
+  
   # t = 1
-
+  
   grid_t = grid[,c(442, 443, t+3)]
   grid_t$time = colnames(grid_t)[3]
   colnames(grid_t)[3] = "temp"
-
-
+  
+  
   grid_year = rbind(grid_year, grid_t)
   print(t/435)
-
+  
 }
 grid_year$year = substr(grid_year$time, 1, 4)
 grid_year = grid_year %>% subset(year %in% years)
 
 # only depth covariate
 for (y in 1:length(years)) {
-
+  
   # y = 1
-
+  
   grid_y = grid[,c("X", "Y", "Topography")]
   colnames(grid_y)[3] = "depth"
   grid_y = grid_y %>% 
     group_by(X,Y) %>% 
     summarise(depth = mean(depth)*-1)
-
+  
   grid_y$year = years[[y]]
-
+  
   grid_year = rbind(grid_year, grid_y)
-
+  
 }
 grid_year$depth_scaled = scale(log(grid_year$depth+0.0001))
 grid_year$depth_scaled2 = grid_year$depth_scaled ^ 2
