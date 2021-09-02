@@ -41,7 +41,7 @@ islands = c("Kauai", #1
             "Lanai", #8
             "Molokini", #9
             "Kahoolawe", #10
-            "Hawaii")[5]
+            "Hawaii")[11]
 
 response_variable = "fish_count";      sp = ifelse(uku_or_not == T, "Aprion virescens", "Chromis vanderbilti")
 response_variable = "fish_biomass";    sp = ifelse(uku_or_not == T, "Aprion virescens", "Acanthurus olivaceus")
@@ -151,9 +151,15 @@ if (response_variable == "coral_density") {
   df = df %>% 
     subset(REGION == region & ISLAND %in% islands) %>% 
     mutate( DEPTH = ifelse(DEPTH_e == 0, DEPTH_e*-1 + 0.1, DEPTH_e*-1)) %>%  
+<<<<<<< HEAD
     group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_, DEPTH) %>% 
     summarise(response = mean(response, na.rm = T), 
               depth = mean(DEPTH, na.rm = T))
+=======
+    group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_) %>% 
+    summarise(response = mean(response, na.rm = T), 
+              depth = mean(MAX_DEPTH_M, na.rm = T))
+>>>>>>> c46fbe2ae0500e4f3153230acb1ad54502bd6a94
   
   hist(df$response, main = paste0(sp, "_coral_density"),30)
   
@@ -171,7 +177,7 @@ xy_utm = as.data.frame(cbind(utm = project(as.matrix(df[, c("LONGITUDE", "LATITU
 colnames(xy_utm) = c("X", "Y")
 df = cbind(df, xy_utm)
 
-n_knots = 300
+n_knots = 500
 n_knots = 100 # a coarse mesh for speed
 #rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search") 
 rea_spde <- make_mesh(df, c("X", "Y"), cutoff = 1, type = "cutoff") 
@@ -217,10 +223,15 @@ density_model <- sdmTMB(
   
   data = df, 
   
+<<<<<<< HEAD
   formula = response ~ as.factor(year) + 
     s(DEPTH, k=5)  + 
     s(mean_SST_CRW_Daily_YR03, k=5) + 
     s(DHW.MeanMax_Degree_Heating_Weeks_YR03, k=5) ,
+=======
+  # formula = response ~ as.factor(year) + depth_scaled + depth_scaled2,
+  formula = response ~ as.factor(year) + s(depth, k=3),
+>>>>>>> c46fbe2ae0500e4f3153230acb1ad54502bd6a94
   # formula = response ~ as.factor(year) + s(depth, k=5) + s(temp, k=5),
   # formula = response ~ as.factor(year) + s(temp, k=5) + s(depth, k=5) + depth_scaled + depth_scaled2,
   
@@ -231,7 +242,8 @@ density_model <- sdmTMB(
   time = "year", 
   spde = rea_spde, 
   anisotropy = T,
-  family = tweedie(link = "log"),
+  family = Beta(link = "logit"),
+  # family = tweedie(link = "log"),
   # family = poisson(link = "log"),
   # family = binomial(link = "logit"), weights = n,
   # family = nbinom2(link = "log"),
@@ -279,7 +291,7 @@ load("data/crm/Topography_NOAA_CRM_vol10_SST_CRW_Monthly.RData") # depth and SST
 # topo$x = ifelse(topo$x > 180, topo$x - 360, topo$x)
 
 grid = topo
-# grid <- topo %>% subset(x < -157.5 & x > -158.5 & y > 21 & y < 22) #oahu
+grid <- topo %>% subset(x < -157.5 & x > -158.5 & y > 21 & y < 22) #oahu
 # grid <- topo %>% subset(x < -154.8 & x > -156.2 & y > 18.8 & y < 20.4) #hawaii
 # grid <- topo %>% subset(x < -160.0382 & x > -160.262333 & y > 21.77143 & y < 22.03773) #Niihau
 
@@ -418,7 +430,7 @@ plot_map_raster <- function(dat, column = "est") {
 }
 
 # pick out a single year to plot since they should all be the same for the slopes. Note that these are in log space.
-plot_map_raster(filter(p$data, year == 2015), "zeta_s")
+plot_map_raster(filter(p$data, year == 2016), "zeta_s")
 plot_map_raster(p$data, "exp(est)") + ggtitle("Predicted density (g/sq.m) (fixed effects + all random effects)")
 plot_map_raster(p$data, "exp(est_non_rf)") + ggtitle("Prediction (fixed effects only)")
 plot_map_raster(p$data, "omega_s") + ggtitle("Spatial random effects only")
@@ -427,7 +439,7 @@ plot_map_raster(p$data, "epsilon_st") + ggtitle("Spatiotemporal random effects o
 # look at just the spatiotemporal random effects:
 plot_map_raster(p$data, "est_rf") + scale_fill_gradient2()
 
-trend = plot_map_raster(filter(p$data, year == 2015), "zeta_s") + ggtitle("Linear trend")
+trend = plot_map_raster(filter(p$data, year == 2016), "zeta_s") + ggtitle("Linear trend")
 
 density_map = p$data %>% 
   # group_by(X, Y) %>% 
