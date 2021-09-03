@@ -151,16 +151,13 @@ if (response_variable == "coral_density") {
   df = df %>% 
     subset(REGION == region & ISLAND %in% islands) %>% 
     mutate( DEPTH = ifelse(DEPTH_e == 0, DEPTH_e*-1 + 0.1, DEPTH_e*-1)) %>%  
-<<<<<<< HEAD
     group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_, DEPTH) %>% 
     summarise(response = mean(response, na.rm = T), 
               depth = mean(DEPTH, na.rm = T))
-=======
     group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_) %>% 
     summarise(response = mean(response, na.rm = T), 
               depth = mean(MAX_DEPTH_M, na.rm = T))
->>>>>>> c46fbe2ae0500e4f3153230acb1ad54502bd6a94
-  
+
   hist(df$response, main = paste0(sp, "_coral_density"),30)
   
 }
@@ -223,15 +220,12 @@ density_model <- sdmTMB(
   
   data = df, 
   
-<<<<<<< HEAD
   formula = response ~ as.factor(year) + 
     s(DEPTH, k=5)  + 
     s(mean_SST_CRW_Daily_YR03, k=5) + 
     s(DHW.MeanMax_Degree_Heating_Weeks_YR03, k=5) ,
-=======
   # formula = response ~ as.factor(year) + depth_scaled + depth_scaled2,
   formula = response ~ as.factor(year) + s(depth, k=3),
->>>>>>> c46fbe2ae0500e4f3153230acb1ad54502bd6a94
   # formula = response ~ as.factor(year) + s(depth, k=5) + s(temp, k=5),
   # formula = response ~ as.factor(year) + s(temp, k=5) + s(depth, k=5) + depth_scaled + depth_scaled2,
   
