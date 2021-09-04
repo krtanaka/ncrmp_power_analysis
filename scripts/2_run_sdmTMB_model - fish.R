@@ -38,11 +38,11 @@ islands = c("Kauai", #1
             "Lanai", #8
             "Molokini", #9
             "Kahoolawe", #10
-            "Hawaii")[5]
+            "Hawaii")#[5]
 
 response_variable = "fish_count";      sp = ifelse(uku_or_not == T, "Aprion virescens", "Chromis vanderbilti")
-# response_variable = "fish_biomass";    sp = ifelse(uku_or_not == T, "Aprion virescens", "Acanthurus olivaceus")
-# response_variable = "trophic_biomass"; sp = c("PISCIVORE", "PLANKTIVORE", "PRIMARY", "SECONDARY", "TOTAL")[1]
+response_variable = "fish_biomass";    sp = ifelse(uku_or_not == T, "Aprion virescens", "Acanthurus olivaceus")
+response_variable = "trophic_biomass"; sp = c("PISCIVORE", "PLANKTIVORE", "PRIMARY", "SECONDARY", "TOTAL")[1]
 # response_variable = "coral_cover";     sp = c("CCA", "CORAL", "EMA", "HAL", "I", "MA", "SC", "SED", "TURF")[2]
 # response_variable = "coral_density";   sp = c("AdColDen", "JuvColDen")[1]
 
@@ -98,7 +98,7 @@ if (response_variable == "trophic_biomass") {
     df = df %>% 
       subset(REGION == region & ISLAND %in% islands) %>% 
       mutate(response = ifelse(TROPHIC_MONREP == sp, BIOMASS_G_M2, 0)) %>%  
-      group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE) %>% 
+      group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR) %>% 
       summarise(response = sum(response, na.rm = T), 
                 depth = mean(DEPTH, na.rm = T),
                 temp = mean(mean_SST_CRW_Daily_DY01, na.rm = T))  %>% 
@@ -183,7 +183,8 @@ density_model <- sdmTMB(
   
   data = df, 
   
-  formula = response ~ as.factor(year) + depth_scaled + depth_scaled2,
+  # formula = response ~ as.factor(year) + depth_scaled + depth_scaled2,
+  formula = response ~ as.factor(year) + s(depth, k=3),
   # formula = response ~ as.factor(year) + s(depth, k=5) + s(temp, k=5),
   # formula = response ~ as.factor(year) + s(temp, k=5) + s(depth, k=5) + depth_scaled + depth_scaled2,
   
