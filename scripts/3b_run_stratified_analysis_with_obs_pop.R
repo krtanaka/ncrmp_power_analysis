@@ -25,10 +25,11 @@ print(island)
 
 # pick survey design ------------------------------------------------------
 
-design = c("traditional", "downscaled")[sample(1:7, 1)]
+design = c("traditional", "downscaled", "downscaled_alt")[3]
 
 if (design == "traditional") load(paste0("data/survey_grid_w_sector_reef/survey_grid_", island, ".RData")) #survey domain with sector & reef & depth_bins
 if (design == "downscaled") load(paste0("data/survey_grid_w_zones/fish/survey_grid_", island, ".RData")) #survey domain with tom's downscaled zones
+if (design == "downscaled_alt") load(paste0("data/survey_grid_w_zones_alt/fish/survey_grid_", island, ".RData")) #survey domain with tom's downscaled zones
 
 # bring in sim$ as a place holder -----------------------------------------
 sim = sim_abundance(years = 2000:2020, 
@@ -187,6 +188,12 @@ strat_det$strat_sets = round((total_sample * strat_det$weight) / sum(strat_det$w
 
 # make sure minimum number of sets per strat is not 0 or 1
 strat_det$strat_sets[strat_det$strat_sets < min_sets] <- min_sets; strat_det 
+
+# # randomly drop some of tom's zones then allocate sampling units by area
+# strat_det$weight = strat_det$sd; strat_det
+# strat_det$strat_sets = round((total_sample * strat_det$weight) / sum(strat_det$weight), 0); strat_det
+# strat_det$drop = rbinom(length(unique(strat_det$strat)), 1, prob = 1/length(unique(strat_det$strat)))
+
 
 # add "strat" "strat_cells" "tow_area" ...
 strat_det = strat_det[,c("strat", "strat_cells", "tow_area", "cell_area", "strat_area", "strat_sets" )]
