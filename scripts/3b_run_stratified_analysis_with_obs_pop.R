@@ -179,21 +179,23 @@ strat_det = right_join(strat_det, sd); strat_det
 ## allocate sampling units by set_den
 # strat_det$strat_sets <- round(strat_det$strat_area * set_den); strat_det
 
-## allocate sampling units by area * sd
-strat_det$weight = strat_det$strat_area * strat_det$sd; strat_det
-strat_det$strat_sets = round((total_sample * strat_det$weight) / sum(strat_det$weight), 0); strat_det
+# ## allocate sampling units by area * sd
+# strat_det$weight = strat_det$strat_area * strat_det$sd; strat_det
+# strat_det$strat_sets = round((total_sample * strat_det$weight) / sum(strat_det$weight), 0); strat_det
 
 # allocate sampling units by area
 # strat_det$strat_sets = round((total_sample * strat_det$strat_area) / sum(strat_det$strat_area), 0); strat_det
 
 # make sure minimum number of sets per strat is not 0 or 1
-strat_det$strat_sets[strat_det$strat_sets < min_sets] <- min_sets; strat_det 
+strat_det$strat_sets[strat_det$strat_sets < min_sets] <- min_sets; strat_det
 
 # # randomly drop some of tom's zones then allocate sampling units by area
-# strat_det$weight = strat_det$sd; strat_det
-# strat_det$strat_sets = round((total_sample * strat_det$weight) / sum(strat_det$weight), 0); strat_det
-# strat_det$drop = rbinom(length(unique(strat_det$strat)), 1, prob = 1/length(unique(strat_det$strat)))
-
+strat_det$weight = strat_det$sd; strat_det
+strat_det$strat_sets = round((total_sample * strat_det$weight) / sum(strat_det$weight), 0); strat_det
+strat_det$drop = rbinom(length(unique(strat_det$strat)), 1, prob = 1/2); strat_det
+strat_det$weight = strat_det$sd * strat_det$drop; strat_det
+strat_det$strat_sets = round((total_sample * strat_det$weight)/sum(strat_det$weight), 0); strat_det
+strat_det$drop == 1
 
 # add "strat" "strat_cells" "tow_area" ...
 strat_det = strat_det[,c("strat", "strat_cells", "tow_area", "cell_area", "strat_area", "strat_sets" )]
