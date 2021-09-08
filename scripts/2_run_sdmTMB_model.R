@@ -8,7 +8,7 @@ library(colorRamps)
 library(patchwork)
 library(fitdistrplus)
 library(sf)
-
+library(lubridate)
 rm(list = ls())
 
 # 4 functional groups
@@ -41,15 +41,20 @@ islands = c("Kauai", #1
             "Lanai", #8
             "Molokini", #9
             "Kahoolawe", #10
-            "Hawaii")[11]
+            "Hawaii")#[11]
 
-response_variable = "fish_count";      sp = ifelse(uku_or_not == T, "Aprion virescens", "Chromis vanderbilti")
-response_variable = "fish_biomass";    sp = ifelse(uku_or_not == T, "Aprion virescens", "Acanthurus olivaceus")
-response_variable = "trophic_biomass"; sp = c("PISCIVORE", "PLANKTIVORE", "PRIMARY", "SECONDARY", "TOTAL")[5]
+# response_variable = "fish_count";      sp = ifelse(uku_or_not == T, "Aprion virescens", "Chromis vanderbilti")
+# response_variable = "fish_biomass";    sp = ifelse(uku_or_not == T, "Aprion virescens", "Acanthurus olivaceus")
+# response_variable = "trophic_biomass"; sp = c("PISCIVORE", "PLANKTIVORE", "PRIMARY", "SECONDARY", "TOTAL")[5]
 response_variable = "coral_cover";     sp = c("CCA", "CORAL", "EMA", "HAL", "I", "MA", "SC", "SED", "TURF")[2]
 #response_variable = "coral_density";   sp = c("AdColDen", "JuvColDen")[1]
 
-EDS=read.csv("M:/Environmental Data Summary/Outputs/Survey_Master_Timeseries_2021-02-27.csv")
+
+LOAD_EDS=F
+if(LOAD_EDS){
+  EDS=read.csv("M:/Environmental Data Summary/Outputs/Survey_Master_Timeseries_2021-02-27.csv")
+}
+
 
 if (response_variable == "fish_count") {
   
@@ -131,14 +136,16 @@ if (response_variable == "coral_cover") {
     group_by(SITEVISITID,LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_, DEPTH) %>% 
     summarise(response = median(response, na.rm = T),
               n = n())
-  df=left_join(df,
-               EDS[,
-                   c(which(names(EDS)=="SITEVISITID"),
-                     which(names(EDS)=="DHW.Np10y_Degree_Heating_Weeks_MO03"):length(names(EDS)))
+  if(LOAD_EDS){
+    df=left_join(df,
+                 EDS[,
+                     c(which(names(EDS)=="SITEVISITID"),
+                       which(names(EDS)=="DHW.Np10y_Degree_Heating_Weeks_MO03"):length(names(EDS)))
                      ],
-               by="SITEVISITID",)
-  hist(df$response, main = paste0(sp, "_cover"))
-  descdist(df$response)
+                 by="SITEVISITID",)
+  }
+  # hist(df$response, main = paste0(sp, "_cover"))
+  # descdist(df$response)
 }
 
 if (response_variable == "coral_density") {
@@ -151,15 +158,12 @@ if (response_variable == "coral_density") {
   df = df %>% 
     subset(REGION == region & ISLAND %in% islands) %>% 
     mutate( DEPTH = ifelse(DEPTH_e == 0, DEPTH_e*-1 + 0.1, DEPTH_e*-1)) %>%  
-<<<<<<< HEAD
     group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_, DEPTH) %>% 
     summarise(response = mean(response, na.rm = T), 
               depth = mean(DEPTH, na.rm = T))
-=======
-    group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_) %>% 
+  group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_) %>% 
     summarise(response = mean(response, na.rm = T), 
               depth = mean(MAX_DEPTH_M, na.rm = T))
->>>>>>> c46fbe2ae0500e4f3153230acb1ad54502bd6a94
   
   hist(df$response, main = paste0(sp, "_coral_density"),30)
   
@@ -177,12 +181,6 @@ xy_utm = as.data.frame(cbind(utm = project(as.matrix(df[, c("LONGITUDE", "LATITU
 colnames(xy_utm) = c("X", "Y")
 df = cbind(df, xy_utm)
 
-n_knots = 500
-n_knots = 100 # a coarse mesh for speed
-#rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search") 
-rea_spde <- make_mesh(df, c("X", "Y"), cutoff = 1, type = "cutoff") 
-(rea_spde$mesh$n)
-
 #Read in Island Boundaries
 #"T:/Common/Maps/Island/islands"
 ISL_bounds=readOGR(dsn="T:/Common/Maps/Island",
@@ -193,227 +191,264 @@ ISL_this=ISL_bounds[which(ISL_bounds$ISLAND%in%toupper(islands)),]
 ISL_this_utm=spTransform(ISL_this,CRS(paste0("+proj=utm +units=km +zone=",zone)))
 ISL_this_sf=st_transform(st_as_sf(ISL_this),crs=paste0("+proj=utm +units=km +zone=",zone))
 
-#build barrier to mesh
-rea_spde_coast=add_barrier_mesh(rea_spde,ISL_this_sf)
-
-# dev.off()
-#par(mfrow = c(2,2))
-#plot(xy_utm, pch = ".", bty = 'n')
-plot(rea_spde_coast); axis(1); axis(2)
-plot(ISL_this_utm,add=TRUE)
-points(rea_spde_coast$loc_xy,col="blue")
-bar_i=rea_spde_coast$barrier_triangles
-norm_i=rea_spde_coast$normal_triangles
-points(rea_spde_coast$mesh_sf$V1[bar_i],rea_spde_coast$mesh_sf$V2[bar_i],col="red",pch=4,cex=.5)
-points(rea_spde_coast$mesh_sf$V1[norm_i],rea_spde_coast$mesh_sf$V2[norm_i],col="green",pch=1,cex=.5)
-
-df$year = df$OBS_YEAR
-df$depth_scaled = scale(log(df$DEPTH))
-df$depth_scaled2 = df$depth_scaled ^ 2
-
-plot(df$DEPTH, df$response, pch = 20, bty = "n")
-plot(df$mean_SST_CRW_Daily_YR03, df$response, pch = 20, bty = "n")
-
-obs_year = unique(df$year)
-full_year = seq(min(df$year), max(df$year), by = 1)
-missing_year = setdiff(full_year, obs_year)
-missing_year = as.integer(missing_year);missing_year
-
-density_model <- sdmTMB(
+#n_knots = 300 
+#rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search")
+dists=.05#c(5,1,.25)
+PLOT_ALONG=F
+for (disti in 1:length(dists)){
+  rea_spde <- make_mesh(df, c("X", "Y"), cutoff = dists[disti], type = "cutoff") 
+  (rea_spde$mesh$n)
   
-  data = df, 
+  #build barrier to mesh
+  rea_spde_coast=add_barrier_mesh(rea_spde,ISL_this_sf)
   
-<<<<<<< HEAD
-  formula = response ~ as.factor(year) + 
-    s(DEPTH, k=5)  + 
-    s(mean_SST_CRW_Daily_YR03, k=5) + 
-    s(DHW.MeanMax_Degree_Heating_Weeks_YR03, k=5) ,
-=======
-  # formula = response ~ as.factor(year) + depth_scaled + depth_scaled2,
-  formula = response ~ as.factor(year) + s(depth, k=3),
->>>>>>> c46fbe2ae0500e4f3153230acb1ad54502bd6a94
-  # formula = response ~ as.factor(year) + s(depth, k=5) + s(temp, k=5),
-  # formula = response ~ as.factor(year) + s(temp, k=5) + s(depth, k=5) + depth_scaled + depth_scaled2,
+  if(PLOT_ALONG){
+    (rea_spde_coast$mesh$n)
+    dev.off()
+    par(mfrow = c(2,2))
+    plot(xy_utm, pch = ".", bty = 'n')
   
-  silent = F, 
-  # extra_time = missing_year,
-  spatial_trend = T, 
-  spatial_only = F, 
-  time = "year", 
-  spde = rea_spde, 
-  anisotropy = T,
-  family = Beta(link = "logit"),
-  # family = tweedie(link = "log"),
-  # family = poisson(link = "log"),
-  # family = binomial(link = "logit"), weights = n,
-  # family = nbinom2(link = "log"),
-  #family=Beta(link="logit"),
-  control = sdmTMBcontrol(step.min = 0.01, step.max = 1)
-  
-)
-
-density_model <- run_extra_optimization(density_model, nlminb_loops = 0)#, newton_steps = 1)
-
-# look at gradients
-max(density_model$gradients)
-
-df$residuals <- residuals(density_model)
-qqnorm(df$residuals, ylim = c(-5, 5), xlim = c(-5, 5), bty = "n", pch = 20);abline(a = 0, b = 1)
-
-m_p <- predict(density_model); m_p = m_p[,c("response", "est")]
-
-p1 = ggplot(df, aes_string("X", "Y", color = "residuals")) +
-  geom_point(alpha = 0.8, size = round(abs(df$residuals), digits = 0)) + 
-  # facet_wrap(.~ISLAND, scales = "free") +
-  xlab("Eastings") +
-  ylab("Northings") + 
-  scale_color_gradient2() 
-
-p2 = m_p  %>% 
-  ggplot(aes(response, exp(est))) + 
-  geom_point(alpha = 0.2) + 
-  coord_fixed(ratio = 1) +
-  ylab("prediction") + 
-  xlab("observation") + 
-  geom_abline(intercept = 0, slope = 1) +
-  geom_smooth(method = "lm", se = T)
-
-p1 / p2
-
-#  extract some parameter estimates
-sd <- as.data.frame(summary(TMB::sdreport(density_model$tmb_obj)))
-r <- density_model$tmb_obj$report()
-r
-
-# prediction onto new data grid
-load("data/crm/Topography_NOAA_CRM_vol10.RData") # depth covariate
-load("data/crm/Topography_NOAA_CRM_vol10_SST_CRW_Monthly.RData") # depth and SST covariate
-# topo$x = ifelse(topo$x > 180, topo$x - 360, topo$x)
-
-grid = topo
-grid <- topo %>% subset(x < -157.5 & x > -158.5 & y > 21 & y < 22) #oahu
-# grid <- topo %>% subset(x < -154.8 & x > -156.2 & y > 18.8 & y < 20.4) #hawaii
-# grid <- topo %>% subset(x < -160.0382 & x > -160.262333 & y > 21.77143 & y < 22.03773) #Niihau
-
-# res = 2
-# grid$longitude = round(grid$x, digits = res)
-# grid$latitude = round(grid$y, digits = res)
-
-grid$longitude = grid$x
-grid$latitude = grid$y
-
-# grid = grid %>% 
-#   group_by(longitude, latitude) %>% 
-#   # subset(longitude > range(df$LONGITUDE)[1]) %>%
-#   # subset(longitude < range(df$LONGITUDE)[2]) %>%
-#   # subset(latitude > range(df$LATITUDE)[1]) %>%
-#   # subset(latitude < range(df$LATITUDE)[2]) %>%
-#   summarise(depth = mean(Topography, na.rm = T)*-1) 
-
-zone <- (floor((grid$longitude[1] + 180)/6) %% 60) + 1
-xy_utm = as.data.frame(cbind(utm = project(as.matrix(grid[, c("longitude", "latitude")]),
-                                           paste0("+proj=utm +units=km +zone=", zone))))
-
-colnames(xy_utm) = c("X", "Y"); plot(xy_utm, pch = ".")
-
-grid = cbind(grid, xy_utm)
-
-grid_year = NULL
-
-years = sort(as.vector(unique(df$year)))
-
-# aggregating SST annually
-for (y in 1:length(years)) {
-  
-  # y = 1
-  
-  grid_year_sst = grid %>% select(contains(as.character(years[[y]])))
-  
-  grid_y = NULL
-  
-  grid_depth = grid[,3]
-  grid_xy = grid[,442:443]
-  
-  for (m in 1:12) {
-    
-    grid_m = cbind(grid_xy, grid_depth, grid_year_sst[,m])
-    colnames(grid_m)[4] = "temp"
-    grid_y = rbind(grid_y, grid_m)
-    
+      plot(rea_spde_coast$mesh,asp=1); axis(1); axis(2)
+    plot(ISL_this_utm,add=TRUE)
+    points(rea_spde_coast$loc_xy,col="blue",pch=20,cex=1)
+    bar_i=rea_spde_coast$barrier_triangles
+    norm_i=rea_spde_coast$normal_triangles
+    points(rea_spde_coast$spde$mesh$loc[,1],rea_spde_coast$spde$mesh$loc[,2],pch=20,col="black",cex=1.5)
+    points(rea_spde_coast$mesh_sf$V1[bar_i],rea_spde_coast$mesh_sf$V2[bar_i],col="red",pch=4,cex=.5)
+    points(rea_spde_coast$mesh_sf$V1[norm_i],rea_spde_coast$mesh_sf$V2[norm_i],col="green",pch=1,cex=.5)
   }
   
-  grid_y = grid_y %>% 
-    group_by(X, Y) %>% 
-    summarise(temp = mean(temp), 
-              depth = mean(grid_depth)*-1)
+  df$year = df$OBS_YEAR
+  df$year_mon = paste0(year(df$DATE_),"_",formatC(month(df$DATE_),width = 2,flag = "0"))
+  df$depth_scaled = scale(log(df$DEPTH))
+  df$depth_scaled2 = df$depth_scaled ^ 2
   
-  grid_y$year = years[[y]]
+  obs_year = unique(df$year)
+  full_year = seq(min(df$year), max(df$year), by = 1)
+  missing_year = setdiff(full_year, obs_year)
+  missing_year = as.integer(missing_year);missing_year
   
-  grid_year = rbind(grid_year, grid_y)
+  density_model <- sdmTMB(
+    
+    data = df, 
+    #formula = response ~ as.factor(year) + depth_scaled,
+    formula = response ~  1,#
+    silent = F, 
+    # extra_time = missing_year,
+    spatial_trend = T, 
+    spatial_only = F, 
+    time = "year", 
+    spde = rea_spde_coast, 
+    anisotropy = T,
+    # family = Beta(link = "logit"),
+    family = tweedie(link = "log"),
+    # family = poisson(link = "log"),
+    # family = binomial(link = "logit"), weights = n,
+    # family = nbinom2(link = "log"),
+    control = sdmTMBcontrol(step.min = 0.01, step.max = 1)
+    
+  )
   
-  rm(grid_depth, grid_xy, grid_y, grid_year_sst, grid_m)
+  density_model <- run_extra_optimization(density_model, nlminb_loops = 0)#, newton_steps = 1)
   
+  if(PLOT_ALONG){
+    # look at gradients
+    max(density_model$gradients)
+    
+    df$residuals <- residuals(density_model)
+    qqnorm(df$residuals, ylim = c(-5, 5), xlim = c(-5, 5), bty = "n", pch = 20);abline(a = 0, b = 1)
+    
+    m_p <- predict(density_model); m_p = m_p[,c("response", "est")]
+    
+    p1 = ggplot(df, aes_string("X", "Y", color = "residuals")) +
+      geom_point(alpha = 0.8, size = round(abs(df$residuals), digits = 0)) + 
+      # facet_wrap(.~ISLAND, scales = "free") +
+      xlab("Eastings") +
+      ylab("Northings") + 
+      scale_color_gradient2() 
+    
+    p2 = m_p  %>% 
+      ggplot(aes(response, exp(est))) + 
+      geom_point(alpha = 0.2) + 
+      coord_fixed(ratio = 1) +
+      ylab("prediction") + 
+      xlab("observation") + 
+      geom_abline(intercept = 0, slope = 1) +
+      geom_smooth(method = "lm", se = T)
+    
+    p1 / p2
+    
+    hist(exp(m_p$est))
+  }   
+  
+  #  extract some parameter estimates
+  sd <- as.data.frame(summary(TMB::sdreport(density_model$tmb_obj)))
+  r <- density_model$tmb_obj$report()
+  r
+  
+  # prediction onto new data grid
+  load("data/crm/Topography_NOAA_CRM_vol10.RData") # depth covariate
+  #load("data/crm/Topography_NOAA_CRM_vol10_SST_CRW_Monthly.RData") # depth and SST covariate
+  # topo$x = ifelse(topo$x > 180, topo$x - 360, topo$x)
+  
+  grid = topo
+  #grid <- topo %>% subset(x < -157.5 & x > -158.5 & y > 21 & y < 22) #oahu
+  # grid <- topo %>% subset(x < -154.8 & x > -156.2 & y > 18.8 & y < 20.4) #hawaii
+  # grid <- topo %>% subset(x < -160.0382 & x > -160.262333 & y > 21.77143 & y < 22.03773) #Niihau
+  
+  # res = 2
+  # grid$longitude = round(grid$x, digits = res)
+  # grid$latitude = round(grid$y, digits = res)
+  
+  grid$longitude = grid$x
+  grid$latitude = grid$y
+  
+  # grid = grid %>% 
+  #   group_by(longitude, latitude) %>% 
+  #   # subset(longitude > range(df$LONGITUDE)[1]) %>%
+  #   # subset(longitude < range(df$LONGITUDE)[2]) %>%
+  #   # subset(latitude > range(df$LATITUDE)[1]) %>%
+  #   # subset(latitude < range(df$LATITUDE)[2]) %>%
+  #   summarise(depth = mean(Topography, na.rm = T)*-1) 
+  
+  zone <- (floor((grid$longitude[1] + 180)/6) %% 60) + 1
+  xy_utm = as.data.frame(cbind(utm = project(as.matrix(grid[, c("longitude", "latitude")]),
+                                             paste0("+proj=utm +units=km +zone=", zone))))
+  
+  colnames(xy_utm) = c("X", "Y"); plot(xy_utm, pch = ".")
+  
+  grid = cbind(grid, xy_utm)
+  
+  grid_year = NULL
+  
+  years = sort(as.vector(unique(df$year)))
+  
+  # # aggregating SST annually
+  # for (y in 1:length(years)) {
+  #   
+  #   # y = 1
+  #   
+  #   grid_year_sst = grid %>% dplyr::select(contains(as.character(years[[y]])))
+  #   
+  #   grid_y = NULL
+  #   
+  #   grid_depth = grid[,3]
+  #   grid_xy = grid[,which(names(grid)=="X"):which(names(grid)=="Y")]
+  #   
+  #   for (m in 1:12) {
+  #     
+  #     grid_m = cbind(grid_xy, grid_depth, grid_year_sst[,m])
+  #     colnames(grid_m)[4] = "temp"
+  #     grid_y = rbind(grid_y, grid_m)
+  #     
+  #   }
+  #   
+  #   grid_y = grid_y %>% 
+  #     group_by(X, Y) %>% 
+  #     summarise(temp = mean(temp), 
+  #               depth = mean(grid_depth)*-1)
+  #   
+  #   grid_y$year = years[[y]]
+  #   
+  #   grid_year = rbind(grid_year, grid_y)
+  #   
+  #   rm(grid_depth, grid_xy, grid_y, grid_year_sst, grid_m)
+  #   
+  # }
+  # 
+  # # aggregating SST at each month-year time step, e.g., 03/1985 - 03/2021
+  # for (t in 1:435) {
+  #   
+  #   # t = 1
+  #   
+  #   grid_t = grid[,c(442, 443, t+3)]
+  #   grid_t$time = colnames(grid_t)[3]
+  #   colnames(grid_t)[3] = "temp"
+  #   
+  #   
+  #   grid_year = rbind(grid_year, grid_t)
+  #   print(t/435)
+  #   
+  # }
+  # grid_year$year = substr(grid_year$time, 1, 4)
+  # grid_year = grid_year %>% subset(year %in% years)
+  
+  # only depth covariate
+  for (y in 1:length(years)) {
+    
+    # y = 1
+    
+    grid_y = grid[,c("X", "Y", "Topography")]
+    colnames(grid_y)[3] = "depth"
+    grid_y = grid_y %>% 
+      group_by(X,Y) %>% 
+      summarise(depth = mean(depth)*-1)
+    
+    grid_y$year = years[[y]]
+    
+    grid_year = rbind(grid_year, grid_y)
+    
+  }
+  grid_year$depth_scaled = scale(log(grid_year$depth+0.0001))
+  grid_year$depth_scaled2 = grid_year$depth_scaled ^ 2
+  
+  # if you want to interpolate missing years...
+  grid_year_missing = NULL
+  for (y in 1:length(missing_year)) {
+    
+    # y = 1
+    
+    # Add missing years to our grid:
+    grid_from_missing_yr <- grid_year[grid_year$year ==  missing_year[[y]]-1, ]
+    grid_from_missing_yr$year <-  missing_year[[y]] # `L` because `year` is an integer in the data
+    grid_year_missing <- rbind(grid_year_missing, grid_from_missing_yr)
+    
+  }
+  # grid_year = rbind(grid_year, grid_year_missing)
+  
+  # set the area argument to 0.0081 km2 since our grid cells are 90 m x 90 m = 0.0081 square kilometers
+  p <- predict(density_model, 
+               newdata = grid_year, 
+               return_tmb_object = T, area = 0.0081)
+  
+  p$data$sp = sp
+  sdm_output = p$data
+  n_knots=(rea_spde_coast$mesh$n)
+  save(list=c("rea_spde_coast","density_model","sdm_output"),
+       file = paste0("outputs/density_results_NULL_", sp, "_", response_variable, "_", n_knots, "_", region, ".RData"))
+}
+#########################################
+#########################################
+#########################################
+lf=list.files("outputs/",full.names = T)
+lf.C=lf[grep("CORAL",lf)]
+
+mesh_l = vector(mode = "list", length = length(lf.C))
+mod_l = vector(mode = "list", length = length(lf.C))
+pred_l = vector(mode = "list", length = length(lf.C))
+for(i in 1:length(lf.C)){
+  load(lf.C[i])
+  
+  mesh_l[[i]]=rea_spde_coast
+  mod_l[[i]]=density_model
+  pred_l[[i]]=sdm_output
+  print(i)
+  #mod_l
 }
 
-# aggregating SST at each month-year time step, e.g., 03/1985 - 03/2021
-for (t in 1:435) {
-  
-  # t = 1
-  
-  grid_t = grid[,c(442, 443, t+3)]
-  grid_t$time = colnames(grid_t)[3]
-  colnames(grid_t)[3] = "temp"
-  
-  
-  grid_year = rbind(grid_year, grid_t)
-  print(t/435)
-  
-}
-grid_year$year = substr(grid_year$time, 1, 4)
-grid_year = grid_year %>% subset(year %in% years)
+mod=mod_l[[]]
+mod_df=data.frame(filename=lf.C,
+                  knots=rep(c(2046,450,4829,7421),2),
+                  cutoff=rep(c(1,5,.25,.5),2),
+                  fixed=sort(rep(c("NULL","YEAR_DEPTH"),4)),
+                  AIC=unlist(lapply(mod_l,AIC))
+)
 
-# only depth covariate
-for (y in 1:length(years)) {
-  
-  # y = 1
-  
-  grid_y = grid[,c("X", "Y", "Topography")]
-  colnames(grid_y)[3] = "depth"
-  grid_y = grid_y %>% 
-    group_by(X,Y) %>% 
-    summarise(depth = mean(depth)*-1)
-  
-  grid_y$year = years[[y]]
-  
-  grid_year = rbind(grid_year, grid_y)
-  
-}
-grid_year$depth_scaled = scale(log(grid_year$depth+0.0001))
-grid_year$depth_scaled2 = grid_year$depth_scaled ^ 2
+ggplot(mod_df,aes(knots,AIC,shape=fixed))+geom_point(size=5)
 
-# if you want to interpolate missing years...
-grid_year_missing = NULL
-for (y in 1:length(missing_year)) {
-  
-  # y = 1
-  
-  # Add missing years to our grid:
-  grid_from_missing_yr <- grid_year[grid_year$year ==  missing_year[[y]]-1, ]
-  grid_from_missing_yr$year <-  missing_year[[y]] # `L` because `year` is an integer in the data
-  grid_year_missing <- rbind(grid_year_missing, grid_from_missing_yr)
-  
-}
-# grid_year = rbind(grid_year, grid_year_missing)
+hist(exp(pred_l[[8]]$est))
 
-# set the area argument to 0.0081 km2 since our grid cells are 90 m x 90 m = 0.0081 square kilometers
-p <- predict(density_model, 
-             newdata = grid_year, 
-             return_tmb_object = T, area = 0.0081)
 
-p$data$sp = sp
-sdm_output = p$data
-
-# save(sdm_output, file = paste0("outputs/density_results_", sp, "_", response_variable, "_", n_knots, "_", region, ".RData"))
 
 plot_map_raster <- function(dat, column = "est") {
   
@@ -424,14 +459,15 @@ plot_map_raster <- function(dat, column = "est") {
     coord_fixed() +
     xlab("Eastings (km)") +
     ylab("Northings (km)") + 
-    scale_fill_gradientn(colours = matlab.like(100), "") +
+    scale_fill_viridis_c()+#colours = matlab.like(100), "") +
     ggdark::dark_theme_minimal()
   
 }
 
+#p$data=pred_l[[8]]
 # pick out a single year to plot since they should all be the same for the slopes. Note that these are in log space.
 plot_map_raster(filter(p$data, year == 2016), "zeta_s")
-plot_map_raster(p$data, "exp(est)") + ggtitle("Predicted density (g/sq.m) (fixed effects + all random effects)")
+plot_map_raster(p$data, "exp(est)") + ggtitle("Predicted Coral Cover (%) (fixed effects + all random effects)")
 plot_map_raster(p$data, "exp(est_non_rf)") + ggtitle("Prediction (fixed effects only)")
 plot_map_raster(p$data, "omega_s") + ggtitle("Spatial random effects only")
 plot_map_raster(p$data, "epsilon_st") + ggtitle("Spatiotemporal random effects only")
