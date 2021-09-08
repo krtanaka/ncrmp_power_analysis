@@ -9,7 +9,7 @@ library(rgdal)
 library(rasterVis)
 library(stringr)
 
-type = c("fish", "benthic")[2]
+type = c("fish", "benthic")[1]
 
 # Load a SpatialPolygonsDataFrame example shapefile
 if (type == "fish") dat <- readOGR('data/gis_eco_zones/fish/Fish_AUTO_1X/Fish_AUTO_1X_sectorshapefile.shp', stringsAsFactors = F)
@@ -30,7 +30,7 @@ df_base$latitude = df_base$y
 MHI_extent = read.csv("data/misc/MHI_Extents.csv")
 
 islands = MHI_extent$ISLAND
-islands = islands[! islands %in% c("Kaula", "Lehua", "Molokini")] #remove islands that are too small
+islands = islands[! islands %in% c("Kaula", "Lehua", "Molokini")] # remove islands that are too small
 islands = islands[! islands %in% c("Kahoolawe")] %>% as.vector() # remove this island because its missing reef layer
 
 for (i in 1:length(islands)) {
@@ -129,7 +129,8 @@ for (i in 1:length(islands)) {
   df$depth_bin = ifelse(df$Topography < -6  & df$Topography >= -18, 2L, df$depth_bin) 
   df$depth_bin = ifelse(df$Topography < -18, 3L, df$depth_bin) 
   
-  df$strat = paste(df$depth_bin, df$zone, sep = "_")
+  df$strat = df$zone # Strata is zone * depth bins
+  # df$strat = paste(df$depth_bin, df$zone, sep = "_") # Strata is zone * depth bins
   df$strat = as.numeric(as.factor(df$strat))
   
   df$depth = as.numeric(df$Topography*-1)

@@ -25,10 +25,11 @@ print(island)
 
 # pick survey design ------------------------------------------------------
 
-design = c("traditional", "downscaled")[sample(1:7, 1)]
+design = c("traditional", "downscaled", "downscaled_alt")[3]
 
 if (design == "traditional") load(paste0("data/survey_grid_w_sector_reef/survey_grid_", island, ".RData")) #survey domain with sector & reef & depth_bins
 if (design == "downscaled") load(paste0("data/survey_grid_w_zones/fish/survey_grid_", island, ".RData")) #survey domain with tom's downscaled zones
+if (design == "downscaled_alt") load(paste0("data/survey_grid_w_zones_alt/fish/survey_grid_", island, ".RData")) #survey domain with tom's downscaled zones
 
 # bring in sim$ as a place holder -----------------------------------------
 sim = sim_abundance(years = 2000:2020, 
@@ -148,7 +149,7 @@ t_sample = survey_effort_MHI %>%
 
 n_sims = 100 # number of simulations
 total_sample = t_sample # total sample efforts you want to deploy
-min_sets = 1 # minimum number of sets per strat
+min_sets = 0 # minimum number of sets per strat
 # set_den = 5 # number of sets per [grid unit = km] squared)
 trawl_dim = c(0.01, 0.0353) # 0.000353 sq.km (353 sq.m) from two 15-m diameter survey cylinders
 resample_cells = F
@@ -186,7 +187,21 @@ strat_det$strat_sets = round((total_sample * strat_det$weight) / sum(strat_det$w
 # strat_det$strat_sets = round((total_sample * strat_det$strat_area) / sum(strat_det$strat_area), 0); strat_det
 
 # make sure minimum number of sets per strat is not 0 or 1
-strat_det$strat_sets[strat_det$strat_sets < min_sets] <- min_sets; strat_det 
+strat_det$strat_sets[strat_det$strat_sets < min_sets] <- min_sets; strat_det
+strat_table = strat_det %>% dplyr::select(strat, strat_sets); strat_table
+
+if (design == "downscaled_alt") {
+  
+  # randomly drop some of tom's zones then allocate sampling units by area
+  strat_det$weight = strat_det$strat_area * strat_det$sd; strat_det
+  strat_det$weight = (strat_det$weight - min(strat_det$weight)) / (max(strat_det$weight)-min(strat_det$weight)); strat_det
+  strat_det$strat_sets = round((total_sample * strat_det$weight) / sum(strat_det$weight), 0); strat_det
+  strat_det$drop = rbinom(length(unique(strat_det$strat)), 1, prob = strat_det$weight); strat_det
+  strat_det$weight = ifelse(strat_det$drop == 0, 0, strat_det$weight); strat_det
+  strat_det$strat_sets = round((total_sample * strat_det$weight) / sum(strat_det$weight), 0); strat_det
+  strat_table = strat_det %>% dplyr::select(strat, strat_sets); strat_table
+  
+}
 
 # add "strat" "strat_cells" "tow_area" ...
 strat_det = strat_det[,c("strat", "strat_cells", "tow_area", "cell_area", "strat_area", "strat_sets" )]
@@ -364,18 +379,29 @@ rmse = formatC(sim$total_strat_error_stats[4], digits = 3)
 
 label = paste0("ME = ", me, "\n", "MAE = ", mae, "\n", "MSE = ", mse, "\n", "RMSE = ", rmse)
 
+ggplot(df1, aes(x = x, y = y)) +
+  geom_tile(aes(fill = value)) + 
+  scale_fill_gradient2(low = "gray", high = "red", mid = "#e3e3e3", midpoint = 0) +
+  geom_point(data = df2, aes(color = value), shape = 19, size = 3) +
+  scale_color_gradient(low = "gray", high = "blue")
+
 strata = sim$grid_xy %>%
   mutate(x = round(x/0.5, digits = 0),
          y = round(y/0.5, digits = 0)) %>%
   group_by(x, y) %>% 
   summarise(strat = round(mean(strat), digits = 0),
-            depth = mean(depth)) %>% 
+            depth = mean(depth)) 
+
+strata = merge(strata, strat_table)
+
+strata = strata %>% 
   ggplot(aes(x, y)) +
   # coord_fixed() + 
-  geom_raster(aes(fill = factor(strat))) + 
+  geom_raster(aes(fill = strat_sets)) + 
   theme_minimal() + 
   ylab("Northing (km)") + xlab("Easting (km)") + 
-  theme(legend.position = "none") + 
+  theme(legend.position = "right") + 
+  scale_fill_gradient(low = "gray", high = "red") + 
   labs(
     title = "",
     subtitle = paste0(paste0("Island = ", island, "\n", 
@@ -423,6 +449,6 @@ detection = setdet %>%
   theme_minimal()
 
 # png(paste0("outputs/", sp, "_", island, ".png"), res = 100, units = "in", height = 4, width = 8)
-strata + (sim_output / (error + detection))
+# strata + (sim_output / (error + detection))
+strata + (sim_output / error)
 # dev.off()
-

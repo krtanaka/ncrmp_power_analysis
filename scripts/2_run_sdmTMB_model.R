@@ -161,10 +161,17 @@ if (response_variable == "coral_density") {
     group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_, DEPTH) %>% 
     summarise(response = mean(response, na.rm = T), 
               depth = mean(DEPTH, na.rm = T))
+<<<<<<< HEAD
   group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_) %>% 
     summarise(response = mean(response, na.rm = T), 
               depth = mean(MAX_DEPTH_M, na.rm = T))
   
+=======
+    group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_) %>% 
+    summarise(response = mean(response, na.rm = T), 
+              depth = mean(MAX_DEPTH_M, na.rm = T))
+
+>>>>>>> da455436b77a77d26f76def6226399ee33421169
   hist(df$response, main = paste0(sp, "_coral_density"),30)
   
 }
@@ -191,6 +198,7 @@ ISL_this=ISL_bounds[which(ISL_bounds$ISLAND%in%toupper(islands)),]
 ISL_this_utm=spTransform(ISL_this,CRS(paste0("+proj=utm +units=km +zone=",zone)))
 ISL_this_sf=st_transform(st_as_sf(ISL_this),crs=paste0("+proj=utm +units=km +zone=",zone))
 
+<<<<<<< HEAD
 #n_knots = 300 
 #rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search")
 dists=.05#c(5,1,.25)
@@ -217,6 +225,136 @@ for (disti in 1:length(dists)){
     points(rea_spde_coast$mesh_sf$V1[bar_i],rea_spde_coast$mesh_sf$V2[bar_i],col="red",pch=4,cex=.5)
     points(rea_spde_coast$mesh_sf$V1[norm_i],rea_spde_coast$mesh_sf$V2[norm_i],col="green",pch=1,cex=.5)
   }
+=======
+#build barrier to mesh
+rea_spde_coast=add_barrier_mesh(rea_spde,ISL_this_sf)
+
+# dev.off()
+#par(mfrow = c(2,2))
+#plot(xy_utm, pch = ".", bty = 'n')
+plot(rea_spde_coast); axis(1); axis(2)
+plot(ISL_this_utm,add=TRUE)
+points(rea_spde_coast$loc_xy,col="blue")
+bar_i=rea_spde_coast$barrier_triangles
+norm_i=rea_spde_coast$normal_triangles
+points(rea_spde_coast$mesh_sf$V1[bar_i],rea_spde_coast$mesh_sf$V2[bar_i],col="red",pch=4,cex=.5)
+points(rea_spde_coast$mesh_sf$V1[norm_i],rea_spde_coast$mesh_sf$V2[norm_i],col="green",pch=1,cex=.5)
+
+df$year = df$OBS_YEAR
+df$depth_scaled = scale(log(df$DEPTH))
+df$depth_scaled2 = df$depth_scaled ^ 2
+
+plot(df$DEPTH, df$response, pch = 20, bty = "n")
+plot(df$mean_SST_CRW_Daily_YR03, df$response, pch = 20, bty = "n")
+
+obs_year = unique(df$year)
+full_year = seq(min(df$year), max(df$year), by = 1)
+missing_year = setdiff(full_year, obs_year)
+missing_year = as.integer(missing_year);missing_year
+
+density_model <- sdmTMB(
+  
+  data = df, 
+  
+  formula = response ~ as.factor(year) + 
+    s(DEPTH, k=5)  + 
+    s(mean_SST_CRW_Daily_YR03, k=5) + 
+    s(DHW.MeanMax_Degree_Heating_Weeks_YR03, k=5) ,
+  # formula = response ~ as.factor(year) + depth_scaled + depth_scaled2,
+  formula = response ~ as.factor(year) + s(depth, k=3),
+  # formula = response ~ as.factor(year) + s(depth, k=5) + s(temp, k=5),
+  # formula = response ~ as.factor(year) + s(temp, k=5) + s(depth, k=5) + depth_scaled + depth_scaled2,
+  
+  silent = F, 
+  # extra_time = missing_year,
+  spatial_trend = T, 
+  spatial_only = F, 
+  time = "year", 
+  spde = rea_spde, 
+  anisotropy = T,
+  family = Beta(link = "logit"),
+  # family = tweedie(link = "log"),
+  # family = poisson(link = "log"),
+  # family = binomial(link = "logit"), weights = n,
+  # family = nbinom2(link = "log"),
+  #family=Beta(link="logit"),
+  control = sdmTMBcontrol(step.min = 0.01, step.max = 1)
+  
+)
+
+density_model <- run_extra_optimization(density_model, nlminb_loops = 0)#, newton_steps = 1)
+
+# look at gradients
+max(density_model$gradients)
+
+df$residuals <- residuals(density_model)
+qqnorm(df$residuals, ylim = c(-5, 5), xlim = c(-5, 5), bty = "n", pch = 20);abline(a = 0, b = 1)
+
+m_p <- predict(density_model); m_p = m_p[,c("response", "est")]
+
+p1 = ggplot(df, aes_string("X", "Y", color = "residuals")) +
+  geom_point(alpha = 0.8, size = round(abs(df$residuals), digits = 0)) + 
+  # facet_wrap(.~ISLAND, scales = "free") +
+  xlab("Eastings") +
+  ylab("Northings") + 
+  scale_color_gradient2() 
+
+p2 = m_p  %>% 
+  ggplot(aes(response, exp(est))) + 
+  geom_point(alpha = 0.2) + 
+  coord_fixed(ratio = 1) +
+  ylab("prediction") + 
+  xlab("observation") + 
+  geom_abline(intercept = 0, slope = 1) +
+  geom_smooth(method = "lm", se = T)
+
+p1 / p2
+
+#  extract some parameter estimates
+sd <- as.data.frame(summary(TMB::sdreport(density_model$tmb_obj)))
+r <- density_model$tmb_obj$report()
+r
+
+# prediction onto new data grid
+load("data/crm/Topography_NOAA_CRM_vol10.RData") # depth covariate
+load("data/crm/Topography_NOAA_CRM_vol10_SST_CRW_Monthly.RData") # depth and SST covariate
+# topo$x = ifelse(topo$x > 180, topo$x - 360, topo$x)
+
+grid = topo
+grid <- topo %>% subset(x < -157.5 & x > -158.5 & y > 21 & y < 22) #oahu
+# grid <- topo %>% subset(x < -154.8 & x > -156.2 & y > 18.8 & y < 20.4) #hawaii
+# grid <- topo %>% subset(x < -160.0382 & x > -160.262333 & y > 21.77143 & y < 22.03773) #Niihau
+
+# res = 2
+# grid$longitude = round(grid$x, digits = res)
+# grid$latitude = round(grid$y, digits = res)
+
+grid$longitude = grid$x
+grid$latitude = grid$y
+
+# grid = grid %>% 
+#   group_by(longitude, latitude) %>% 
+#   # subset(longitude > range(df$LONGITUDE)[1]) %>%
+#   # subset(longitude < range(df$LONGITUDE)[2]) %>%
+#   # subset(latitude > range(df$LATITUDE)[1]) %>%
+#   # subset(latitude < range(df$LATITUDE)[2]) %>%
+#   summarise(depth = mean(Topography, na.rm = T)*-1) 
+
+zone <- (floor((grid$longitude[1] + 180)/6) %% 60) + 1
+xy_utm = as.data.frame(cbind(utm = project(as.matrix(grid[, c("longitude", "latitude")]),
+                                           paste0("+proj=utm +units=km +zone=", zone))))
+
+colnames(xy_utm) = c("X", "Y"); plot(xy_utm, pch = ".")
+
+grid = cbind(grid, xy_utm)
+
+grid_year = NULL
+
+years = sort(as.vector(unique(df$year)))
+
+# aggregating SST annually
+for (y in 1:length(years)) {
+>>>>>>> da455436b77a77d26f76def6226399ee33421169
   
   df$year = df$OBS_YEAR
   df$year_mon = paste0(year(df$DATE_),"_",formatC(month(df$DATE_),width = 2,flag = "0"))
