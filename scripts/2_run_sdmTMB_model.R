@@ -11,35 +11,18 @@ library(fitdistrplus)
 library(sf)
 library(lubridate)
 library(boot)
+
 rm(list = ls())
 
-SmithsonVerkuilen2006=function(y){
-  n=length(y)
-  out=(y * (n-1) + 0.5) / n
+SmithsonVerkuilen2006 = function(y){
+  n = length(y)
+  out = (y * (n-1) + 0.5) / n
   return(out)
 }
 
-
-
-# 4 functional groups
-# live coral cover
-# adult juvenile density
-
-# for Uku: 
-# Total numerical density estimates (individuals per 100 m2) were obtained by dividing fish counts in each survey by the survey area (353 m2 from two 15-m diameter survey cylinders) and multiplying by 100. - Nadon et al. 2020
-
 region = "MHI"
-uku_or_not = F
+
 load("data/rea/SURVEY MASTER.RData")
-# load("data/ALL_REA_FISH_RAW.rdata")
-# df %>% 
-#   subset(REGION == region) %>% 
-#   group_by(TAXONNAME) %>%
-#   summarise(n = sum(BIOMASS_G_M2, na.rm = T)) %>%
-#   # summarise(n = sum(COUNT, na.rm = T)) %>% 
-#   mutate(freq = n/sum(n)) %>% 
-#   arrange(desc(freq)) %>% 
-#   top_n(5) 
 
 islands = c("Kauai", #1
             "Lehua", #2
@@ -53,86 +36,13 @@ islands = c("Kauai", #1
             "Kahoolawe", #10
             "Hawaii")[5]
 
-# response_variable = "fish_count";      sp = ifelse(uku_or_not == T, "Aprion virescens", "Chromis vanderbilti")
-# response_variable = "fish_biomass";    sp = ifelse(uku_or_not == T, "Aprion virescens", "Acanthurus olivaceus")
-# response_variable = "trophic_biomass"; sp = c("PISCIVORE", "PLANKTIVORE", "PRIMARY", "SECONDARY", "TOTAL")[5]
 response_variable = "coral_cover";     sp = c("CCA", "CORAL", "EMA", "HAL", "I", "MA", "SC", "SED", "TURF")[2]
-#response_variable = "coral_density";   sp = c("AdColDen", "JuvColDen")[1]
+response_variable = "coral_density";   sp = c("AdColDen", "JuvColDen")[1]
 
-
-LOAD_EDS=F
-if(LOAD_EDS){
-  EDS=read.csv("M:/Environmental Data Summary/Outputs/Survey_Master_Timeseries_2021-02-27.csv")
-}
-
-
-if (response_variable == "fish_count") {
-  
-  load("data/rea/ALL_REA_FISH_RAW_SST.RData")
-  
-  df = df %>% 
-    subset(REGION == region & ISLAND %in% islands) %>% 
-    # mutate(response = ifelse(TAXONNAME == sp, COUNT*100, 0)) %>%  
-    mutate(response = ifelse(TAXONNAME == sp, COUNT, 0)) %>%  
-    group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE, DEPTH) %>% 
-    summarise(response = sum(response, na.rm = T), 
-              depth = mean(DEPTH, na.rm = T),
-              temp = mean(mean_SST_CRW_Daily_DY01, na.rm = T))  %>% 
-    na.omit()
-  
-  df %>% ggplot(aes(response)) + geom_histogram() + 
-    df %>% group_by(OBS_YEAR) %>% summarise(n = mean(response)) %>% ggplot(aes(OBS_YEAR, n)) + geom_line()
-  
-}
-
-if (response_variable == "fish_biomass") {
-  
-  load("data/rea/ALL_REA_FISH_RAW.rdata")
-  
-  df = df %>% 
-    subset(REGION == region & ISLAND %in% islands) %>% 
-    mutate(response = ifelse(TAXONNAME == sp, BIOMASS_G_M2, 0)) %>%  
-    # mutate(response = ifelse(TAXONNAME == sp, BIOMASS_G_M2*0.001, 0)) %>%  
-    group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_, DEPTH) %>% 
-    summarise(response = sum(response, na.rm = T))  
-  
-  df %>% ggplot(aes(response)) + geom_histogram() + 
-    df %>% group_by(OBS_YEAR) %>% summarise(n = median(response)) %>% ggplot(aes(OBS_YEAR, n)) + geom_line()
+LOAD_EDS = F
+if(LOAD_EDS) {
+  EDS = read.csv("M:/Environmental Data Summary/Outputs/Survey_Master_Timeseries_2021-02-27.csv")
 } 
-
-if (response_variable == "trophic_biomass") {
-  
-  load("data/rea/ALL_REA_FISH_RAW_SST.RData")
-  df[df == -9991] <- NA
-  
-  if (sp == "TOTAL") {
-    
-    df = df %>% 
-      subset(REGION == region & ISLAND %in% islands) %>% 
-      mutate(response = ifelse(TROPHIC_MONREP %in% c("PISCIVORE", "PLANKTIVORE", "PRIMARY", "SECONDARY"), BIOMASS_G_M2*0.001, 0)) %>%  
-      group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE) %>% 
-      summarise(response = sum(response, na.rm = T), 
-                depth = mean(DEPTH, na.rm = T),
-                temp = mean(mean_SST_CRW_Daily_DY01, na.rm = T))  %>% 
-      na.omit()
-    
-  } else {
-    
-    df = df %>% 
-      subset(REGION == region & ISLAND %in% islands) %>% 
-      mutate(response = ifelse(TROPHIC_MONREP == sp, BIOMASS_G_M2*0.001, 0)) %>%  
-      group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE) %>% 
-      summarise(response = sum(response, na.rm = T), 
-                depth = mean(DEPTH, na.rm = T),
-                temp = mean(mean_SST_CRW_Daily_DY01, na.rm = T))  %>% 
-      na.omit()
-    
-  }
-  
-  df %>% ggplot(aes(response)) + geom_histogram() + 
-    df %>% group_by(OBS_YEAR) %>% summarise(n = median(response)) %>% ggplot(aes(OBS_YEAR, n)) + geom_line()
-  
-}
 
 if (response_variable == "coral_cover") {
   
@@ -158,7 +68,7 @@ if (response_variable == "coral_cover") {
                  EDS[,
                      c(which(names(EDS)=="SITEVISITID"),
                        which(names(EDS)=="DHW.Np10y_Degree_Heating_Weeks_MO03"):length(names(EDS)))
-                     ],
+                 ],
                  by="SITEVISITID",)
   }
   # hist(df$response, main = paste0(sp, "_cover"))
@@ -175,13 +85,14 @@ if (response_variable == "coral_density") {
   df = df %>% 
     subset(REGION == region & ISLAND %in% islands) %>% 
     mutate( DEPTH = ifelse(DEPTH_e == 0, DEPTH_e*-1 + 0.1, DEPTH_e*-1),  
-            MN_DEPTH_M = mean(c(MIN_DEPTH_M,MAX_DEPTH_M),na.rm=T)) %>%  
-    group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_, DEPTH) %>% 
+            MN_DEPTH_M = (MIN_DEPTH_M + MAX_DEPTH_M)/2) %>%  
+    group_by(LONGITUDE, LATITUDE, OBS_YEAR) %>% 
     summarise(response = mean(response, na.rm = T), 
               depth = mean(DEPTH, na.rm = T),
-              mn_depth_m = mean(MN_DEPTH_M,na.rm=T))
+              mn_depth_m = mean(MN_DEPTH_M, na.rm = T))
   
   hist(df$response, main = paste0(sp, "_coral_density"),30)
+  
 }
 
 # north-south gradient
@@ -198,26 +109,29 @@ df = cbind(df, xy_utm)
 
 #Read in Island Boundaries
 #"T:/Common/Maps/Island/islands"
-ISL_bounds=readOGR(dsn="T:/Common/Maps/Island",
-                   layer = "islands")
-crs(ISL_bounds)="+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
+ISL_bounds = readOGR(dsn = "T:/Common/Maps/Island", layer = "islands")
+crs(ISL_bounds) = "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
 
-ISL_this=ISL_bounds[which(ISL_bounds$ISLAND%in%toupper(islands)),]
-ISL_this_utm=spTransform(ISL_this,CRS(paste0("+proj=utm +units=km +zone=",zone)))
-ISL_this_sf=st_transform(st_as_sf(ISL_this),crs=paste0("+proj=utm +units=km +zone=",zone))
+ISL_this = ISL_bounds[which(ISL_bounds$ISLAND %in% toupper(islands)),]
+ISL_this_utm = spTransform(ISL_this,CRS(paste0("+proj=utm +units=km +zone=",zone)))
+ISL_this_sf = st_transform(st_as_sf(ISL_this), crs = paste0("+proj=utm +units=km +zone=",zone))
 
 #n_knots = 300 
-#rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search")
-dists=2#c(5,1,.25)
-PLOT_ALONG=T
+rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search")
+rea_spde <- make_mesh(df, c("X", "Y"), cutoff  = n_knots, type = "cutoff") # predefined
+
+dists = 2#c(5,1,.25)
+PLOT_ALONG = T
+
 for (disti in 1:length(dists)){
-#  rea_spde <- make_mesh(df, c("X", "Y"), cutoff = dists[disti], type = "cutoff") 
+  
+  # rea_spde <- make_mesh(df, c("X", "Y"), cutoff = dists[disti], type = "cutoff") 
   n_knots = 100
   rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search")
   (rea_spde$mesh$n)
   
   #build barrier to mesh
-  rea_spde_coast=add_barrier_mesh(rea_spde,ISL_this_sf)
+  rea_spde_coast = add_barrier_mesh(rea_spde,ISL_this_sf)
   
   #Build potential covariates
   df$year = df$OBS_YEAR
@@ -242,7 +156,6 @@ for (disti in 1:length(dists)){
     plot(df$mn_depth_m, df$response_beta, pch = 20, bty = "n")
     #plot(df$mean_SST_CRW_Daily_YR03, df$response, pch = 20, bty = "n")
   }
-  
   
   obs_year = unique(df$year)
   full_year = seq(min(df$year), max(df$year), by = 1)
@@ -285,11 +198,11 @@ for (disti in 1:length(dists)){
   m_p = m_p[,c("response_beta", "est")]
   m_p$back_est=inv.logit(m_p$est)
   m_p$back_abs_res=inv.logit(abs(df$residuals))
-
+  
   #  extract some parameter estimates
   # sd <- as.data.frame(summary(TMB::sdreport(density_model$tmb_obj)))
   # r <- density_model$tmb_obj$report()
-   
+  
   if(PLOT_ALONG){
     qqnorm(df$residuals, ylim = c(-5, 5), xlim = c(-5, 5), bty = "n", pch = 20);abline(a = 0, b = 1)
     
@@ -400,7 +313,7 @@ for (disti in 1:length(dists)){
                area = 0.0081)
   p$data$back_est=inv.logit(p$data$est)
   hist(p$data$back_est)
-
+  
   ggplot(p$data,aes(X,Y,color=back_est))+geom_point()+facet_wrap("year")
   
   #Prep for Output
