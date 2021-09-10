@@ -346,7 +346,6 @@ for (isl in 1:length(islands)){
 }
 
 save(isl_power, file = paste0('outputs/rmse_power_results_', Sys.Date(), '.RData'))
-load(paste0('outputs/rmse_power_results_', Sys.Date(), '.RData'))
 load(paste0('outputs/rmse_power_results_2021-08-23.RData'))
 
 load("data/survey_effort_MHI_2014-2019.RData")
@@ -386,8 +385,18 @@ downscaled_strata = isl_power %>%
   as.data.frame() %>% 
   select(isl, downscaled)
   rename(strata = downscaled)
-
+  
+  reduced_strata = isl_power %>% 
+    subset(design == "downscaled_alt") %>%
+    group_by(design, isl) %>% 
+    summarise(reduced = mean(strata)) %>% 
+    as.data.frame() %>% 
+    select(isl, reduced)
+  rename(strata = downscaled)
+  
 strata_num = merge(downscaled_strata, traditional_strata)
+strata_num = merge(strata_num, reduced_strata)
+
 
 isl_power %>% 
   mutate(RMSE = as.numeric(RMSE)) %>% 
@@ -397,15 +406,17 @@ isl_power %>%
   facet_wrap(sp ~ isl, scales = "free_y", ncol = 7) +
   ggnewscale::new_scale_color() +
   geom_vline(aes(xintercept = sites, color = effort), data = efforts) +
-  # scale_y_log10()
-  scale_x_log10(breaks = trans_breaks('log10', function(x) 10^x),
-                labels = trans_format('log10', math_format(10^.x))) +
-  scale_y_log10(breaks = trans_breaks('log10', function(x) 10^x),
-                labels = trans_format('log10', math_format(10^.x))) + 
+  scale_y_log10() + 
+  scale_x_log10() + 
+  # scale_x_log10(breaks = trans_breaks('log10', function(x) 10^x),
+  #               labels = trans_format('log10', math_format(10^.x))) +
+  # scale_y_log10(breaks = trans_breaks('log10', function(x) 10^x),
+  #               labels = trans_format('log10', math_format(10^.x))) + 
   geom_text(data = strata_num,
             aes(label = paste0("\n d=", downscaled, "\n t=", traditional)),
             x = -Inf, y = -Inf,
             hjust = -0.1,
             vjust = -0.2,
-            size = 3)
+            size = 3) + 
+  theme_classic()
 
