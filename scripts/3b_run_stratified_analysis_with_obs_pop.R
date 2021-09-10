@@ -193,12 +193,12 @@ strat_table = strat_det %>% dplyr::select(strat, strat_sets); strat_table
 if (design == "downscaled_alt") {
   
   # randomly drop some of tom's zones then allocate sampling units by area
-  strat_det$weight = strat_det$strat_area * strat_det$sd; strat_det
+  strat_det$drop = rbinom(length(unique(strat_det$strat)), 1, prob = 2/3); strat_det
+  # strat_det$drop = rbinom(length(unique(strat_det$strat)), 1, prob = strat_det$weight); strat_det
+  strat_det$weight = strat_det$strat_area * strat_det$sd * strat_det$drop; strat_det
   strat_det$weight = (strat_det$weight - min(strat_det$weight)) / (max(strat_det$weight)-min(strat_det$weight)); strat_det
   strat_det$strat_sets = round((total_sample * strat_det$weight) / sum(strat_det$weight), 0); strat_det
-  strat_det$drop = rbinom(length(unique(strat_det$strat)), 1, prob = strat_det$weight); strat_det
-  strat_det$weight = ifelse(strat_det$drop == 0, 0, strat_det$weight); strat_det
-  strat_det$strat_sets = round((total_sample * strat_det$weight) / sum(strat_det$weight), 0); strat_det
+  # strat_det$weight = ifelse(strat_det$drop == 0, 0, strat_det$weight); strat_det
   strat_table = strat_det %>% dplyr::select(strat, strat_sets); strat_table
   
 }
