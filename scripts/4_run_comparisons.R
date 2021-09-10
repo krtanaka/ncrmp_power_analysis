@@ -29,16 +29,17 @@ for (isl in 1:length(islands)){
   
   print(island)
   
-  design = c("traditional", "downscaled")
+  design = c("traditional", "downscaled", "downscaled_alt")
   
   power = NULL
   
   for (ds in 1:length(design)) {
     
-    # ds = 1
+    # ds = 3
     
     if (design[ds] == "traditional") load(paste0("data/survey_grid_w_sector_reef/survey_grid_", island, ".RData")) #survey domain with sector & reef & depth_bins
     if (design[ds] == "downscaled") load(paste0("data/survey_grid_w_zones/fish/survey_grid_", island, ".RData")) #survey domain with tom's downscaled zones
+    if (design[ds] == "downscaled_alt") load(paste0("data/survey_grid_w_zones_alt/fish/survey_grid_", island, ".RData")) #survey domain with tom's downscaled zones
     
     # bring in sim$ as a place holder
     sim = sim_abundance(years = 2000:2020, ages = 1:2) %>% sim_distribution(grid = survey_grid_kt)
@@ -144,6 +145,20 @@ for (isl in 1:length(islands)){
         strat_det$strat_sets = round((total_sample * strat_det$weight) / sum(strat_det$weight), 0); strat_det
         # strat_det$strat_sets = round((total_sample * strat_det$strat_area) / sum(strat_det$strat_area), 0); strat_det
         strat_det$strat_sets[strat_det$strat_sets < min_sets] <- min_sets; strat_det # make sure minimum number of sets per strat is not 0 or 1
+        strat_table = strat_det %>% dplyr::select(strat, strat_sets); strat_table
+        
+        if (design == "downscaled_alt") {
+          
+          # randomly drop some of tom's zones then allocate sampling units by area
+          strat_det$drop = rbinom(length(unique(strat_det$strat)), 1, prob = 2/3); strat_det
+          # strat_det$drop = rbinom(length(unique(strat_det$strat)), 1, prob = strat_det$weight); strat_det
+          strat_det$weight = strat_det$strat_area * strat_det$sd * strat_det$drop; strat_det
+          strat_det$weight = (strat_det$weight - min(strat_det$weight)) / (max(strat_det$weight)-min(strat_det$weight)); strat_det
+          strat_det$strat_sets = round((total_sample * strat_det$weight) / sum(strat_det$weight), 0); strat_det
+          # strat_det$weight = ifelse(strat_det$drop == 0, 0, strat_det$weight); strat_det
+          strat_table = strat_det %>% dplyr::select(strat, strat_sets); strat_table
+          
+        }
         
         cells <- merge(cells, strat_det, by = c("strat")) # add "strat" "strat_cells" "tow_area" ...
         
