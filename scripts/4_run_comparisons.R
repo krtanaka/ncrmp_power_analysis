@@ -335,7 +335,7 @@ for (isl in 1:length(islands)){
     ds_sp$strata = length(unique(sim$grid_xy$strat))
     
     power = rbind(ds_sp, power)
-
+    
     
   }
   
@@ -346,7 +346,7 @@ for (isl in 1:length(islands)){
 }
 
 save(isl_power, file = paste0('outputs/rmse_power_results_', Sys.Date(), '.RData'))
-load(paste0('outputs/rmse_power_results_2021-08-23.RData'))
+load(paste0('outputs/rmse_power_results_2021-09-10.RData'))
 
 load("data/survey_effort_MHI_2014-2019.RData")
 
@@ -376,7 +376,7 @@ traditional_strata = isl_power %>%
   summarise(traditional = mean(strata)) %>% 
   as.data.frame() %>% 
   select(isl, traditional)
-  rename(strata = traditional)
+rename(strata = traditional)
 
 downscaled_strata = isl_power %>% 
   subset(design == "downscaled") %>%
@@ -384,39 +384,41 @@ downscaled_strata = isl_power %>%
   summarise(downscaled = mean(strata)) %>% 
   as.data.frame() %>% 
   select(isl, downscaled)
-  rename(strata = downscaled)
-  
-  reduced_strata = isl_power %>% 
-    subset(design == "downscaled_alt") %>%
-    group_by(design, isl) %>% 
-    summarise(reduced = mean(strata)) %>% 
-    as.data.frame() %>% 
-    select(isl, reduced)
-  rename(strata = downscaled)
-  
+rename(strata = downscaled)
+
+reduced_strata = isl_power %>% 
+  subset(design == "downscaled_alt") %>%
+  group_by(design, isl) %>% 
+  summarise(reduced = mean(strata)) %>% 
+  as.data.frame() %>% 
+  select(isl, reduced)
+rename(strata = downscaled)
+
 strata_num = merge(downscaled_strata, traditional_strata)
 strata_num = merge(strata_num, reduced_strata)
 
-
-isl_power %>% 
+isl_power %>%
+  # subset(isl == "Oahu") %>% 
+  # subset(sp == "PISCIVORE") %>% 
   mutate(RMSE = as.numeric(RMSE)) %>% 
   ggplot() + 
   geom_smooth(aes(N, RMSE, color = design)) +
-  geom_point(aes(N, RMSE, color = design)) + 
-  facet_wrap(sp ~ isl, scales = "free_y", ncol = 7) +
+  # geom_hex(aes(N, RMSE, fill = design), alpha = 0.2) +
+  geom_point(aes(N, RMSE, color = design), alpha = 0.2) +
+  # facet_wrap(sp ~ isl, scales = "free_y", ncol = 7) +
   ggnewscale::new_scale_color() +
-  geom_vline(aes(xintercept = sites, color = effort), data = efforts) +
-  scale_y_log10() + 
-  scale_x_log10() + 
-  # scale_x_log10(breaks = trans_breaks('log10', function(x) 10^x),
-  #               labels = trans_format('log10', math_format(10^.x))) +
-  # scale_y_log10(breaks = trans_breaks('log10', function(x) 10^x),
-  #               labels = trans_format('log10', math_format(10^.x))) + 
-  geom_text(data = strata_num,
-            aes(label = paste0("\n d=", downscaled, "\n t=", traditional)),
-            x = -Inf, y = -Inf,
-            hjust = -0.1,
-            vjust = -0.2,
-            size = 3) + 
-  theme_classic()
+  # geom_vline(aes(xintercept = sites, color = effort), data = efforts) +
+  # scale_y_log10() + 
+  # scale_x_log10() + 
+  scale_x_log10(breaks = trans_breaks('log10', function(x) 10^x),
+                labels = trans_format('log10', math_format(10^.x))) +
+  scale_y_log10(breaks = trans_breaks('log10', function(x) 10^x),
+                labels = trans_format('log10', math_format(10^.x))) +
+  # geom_text(data = strata_num,
+  #           aes(label = paste0("\n d=", downscaled, "\n t=", traditional, "\n r=,", reduced)),
+  #           x = -Inf, y = -Inf,
+  #           hjust = -0.1,
+  #           vjust = -0.2,
+  #           size = 3) + 
+  theme_minimal()
 
