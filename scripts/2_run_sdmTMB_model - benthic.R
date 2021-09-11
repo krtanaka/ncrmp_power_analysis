@@ -47,21 +47,23 @@ if(LOAD_EDS) {
 if (response_variable == "coral_cover") {
   
   load("data/rea/BenthicCover_2010-2020_Tier1_SITE_MHI_w_CRM.RData") #live coral cover, only for MHI, with CRM_Bathy data
+  
   df$LONGITUDE360=df$LONGITUDE
   df$LONGITUDE=df$LONGITUDE360-180
   df$MAX_DEPTH_M=SURVEY_MASTER$new_MAX_DEPTH_M[match(df$SITEVISITID,SURVEY_MASTER$SITEVISITID)]
   df$MIN_DEPTH_M=SURVEY_MASTER$new_MIN_DEPTH_M[match(df$SITEVISITID,SURVEY_MASTER$SITEVISITID)]
   df$MN_DEPTH_M=apply(df[,c("MIN_DEPTH_M","MAX_DEPTH_M")],1,mean,na.rm=T)
+  
   df = df %>% 
     subset(REGION == region & ISLAND %in% islands) %>% 
-    mutate(response = CORAL,
-           DEPTH = ifelse(DEPTH_e == 0, DEPTH_e*-1 + 0.1, DEPTH_e*-1)) %>%   
-    group_by(SITEVISITID,LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE_, DEPTH) %>% 
+    mutate(response = CORAL) %>%   
+    group_by(SITEVISITID, LONGITUDE, LATITUDE, ISLAND, OBS_YEAR) %>% 
     summarise(response = median(response, na.rm = T),
               n = n(),
-              mn_depth_m = mean(MN_DEPTH_M,na.rm=T)) %>% 
-    subset(!is.na(mn_depth_m))
-  df$response_beta = SmithsonVerkuilen2006(df$response/100)
+              depth = mean(MN_DEPTH_M,na.rm=T)) %>% 
+    subset(!is.na(depth))
+  
+  df$response = SmithsonVerkuilen2006(df$response/100)
   
   if(LOAD_EDS){
     df=left_join(df,
@@ -84,30 +86,31 @@ if (response_variable == "coral_density") {
   
   df = df %>% 
     subset(REGION == region & ISLAND %in% islands) %>% 
-    mutate( DEPTH = ifelse(DEPTH_e == 0, DEPTH_e*-1 + 0.1, DEPTH_e*-1),  
-            MN_DEPTH_M = (MIN_DEPTH_M + MAX_DEPTH_M)/2) %>%  
-    group_by(LONGITUDE, LATITUDE, OBS_YEAR) %>% 
+    mutate(
+      # DEPTH = ifelse(DEPTH_e == 0, DEPTH_e*-1 + 0.1, DEPTH_e*-1),  
+      depth = (MIN_DEPTH_M + MAX_DEPTH_M)/2) %>%  
+    group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR) %>% 
     summarise(response = mean(response, na.rm = T), 
-              depth = mean(DEPTH, na.rm = T),
-              mn_depth_m = mean(MN_DEPTH_M, na.rm = T))
+              depth = mean(depth, na.rm = T))
   
   hist(df$response, main = paste0(sp, "_coral_density"),30)
-  
+  plot(df$depth, df$response, pch = 20)
+
 }
 
 # north-south gradient
-# df %>% 
-#   group_by(ISLAND) %>% 
-#   summarise(n = mean(response, na.rm = T),
-#             lat = mean(LATITUDE)) %>% 
-#   arrange(desc(lat)) 
+df %>%
+  group_by(ISLAND) %>%
+  summarise(n = mean(response, na.rm = T),
+            lat = mean(LATITUDE)) %>%
+  arrange(desc(lat))
 
 zone <- (floor((df$LONGITUDE[1] + 180)/6) %% 60) + 1
 xy_utm = as.data.frame(cbind(utm = project(as.matrix(df[, c("LONGITUDE", "LATITUDE")]), paste0("+proj=utm +units=km +zone=", zone))))
 colnames(xy_utm) = c("X", "Y")
 df = cbind(df, xy_utm)
 
-#Read in Island Boundaries
+# Read in Island Boundaries
 #"T:/Common/Maps/Island/islands"
 ISL_bounds = readOGR(dsn = "T:/Common/Maps/Island", layer = "islands")
 crs(ISL_bounds) = "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
@@ -116,9 +119,9 @@ ISL_this = ISL_bounds[which(ISL_bounds$ISLAND %in% toupper(islands)),]
 ISL_this_utm = spTransform(ISL_this,CRS(paste0("+proj=utm +units=km +zone=",zone)))
 ISL_this_sf = st_transform(st_as_sf(ISL_this), crs = paste0("+proj=utm +units=km +zone=",zone))
 
-#n_knots = 300 
-rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search")
-rea_spde <- make_mesh(df, c("X", "Y"), cutoff  = n_knots, type = "cutoff") # predefined
+n_knots = 300
+# rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search")
+# rea_spde <- make_mesh(df, c("X", "Y"), cutoff  = n_knots, type = "cutoff") # predefined
 
 dists = 2#c(5,1,.25)
 PLOT_ALONG = T
@@ -126,20 +129,22 @@ PLOT_ALONG = T
 for (disti in 1:length(dists)){
   
   # rea_spde <- make_mesh(df, c("X", "Y"), cutoff = dists[disti], type = "cutoff") 
-  n_knots = 100
+  n_knots = 300
   rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search")
   (rea_spde$mesh$n)
   
   #build barrier to mesh
-  rea_spde_coast = add_barrier_mesh(rea_spde,ISL_this_sf)
+  rea_spde_coast = add_barrier_mesh(rea_spde , ISL_this_sf)
   
   #Build potential covariates
   df$year = df$OBS_YEAR
-  df$depth_scaled = scale(log(df$DEPTH))
+  df$depth_scaled = scale(log(df$depth))
   df$depth_scaled2 = df$depth_scaled ^ 2
   
   if(PLOT_ALONG){
+    
     (rea_spde_coast$mesh$n)
+    
     dev.off()
     #par(mfrow = c(2,2))
     #plot(xy_utm, pch = ".", bty = 'n')
@@ -153,7 +158,7 @@ for (disti in 1:length(dists)){
     points(rea_spde_coast$mesh_sf$V1[bar_i],rea_spde_coast$mesh_sf$V2[bar_i],col="red",pch=4,cex=.5)
     points(rea_spde_coast$mesh_sf$V1[norm_i],rea_spde_coast$mesh_sf$V2[norm_i],col="green",pch=1,cex=.5)
     
-    plot(df$mn_depth_m, df$response_beta, pch = 20, bty = "n")
+    plot(df$depth, df$response, pch = 20, bty = "n")
     #plot(df$mean_SST_CRW_Daily_YR03, df$response, pch = 20, bty = "n")
   }
   
@@ -162,14 +167,16 @@ for (disti in 1:length(dists)){
   missing_year = setdiff(full_year, obs_year)
   missing_year = as.integer(missing_year);missing_year
   
+  df = df %>% na.omit()
+  
   density_model <- sdmTMB(
     
     data = df, 
     
     # formula = response ~ 1,
-    formula = response_beta ~ as.factor(year) + s(mn_depth_m,k=5),
+    # formula = response_beta ~ as.factor(year) + s(mn_depth_m,k=5),
     # formula = response ~ as.factor(year) + depth_scaled + depth_scaled2,
-    # formula = response ~ as.factor(year) + s(depth, k=3),
+    formula = response ~ as.factor(year) + s(depth, k=5),
     # formula = response ~ as.factor(year) + s(depth, k=5) + s(temp, k=5),
     # formula = response ~ as.factor(year) + s(temp, k=5) + s(depth, k=5) + depth_scaled + depth_scaled2,
     silent = F, 
@@ -195,7 +202,7 @@ for (disti in 1:length(dists)){
   
   df$residuals <- residuals(density_model)
   m_p <- predict(density_model);
-  m_p = m_p[,c("response_beta", "est")]
+  m_p = m_p[,c("response", "est")]
   m_p$back_est=inv.logit(m_p$est)
   m_p$back_abs_res=inv.logit(abs(df$residuals))
   
@@ -204,6 +211,7 @@ for (disti in 1:length(dists)){
   # r <- density_model$tmb_obj$report()
   
   if(PLOT_ALONG){
+    
     qqnorm(df$residuals, ylim = c(-5, 5), xlim = c(-5, 5), bty = "n", pch = 20);abline(a = 0, b = 1)
     
     p1 = ggplot(df, aes_string("X", "Y", color = "residuals")) +
@@ -214,7 +222,7 @@ for (disti in 1:length(dists)){
       scale_color_gradient2() 
     
     p2 = m_p  %>% 
-      ggplot(aes(response_beta*100, back_est*100)) + 
+      ggplot(aes(response*100, back_est*100)) + 
       geom_point(alpha = 0.2,aes(size=back_abs_res),color="black") + 
       coord_fixed(ratio = 1) +
       ylab("prediction") + 
@@ -223,6 +231,7 @@ for (disti in 1:length(dists)){
       geom_smooth(method = "lm", se = T)
     
     p1 / p2
+  
   }
   
   
@@ -244,21 +253,26 @@ for (disti in 1:length(dists)){
   
   grid_year = NULL
   years = sort(as.vector(unique(df$year)))
+  
   # only depth covariate
-  for (y in 1:length(years)) {# y = 1
+  for (y in 1:length(years)) {
+    
+    # y = 1
     grid_y = grid[,c("X", "Y", "Topography")]
-    colnames(grid_y)[3] = "mn_depth_m"
+    colnames(grid_y)[3] = "depth"
     grid_y = grid_y %>% 
       group_by(X,Y) %>% 
-      summarise(mn_depth_m = mean(mn_depth_m)*-1)
+      summarise(depth = mean(depth)*-1)
     grid_y$year = years[[y]]
     grid_year = rbind(grid_year, grid_y)
+  
   }
-  dsc=scale(log(grid_year$mn_depth_m+0.0001))
+  
+  dsc = scale(log(grid_year$mn_depth_m+0.0001))
   grid_year$depth_scaled = dsc
   grid_year$depth_scaled2 = grid_year$depth_scaled ^ 2
   
-  ggplot(grid_year,aes(X,Y,color=mn_depth_m))+geom_point()+facet_wrap("year")
+  ggplot(grid_year, aes(X, Y, color = depth)) + geom_point() + facet_wrap("year")
   
   #explore effects
   select_sites=sample(nrow(df),10)
@@ -299,10 +313,7 @@ for (disti in 1:length(dists)){
   pb=ggplot(eff,aes(x=mn_depth_m,back_est*100))+geom_point()+facet_wrap('year')+stat_smooth(method="loess")           
   pa/pb
   
-  
-  
-  
-  pc=ggplot(eff,aes(X,Y,color=100*back_est))+
+    pc=ggplot(eff,aes(X,Y,color=100*back_est))+
     geom_point(size=1)+
     scale_color_gradient(low="lightblue",high="red")+
     coord_equal()+theme_bw()+facet_wrap('year')
@@ -314,7 +325,12 @@ for (disti in 1:length(dists)){
   p$data$back_est=inv.logit(p$data$est)
   hist(p$data$back_est)
   
-  ggplot(p$data,aes(X,Y,color=back_est))+geom_point()+facet_wrap("year")
+  ggplot(p$data,aes(X, Y, fill = back_est)) + 
+    geom_tile(height = 5, width = 5) +
+    facet_wrap("year") + 
+    scale_fill_viridis_c() + 
+    coord_fixed() + 
+    ggdark::dark_theme_minimal()
   
   #Prep for Output
   p$data$sp = sp
