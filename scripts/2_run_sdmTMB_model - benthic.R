@@ -34,7 +34,7 @@ islands = c("Kauai", #1
             "Lanai", #8
             "Molokini", #9
             "Kahoolawe", #10
-            "Hawaii")[5]
+            "Hawaii")[7]
 
 response_variable = "coral_cover";     sp = c("CCA", "CORAL", "EMA", "HAL", "I", "MA", "SC", "SED", "TURF")[2]
 response_variable = "coral_density";   sp = c("AdColDen", "JuvColDen")[1]
@@ -326,7 +326,7 @@ for (disti in 1:length(dists)){
   hist(p$data$back_est)
   
   ggplot(p$data,aes(X, Y, fill = back_est)) + 
-    geom_tile(height = 5, width = 5) +
+    geom_tile(height = 0.5, width = 0.5) +
     facet_wrap("year") + 
     scale_fill_viridis_c() + 
     coord_fixed() + 

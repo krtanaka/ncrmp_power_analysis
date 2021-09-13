@@ -38,7 +38,7 @@ islands = c("Kauai", #1
             "Lanai", #8
             "Molokini", #9
             "Kahoolawe", #10
-            "Hawaii")#[5]
+            "Hawaii")[5]
 
 response_variable = "fish_count";      sp = ifelse(uku_or_not == T, "Aprion virescens", "Chromis vanderbilti")
 response_variable = "fish_biomass";    sp = ifelse(uku_or_not == T, "Aprion virescens", "Acanthurus olivaceus")
@@ -156,6 +156,13 @@ xy_utm = as.data.frame(cbind(utm = project(as.matrix(df[, c("LONGITUDE", "LATITU
 colnames(xy_utm) = c("X", "Y")
 df = cbind(df, xy_utm)
 
+# Read in Island Boundaries
+load('data/MHI_islands_shp.RData')
+crs(ISL_bounds) = "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
+ISL_this = ISL_bounds[which(ISL_bounds$ISLAND %in% toupper(islands)),]
+ISL_this_utm = spTransform(ISL_this,CRS(paste0("+proj=utm +units=km +zone=",zone)))
+ISL_this_sf = st_transform(st_as_sf(ISL_this), crs = paste0("+proj=utm +units=km +zone=",zone))
+
 n_knots = 300
 n_knots = 100 # a coarse mesh for speed
 rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search") # search
@@ -244,7 +251,7 @@ load("data/crm/Topography_NOAA_CRM_vol10_SST_CRW_Monthly.RData") # bathymetry wi
 # topo$x = ifelse(topo$x > 180, topo$x - 360, topo$x)
 
 grid = topo
-grid <- topo %>% subset(x < -157.5 & x > -158.5 & y > 21 & y < 22) #oahu
+grid <- topo %>% subset(x > -156.7 & x < -156.0 & y > 20.58 & y < 21.01) #oahu
 # grid <- topo %>% subset(x < -154.8 & x > -156.2 & y > 18.8 & y < 20.4) #hawaii
 # grid <- topo %>% subset(x < -160.0382 & x > -160.262333 & y > 21.77143 & y < 22.03773) #Niihau
 
@@ -383,7 +390,7 @@ plot_map_raster <- function(dat, column = "est") {
 }
 
 # pick out a single year to plot since they should all be the same for the slopes. Note that these are in log space.
-plot_map_raster(filter(p$data, year == 2015), "zeta_s")
+plot_map_raster(filter(p$data, year == 2019), "zeta_s")
 plot_map_raster(p$data, "exp(est)") + ggtitle("Predicted density (g/sq.m) (fixed effects + all random effects)")
 plot_map_raster(p$data, "exp(est_non_rf)") + ggtitle("Prediction (fixed effects only)")
 plot_map_raster(p$data, "omega_s") + ggtitle("Spatial random effects only")
