@@ -34,7 +34,7 @@ islands = c("Kauai", #1
             "Lanai", #8
             "Molokini", #9
             "Kahoolawe", #10
-            "Hawaii")[7]
+            "Hawaii")#[7]
 
 response_variable = "coral_cover";     sp = c("CCA", "CORAL", "EMA", "HAL", "I", "MA", "SC", "SED", "TURF")[2]
 response_variable = "coral_density";   sp = c("AdColDen", "JuvColDen")[1]
@@ -91,7 +91,8 @@ if (response_variable == "coral_density") {
       depth = (MIN_DEPTH_M + MAX_DEPTH_M)/2) %>%  
     group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR) %>% 
     summarise(response = mean(response, na.rm = T), 
-              depth = mean(depth, na.rm = T))
+              depth = mean(depth, na.rm = T)) %>% 
+    na.omit()
   
   hist(df$response, main = paste0(sp, "_coral_density"),30)
   plot(df$depth, df$response, pch = 20)
@@ -113,6 +114,7 @@ df = cbind(df, xy_utm)
 # Read in Island Boundaries
 #"T:/Common/Maps/Island/islands"
 ISL_bounds = readOGR(dsn = "T:/Common/Maps/Island", layer = "islands")
+load("data/MHI_islands_shp.RData")
 crs(ISL_bounds) = "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
 
 ISL_this = ISL_bounds[which(ISL_bounds$ISLAND %in% toupper(islands)),]
@@ -129,7 +131,7 @@ PLOT_ALONG = T
 for (disti in 1:length(dists)){
   
   # rea_spde <- make_mesh(df, c("X", "Y"), cutoff = dists[disti], type = "cutoff") 
-  n_knots = 300
+  n_knots = 100
   rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search")
   (rea_spde$mesh$n)
   
@@ -175,8 +177,8 @@ for (disti in 1:length(dists)){
     
     # formula = response ~ 1,
     # formula = response_beta ~ as.factor(year) + s(mn_depth_m,k=5),
-    # formula = response ~ as.factor(year) + depth_scaled + depth_scaled2,
-    formula = response ~ as.factor(year) + s(depth, k=5),
+    # formula = response ~ 0 + as.factor(year) + depth_scaled + depth_scaled2,
+    formula = response ~ 0 + as.factor(year) + s(depth),
     # formula = response ~ as.factor(year) + s(depth, k=5) + s(temp, k=5),
     # formula = response ~ as.factor(year) + s(temp, k=5) + s(depth, k=5) + depth_scaled + depth_scaled2,
     silent = F, 
@@ -243,6 +245,7 @@ for (disti in 1:length(dists)){
   # topo$x = ifelse(topo$x > 180, topo$x - 360, topo$x)
   
   grid = topo
+  grid <- topo %>% subset(x >  range(df$LONGITUDE)[1] & x <  range(df$LONGITUDE)[2] & y >  range(df$LATITUDE)[1] & y <  range(df$LATITUDE)[2])
   grid$longitude = grid$x
   grid$latitude = grid$y
   zone <- (floor((grid$longitude[1] + 180)/6) %% 60) + 1
@@ -322,7 +325,7 @@ for (disti in 1:length(dists)){
                newdata = grid_year,
                return_tmb_object = T,
                area = 0.0081)
-  p$data$back_est=inv.logit(p$data$est)
+  p$data$back_est = inv.logit(p$data$est)
   hist(p$data$back_est)
   
   ggplot(p$data,aes(X, Y, fill = back_est)) + 
@@ -331,6 +334,24 @@ for (disti in 1:length(dists)){
     scale_fill_viridis_c() + 
     coord_fixed() + 
     ggdark::dark_theme_minimal()
+  
+  plot_map_raster <- function(dat, column = "est") {
+    
+    ggplot(dat, aes_string("X", "Y", fill = column)) +
+      geom_tile(aes(height = 0.8, width = 0.8), alpha = 0.8) +
+      # geom_raster() +
+      facet_wrap(~year) +
+      coord_fixed() +
+      xlab("Eastings (km)") +
+      ylab("Northings (km)") + 
+      scale_fill_gradientn(colours = matlab.like(100), "") +
+      ggdark::dark_theme_minimal()
+    
+  }
+  
+  # pick out a single year to plot since they should all be the same for the slopes. Note that these are in log space.
+  plot_map_raster(filter(p$data, year == 2019), "zeta_s")
+  plot_map_raster(p$data, "back_est") + ggtitle("Predicted density (fixed effects + all random effects)") 
   
   #Prep for Output
   p$data$sp = sp
