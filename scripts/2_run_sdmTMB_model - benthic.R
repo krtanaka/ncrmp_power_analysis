@@ -34,7 +34,7 @@ islands = c("Kauai", #1
             "Lanai", #8
             "Molokini", #9
             "Kahoolawe", #10
-            "Hawaii")#[7]
+            "Hawaii")[7]
 
 response_variable = "coral_cover";     sp = c("CCA", "CORAL", "EMA", "HAL", "I", "MA", "SC", "SED", "TURF")[2]
 response_variable = "coral_density";   sp = c("AdColDen", "JuvColDen")[1]
