@@ -3,6 +3,7 @@
 ~%2Fncrmp_power_analysis%2Fscripts%2F1_make_survey_domain_strata_w_reef_sector.R="2370E99C"
 ~%2Fncrmp_power_analysis%2Fscripts%2F1_make_survey_domain_strata_w_toms_zones.R="1C4FC3C2"
 ~%2Fncrmp_power_analysis%2Fscripts%2F2_Make_SimSurvey_Grid.R="434F0ED9"
+~%2Fncrmp_power_analysis%2Fscripts%2F2_run_sdmTMB_model%20-%20fish.R="40074C8E"
 ~%2Fncrmp_power_analysis%2Fscripts%2F2_run_sdmTMB_model.R="4136B0B0"
 ~%2Fncrmp_power_analysis%2Fscripts%2F3_Simulate_Spatiotemporal_LMR.R="7E178ADB"
 ~%2Fncrmp_power_analysis%2Fscripts%2F3a_run_stratified_analysis_with_sim_pop.R="4B38D91A"
