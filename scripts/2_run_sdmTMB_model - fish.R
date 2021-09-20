@@ -15,7 +15,7 @@ rm(list = ls())
 # Total numerical density estimates (individuals per 100 m2) were obtained by dividing fish counts in each survey by the survey area (353 m2 from two 15-m diameter survey cylinders) and multiplying by 100. - Nadon et al. 2020
 
 region = "MHI"
-uku_or_not = F
+uku_or_not = T
 
 ## top 5 taxa by abundance or biomass
 # load("data/rea/ALL_REA_FISH_RAW.rdata")
@@ -38,7 +38,7 @@ islands = c("Kauai", #1
             "Lanai", #8
             "Molokini", #9
             "Kahoolawe", #10
-            "Hawaii")[5]
+            "Hawaii")#[5]
 
 response_variable = "fish_count";      sp = ifelse(uku_or_not == T, "Aprion virescens", "Chromis vanderbilti")
 response_variable = "fish_biomass";    sp = ifelse(uku_or_not == T, "Aprion virescens", "Acanthurus olivaceus")
@@ -50,8 +50,8 @@ if (response_variable == "fish_count") {
   
   df = df %>% 
     subset(REGION == region & ISLAND %in% islands) %>% 
-    # mutate(response = ifelse(TAXONNAME == sp, COUNT*100, 0)) %>%  
-    mutate(response = ifelse(TAXONNAME == sp, COUNT, 0)) %>%  
+    # mutate(response = ifelse(TAXONNAME == sp, COUNT*100, 0)) %>%
+    mutate(response = ifelse(TAXONNAME == sp, COUNT, 0)) %>%
     group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR) %>% 
     summarise(response = sum(response, na.rm = T),
               depth = mean(DEPTH, na.rm = T))
@@ -130,7 +130,7 @@ ISL_this = ISL_bounds[which(ISL_bounds$ISLAND %in% toupper(islands)),]
 ISL_this_utm = spTransform(ISL_this,CRS(paste0("+proj=utm +units=km +zone=",zone)))
 ISL_this_sf = st_transform(st_as_sf(ISL_this), crs = paste0("+proj=utm +units=km +zone=",zone))
 
-n_knots = 350
+n_knots = 500
 n_knots = 100 # a coarse mesh for speed
 rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search") # search
 rea_spde <- make_mesh(df, c("X", "Y"), cutoff  = n_knots, type = "cutoff") # predefined
@@ -138,20 +138,17 @@ rea_spde <- make_mesh(df, c("X", "Y"), cutoff  = n_knots, type = "cutoff") # pre
 #build barrier to mesh
 rea_spde_coast = add_barrier_mesh(rea_spde , ISL_this_sf)
 
-plot(rea_spde_coast$mesh,asp=1); axis(1); axis(2)
-plot(ISL_this_utm,add=TRUE)
-points(rea_spde_coast$loc_xy,col="blue",pch=20,cex=1)
-bar_i=rea_spde_coast$barrier_triangles
-norm_i=rea_spde_coast$normal_triangles
-points(rea_spde_coast$spde$mesh$loc[,1],rea_spde_coast$spde$mesh$loc[,2],pch=20,col="black",cex=1.5)
-points(rea_spde_coast$mesh_sf$V1[bar_i],rea_spde_coast$mesh_sf$V2[bar_i],col="red",pch=4,cex=.5)
-points(rea_spde_coast$mesh_sf$V1[norm_i],rea_spde_coast$mesh_sf$V2[norm_i],col="green",pch=1,cex=.5)
-
-
-# png(paste0("outputs/SPDE_mesh_field_", n_knots, ".png"), height = 5, width = 5, units = "in", res = 100)
-par(mfrow = c(2,2))
-plot(xy_utm, pch = ".", bty = 'n')
-plot(rea_spde, pch = ".", bty = "n"); axis(1); axis(2)
+pdf(paste0("outputs/SPDE_mesh_field_", n_knots, ".pdf"), height = 8, width = 8)
+# par(mfrow = c(1,2), pty = 's')
+# plot(xy_utm, pch = ".", bty = 'n')
+plot(rea_spde_coast$mesh, asp = 1, pch = "."); axis(1); axis(2)
+plot(ISL_this_utm, add = TRUE)
+points(rea_spde_coast$loc_xy,col = "green", pch = ".", cex = 5)
+bar_i = rea_spde_coast$barrier_triangles
+norm_i = rea_spde_coast$normal_triangles
+points(rea_spde_coast$spde$mesh$loc[,1], rea_spde_coast$spde$mesh$loc[,2], pch = ".", col = "black")
+points(rea_spde_coast$mesh_sf$V1[bar_i], rea_spde_coast$mesh_sf$V2[bar_i], col = "red", pch = 4, cex = .5)
+points(rea_spde_coast$mesh_sf$V1[norm_i], rea_spde_coast$mesh_sf$V2[norm_i], col = "blue", pch = 1, cex = .5)
 dev.off()
 
 df$year = df$OBS_YEAR
@@ -192,31 +189,37 @@ density_model <- sdmTMB(
   
 )
 
-density_model <- run_extra_optimization(density_model, nlminb_loops = 0, newton_steps = 1)
+beepr::beep(2)
+
+density_model <- run_extra_optimization(density_model, nlminb_loops = 0, newton_steps = 1); beepr::beep(2)
 
 # look at gradients
 max(density_model$gradients)
 
 df$residuals <- residuals(density_model)
-qqnorm(df$residuals, ylim = c(-5, 5), xlim = c(-5, 5), bty = "n", pch = 20);abline(a = 0, b = 1)
+par(pty="s")
+qqnorm(df$residuals, ylim = c(-5, 5), xlim = c(-5, 5), bty = "n", pch = 20); abline(a = 0, b = 1)
 
 m_p <- predict(density_model); m_p = m_p[,c("response", "est")]
+m_p$back_abs_res = abs(df$residuals)
 
 p1 = ggplot(df, aes_string("X", "Y", color = "residuals")) +
   geom_point(alpha = 0.8, size = round(abs(df$residuals), digits = 0)) + 
   # facet_wrap(.~ISLAND, scales = "free") +
   xlab("Eastings") +
   ylab("Northings") + 
-  scale_color_gradient2() 
+  scale_color_gradient2() + 
+  theme_minimal()
 
 p2 = m_p  %>% 
   ggplot(aes(response, exp(est))) + 
-  geom_point(alpha = 0.2) + 
+  geom_point(alpha = 0.2, aes(size = back_abs_res)) + 
   coord_fixed(ratio = 1) +
   ylab("prediction") + 
   xlab("observation") + 
   geom_abline(intercept = 0, slope = 1) +
-  geom_smooth(method = "lm", se = T)
+  geom_smooth(method = "lm", se = T) + 
+  theme_minimal()
 
 p1 / p2
 
@@ -362,7 +365,7 @@ plot_map_raster <- function(dat, column = "est") {
 
 # pick out a single year to plot since they should all be the same for the slopes. Note that these are in log space.
 plot_map_raster(filter(p$data, year == 2019), "zeta_s")
-plot_map_raster(p$data, "exp(est)") + ggtitle("Predicted density (g/sq.m) (fixed effects + all random effects)")
+plot_map_raster(p$data, "est") + ggtitle("Predicted density (g/sq.m) (fixed effects + all random effects)")
 plot_map_raster(p$data, "exp(est_non_rf)") + ggtitle("Prediction (fixed effects only)")
 plot_map_raster(p$data, "omega_s") + ggtitle("Spatial random effects only")
 plot_map_raster(p$data, "epsilon_st") + ggtitle("Spatiotemporal random effects only")
