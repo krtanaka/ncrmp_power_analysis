@@ -402,23 +402,23 @@ isl_power %>%
   # subset(sp == "PISCIVORE") %>% 
   mutate(RMSE = as.numeric(RMSE)) %>% 
   ggplot() + 
-  geom_smooth(aes(N, RMSE, color = design)) +
-  # geom_hex(aes(N, RMSE, fill = design), alpha = 0.2) +
-  geom_point(aes(N, RMSE, color = design), alpha = 0.2) +
-  # facet_wrap(sp ~ isl, scales = "free_y", ncol = 7) +
+  geom_smooth(aes(N, RMSE, color = design), show.legend = T, se = F) +
+  # geom_point(aes(N, RMSE, color = design), alpha = 0.2) +
+  # geom_hex(aes(N, RMSE, color = design, fill = design), alpha = 0.2, bins = 50) +
+  facet_wrap(sp ~ isl, scales = "free_y", ncol = 7) +
   ggnewscale::new_scale_color() +
-  # geom_vline(aes(xintercept = sites, color = effort), data = efforts) +
+  geom_vline(aes(xintercept = sites, color = effort), data = efforts) +
   # scale_y_log10() + 
   # scale_x_log10() + 
   scale_x_log10(breaks = trans_breaks('log10', function(x) 10^x),
-                labels = trans_format('log10', math_format(10^.x))) +
+                labels = trans_format('log10', math_format(10^.x)), "Sampling Efforts") +
   scale_y_log10(breaks = trans_breaks('log10', function(x) 10^x),
-                labels = trans_format('log10', math_format(10^.x))) +
-  # geom_text(data = strata_num,
-  #           aes(label = paste0("\n d=", downscaled, "\n t=", traditional, "\n r=,", reduced)),
-  #           x = -Inf, y = -Inf,
-  #           hjust = -0.1,
-  #           vjust = -0.2,
-  #           size = 3) + 
+                labels = trans_format('log10', math_format(10^.x)), "RMSE") +
+  geom_text(data = strata_num,
+            aes(label = paste0("\n d=", downscaled, "\n t=", traditional, "\n r=,", reduced)),
+            x = -Inf, y = -Inf,
+            hjust = -0.1,
+            vjust = -0.2,
+            size = 3) +
   theme_minimal()
 
