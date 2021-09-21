@@ -29,7 +29,7 @@ for (isl in 1:length(islands)){
   
   print(island)
   
-  design = c("traditional", "downscaled", "downscaled_alt")
+  design = c("traditional", "downscaled", "downscaled_alt")[1:2]
   
   power = NULL
   
@@ -350,6 +350,10 @@ load(paste0('outputs/rmse_power_results_2021-09-10.RData'))
 
 load("data/survey_effort_MHI_2014-2019.RData")
 
+# these numbers are from "plot_REA_survey_efforts.R"
+survey_effort_MHI_year = data.frame(Year = c("2013", "2016", "2019"),
+                                    N = c(498, 400, 487))
+
 low = survey_effort_MHI %>%
   select(ISLAND, low) %>% 
   rename(isl = ISLAND, 
@@ -381,44 +385,48 @@ rename(strata = traditional)
 downscaled_strata = isl_power %>% 
   subset(design == "downscaled") %>%
   group_by(design, isl) %>% 
-  summarise(downscaled = mean(strata)) %>% 
+  summarise(zones = mean(strata)) %>% 
   as.data.frame() %>% 
-  select(isl, downscaled)
+  select(isl, zones)
 rename(strata = downscaled)
 
 reduced_strata = isl_power %>% 
   subset(design == "downscaled_alt") %>%
   group_by(design, isl) %>% 
-  summarise(reduced = mean(strata)) %>% 
+  summarise(triage = mean(strata)) %>% 
   as.data.frame() %>% 
-  select(isl, reduced)
+  select(isl, triage)
 rename(strata = downscaled)
 
 strata_num = merge(downscaled_strata, traditional_strata)
 strata_num = merge(strata_num, reduced_strata)
+
+isl_power$design = ifelse(isl_power$design == "downscaled", "zone-based", isl_power$design)
+isl_power$design = ifelse(isl_power$design == "downscaled_alt", "zone-triaged", isl_power$design)
 
 isl_power %>%
   # subset(isl == "Oahu") %>% 
   # subset(sp == "PISCIVORE") %>% 
   mutate(RMSE = as.numeric(RMSE)) %>% 
   ggplot() + 
-  geom_smooth(aes(N, RMSE, color = design), show.legend = T, se = F) +
+  geom_smooth(aes(N, RMSE, color = design), show.legend = T, se = T) +
   # geom_point(aes(N, RMSE, color = design), alpha = 0.2) +
   # geom_hex(aes(N, RMSE, color = design, fill = design), alpha = 0.2, bins = 50) +
-  facet_wrap(sp ~ isl, scales = "free_y", ncol = 7) +
+  # facet_wrap(sp ~ isl, scales = "free_y", ncol = 7) +
   ggnewscale::new_scale_color() +
-  geom_vline(aes(xintercept = sites, color = effort), data = efforts) +
+  # geom_vline(aes(xintercept = sites, color = effort), data = efforts) +
+  geom_vline(aes(xintercept = N, color = Year), data = survey_effort_MHI_year) +
   # scale_y_log10() + 
   # scale_x_log10() + 
-  scale_x_log10(breaks = trans_breaks('log10', function(x) 10^x),
-                labels = trans_format('log10', math_format(10^.x)), "Sampling Efforts") +
-  scale_y_log10(breaks = trans_breaks('log10', function(x) 10^x),
-                labels = trans_format('log10', math_format(10^.x)), "RMSE") +
-  geom_text(data = strata_num,
-            aes(label = paste0("\n d=", downscaled, "\n t=", traditional, "\n r=,", reduced)),
-            x = -Inf, y = -Inf,
-            hjust = -0.1,
-            vjust = -0.2,
-            size = 3) +
+  # scale_x_log10(breaks = trans_breaks('log10', function(x) 10^x),
+  #               labels = trans_format('log10', math_format(10^.x)), "Sampling Efforts") +
+  # scale_y_log10(breaks = trans_breaks('log10', function(x) 10^x),
+  #               labels = trans_format('log10', math_format(10^.x)), "RMSE") +
+  # geom_text(data = strata_num,
+  #           aes(label = paste0("\n d=", downscaled, "\n t=", traditional, "\n r=,", reduced)),
+  #           x = -Inf, y = -Inf,
+  #           hjust = -0.1,
+  #           vjust = -0.2,
+  #           size = 3) +
   theme_minimal()
 

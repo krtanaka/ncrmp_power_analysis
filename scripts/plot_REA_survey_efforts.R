@@ -63,10 +63,11 @@ p2 = df %>%
 p1 + p2
 
 survey_effort_MHI = df %>% 
-  subset(OBS_YEAR %in% c(2013, 2016, 2019)) %>% 
-  group_by(ISLAND, OBS_YEAR) %>% 
+  subset(OBS_YEAR %in% c(2013, 2016, 2019)) %>%
+  # group_by(ISLAND, OBS_YEAR) %>%
+  group_by(OBS_YEAR) %>%
   summarise(n = n()) %>% 
-  group_by(ISLAND) %>% 
+  group_by(ISLAND) %>%
   summarise(high = quantile(n, probs = 0.75),
             median = median(n),
             low = quantile(n, probs = 0.25)) %>% 
