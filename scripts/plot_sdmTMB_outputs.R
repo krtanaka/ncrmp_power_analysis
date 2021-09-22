@@ -75,4 +75,4 @@ trend = trophic %>%
   theme(legend.position = "right")
 
 library(patchwork)
-change/map
+change/map/trend
