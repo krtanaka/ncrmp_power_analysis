@@ -13,37 +13,47 @@ for (i in 3:6) {
   load(paste0("outputs/", list[i]))
   sp = strsplit(list[i], split = "_")[[1]][3]; sp
   response_scale = strsplit(list[i], split = "_")[[1]][4]; response_scale
-  
-  # replace sim$ with sdmTMB outputs  -----------------------------------------
-  
-  # Need to match sim and sdm
-  sdm = sdm_output[,c("X", "Y", "longitude", "latitude", "year", "est" )]; rm(sdm_output)
+  sdm = sdm_output[,c("X", "Y", "longitude", "latitude", "year", "est", "zeta_s")]; rm(sdm_output)
   colnames(sdm)[1:2] = c("x", "y")
   sdm$est = exp(sdm$est); hist(sdm$est);summary(sdm$est)
-  # sdm$est = sdm$est*(res(survey_grid_kt)[1] * res(survey_grid_kt)[2]*1000000); hist(sdm$est); summary(sdm$est) # convert g/sq.m to q/ whatever given cell size
-  
-  
   sdm$sp = sp
-  
   trophic = rbind(trophic, sdm)
   
 }
 
+
+change = trophic %>% 
+  subset(year == 2006) %>% 
+  group_by(x, y, sp) %>% 
+  summarise(est = mean(zeta_s)) %>%  
+  ggplot(aes(x, y, fill = est, color = est)) + 
+  # geom_tile(height = 0.8, width = 0.8) +
+  geom_point(alpha = 0.5, size = 0.5) + 
+  coord_fixed() + 
+  facet_grid(~ sp) + 
+  ylab("Northings (km)") + 
+  xlab("Eastings (km)") + 
+  scale_fill_gradient2("Linear trend") +
+  scale_color_gradient2("Linear trend") +
+  # ggdark::dark_theme_minimal() +
+  theme_pubr() + 
+  theme(legend.position = "right")
+
 map = trophic %>% 
   group_by(x, y, sp) %>% 
   summarise(est = median(est)) %>%  
-  ggplot(aes(x, y, fill = est)) + 
-  geom_tile(height = 0.8, width = 0.8) +
+  ggplot(aes(x, y, fill = est, color = est)) + 
+  # geom_tile(height = 0.8, width = 0.8) +
+  geom_point(alpha = 0.5, size = 0.5) + 
   coord_fixed() + 
   facet_grid(~sp) + 
-  ylab("Northing (km)") + 
-  xlab("Easting (km)") + 
+  ylab("Northings (km)") + 
+  xlab("Eastings (km)") + 
   scale_fill_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
-  theme_minimal() 
-# facet_wrap(.~sp, ncol = 4) +
-# scale_fill_viridis_c() + 
-# ggdark::dark_theme_minimal() + 
-# theme(legend.position = "top")
+  scale_color_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
+  # ggdark::dark_theme_minimal() +
+  theme_pubr() + 
+  theme(legend.position = "right")
 
 trend = trophic %>% 
   group_by(year, sp) %>% 
@@ -60,11 +70,9 @@ trend = trophic %>%
   ylab("g/353 sq.m") + 
   xlab("Year") + 
   facet_grid(~sp) + 
-  theme_minimal() #+ 
-# facet_wrap(.~ sp, ncol = 4) +
-# ggdark::dark_theme_minimal() + 
-# coord_fixed(ratio = 1.5) + 
-# theme(legend.position = c(0.9, 0.9))
+  # ggdark::dark_theme_minimal() +
+  theme_pubr() + 
+  theme(legend.position = "right")
 
 library(patchwork)
-map/trend
+change/map
