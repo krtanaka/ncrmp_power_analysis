@@ -385,17 +385,17 @@ rename(strata = traditional)
 downscaled_strata = isl_power %>% 
   subset(design == "downscaled") %>%
   group_by(design, isl) %>% 
-  summarise(zones = mean(strata)) %>% 
+  summarise(zone_based = mean(strata)) %>% 
   as.data.frame() %>% 
-  select(isl, zones)
+  select(isl, zone_based)
 rename(strata = downscaled)
 
 reduced_strata = isl_power %>% 
   subset(design == "downscaled_alt") %>%
   group_by(design, isl) %>% 
-  summarise(triage = mean(strata)) %>% 
+  summarise(zone_triaged = mean(strata)) %>% 
   as.data.frame() %>% 
-  select(isl, triage)
+  select(isl, zone_triaged)
 rename(strata = downscaled)
 
 strata_num = merge(downscaled_strata, traditional_strata)
@@ -407,15 +407,37 @@ isl_power$design = ifelse(isl_power$design == "downscaled_alt", "zone-triaged", 
 isl_power %>%
   # subset(isl == "Oahu") %>% 
   # subset(sp == "PISCIVORE") %>% 
-  mutate(RMSE = as.numeric(RMSE)) %>% 
+  mutate(RMSE = as.numeric(RMSE)/100000) %>% 
   ggplot() + 
   geom_smooth(aes(N, RMSE, color = design), show.legend = T, se = T) +
   # geom_point(aes(N, RMSE, color = design), alpha = 0.2) +
   # geom_hex(aes(N, RMSE, color = design, fill = design), alpha = 0.2, bins = 50) +
   # facet_wrap(sp ~ isl, scales = "free_y", ncol = 7) +
-  ggnewscale::new_scale_color() +
+  # ggnewscale::new_scale_color() +
   # geom_vline(aes(xintercept = sites, color = effort), data = efforts) +
-  geom_vline(aes(xintercept = N, color = Year), data = survey_effort_MHI_year) +
+  # geom_vline(aes(xintercept = N, color = Year), data = survey_effort_MHI_year) +
+  # geom_text_repel(data = survey_effort_MHI_year, 
+  #                 aes(x = N, y = 0, label = Year), 
+  #                 fontface = "bold",   
+  #                 nudge_x = c(0, 0, 0),
+  #                 nudge_y = c(6, 3, 3)) +
+annotate("segment", 
+         x = 498, xend = 498, y = 2500, yend = 1000,
+         colour = "gray", 
+         arrow = arrow()) + 
+  annotate("segment",
+           x = 400, xend = 400, y = 1500, yend = 1000,
+           colour = "gray",
+           arrow = arrow()) + 
+  annotate("segment", 
+           x = 487, xend = 487, y = 2000, yend = 1000,
+           colour = "gray", 
+           arrow = arrow()) + 
+  annotate("text", 
+           x = c(400, 487, 498),
+           y = c(1600, 2100, 2600), 
+           label = c("2016", "2019", "2013")) + 
+  scale_color_discrete("") + 
   # scale_y_log10() + 
   # scale_x_log10() + 
   # scale_x_log10(breaks = trans_breaks('log10', function(x) 10^x),
@@ -428,5 +450,5 @@ isl_power %>%
   #           hjust = -0.1,
   #           vjust = -0.2,
   #           size = 3) +
-  theme_minimal()
-
+  theme_pubr()
+  
