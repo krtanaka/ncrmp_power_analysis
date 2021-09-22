@@ -1,3 +1,7 @@
+library(ggplot2)
+library(dplyr)
+library(colorRamps)
+
 list = list.files(path = "outputs/", pattern = "_biomass"); list
 
 trophic = NULL
@@ -22,7 +26,7 @@ for (i in 3:6) {
   sdm$sp = sp
   
   trophic = rbind(trophic, sdm)
-
+  
 }
 
 map = trophic %>% 
@@ -31,28 +35,36 @@ map = trophic %>%
   ggplot(aes(x, y, fill = est)) + 
   geom_tile(height = 0.8, width = 0.8) +
   coord_fixed() + 
-  facet_wrap(.~sp, ncol = 1) + 
+  facet_grid(~sp) + 
   ylab("Northing (km)") + 
   xlab("Easting (km)") + 
-  # scale_fill_viridis_c() + 
   scale_fill_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
-  # ggdark::dark_theme_minimal() + 
   theme_minimal() 
-  # theme(legend.position = "top")
+# facet_wrap(.~sp, ncol = 4) +
+# scale_fill_viridis_c() + 
+# ggdark::dark_theme_minimal() + 
+# theme(legend.position = "top")
 
 trend = trophic %>% 
   group_by(year, sp) %>% 
-  summarise(est = sum(est)) %>%
-  ggplot(aes(year, est/1000000, color = sp, group = sp)) + 
-  geom_line() +
-  geom_point() +
-  ylab("Biomass (Metric tons)") + 
+  summarise(mean_est = median(est),
+            sd = sd(est, na.rm = T)) %>%
+  ggplot(aes(year, mean_est, color = mean_est)) + 
+  geom_line(show.legend = F) +
+  geom_point(show.legend = F) + 
+  geom_errorbar(aes(ymin = ifelse(mean_est - sd < 0, 0, mean_est - sd), 
+                    ymax = mean_est+sd), 
+                width=.2,
+                show.legend = F,
+                position = position_dodge(0.05)) + 
+  ylab("g/353 sq.m") + 
   xlab("Year") + 
-  # ggdark::dark_theme_minimal() + 
-  facet_wrap(.~sp, ncol = 1, scale = "free_y") +
-  theme_minimal() + 
-  # coord_fixed(ratio = 1.5) + 
-  theme(legend.position = c(0.9, 0.9))
+  facet_grid(~sp) + 
+  theme_minimal() #+ 
+# facet_wrap(.~ sp, ncol = 4) +
+# ggdark::dark_theme_minimal() + 
+# coord_fixed(ratio = 1.5) + 
+# theme(legend.position = c(0.9, 0.9))
 
 library(patchwork)
-trend  + map
+map/trend

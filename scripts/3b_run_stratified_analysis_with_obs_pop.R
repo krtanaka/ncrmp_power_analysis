@@ -394,6 +394,9 @@ strata = sim$grid_xy %>%
 
 strata = merge(strata, strat_table)
 
+sim_results = list(strata, df)
+save(sim_results, file = paste0('outputs/sim_results_', island, "_", design, "_", effort, "_", sp, "_", n_sims, "_", response_scale, ".RData"))
+
 strata = strata %>% 
   ggplot(aes(x, y)) +
   # coord_fixed() + 
