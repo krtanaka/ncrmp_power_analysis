@@ -1,3 +1,7 @@
+library(patchwork)
+library(ggplot2)
+library(dplyr)
+library(ggpubr)
 
 areas = NULL
 sims = NULL
@@ -37,7 +41,7 @@ areas = areas %>%
   ggplot(aes(x, y)) +
   # coord_fixed() + 
   geom_raster(aes(fill = strat_sets)) + 
-  theme_minimal() + 
+  theme_pubr() + 
   ylab("Northing (km)") + xlab("Easting (km)") + 
   theme(legend.position = "right") + 
   facet_grid(~ strategy) + 
@@ -47,7 +51,7 @@ sims = sims %>%
   ggplot() + 
   geom_line(aes(year, I_hat, group = sim, color = "gray", alpha = 0.01), show.legend = F) +
   geom_line(aes(year, I), size = 2, color = "gray10") + 
-  theme_minimal() + 
+  theme_pubr() + 
   ylab("biomass (g)") +
   xlab("") + 
   facet_grid(~ strategy) 
