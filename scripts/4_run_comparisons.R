@@ -407,14 +407,14 @@ isl_power$design = ifelse(isl_power$design == "downscaled_alt", "zone-triaged", 
 isl_power %>%
   # subset(isl == "Oahu") %>% 
   # subset(sp == "PISCIVORE") %>% 
-  mutate(RMSE = as.numeric(RMSE)/100000) %>% 
+  mutate(RMSE = as.numeric(RMSE)) %>% 
   ggplot() + 
-  geom_smooth(aes(N, RMSE, color = design), show.legend = T, se = T) +
+  # geom_smooth(aes(N, RMSE, color = design), show.legend = T, se = T) +
   # geom_point(aes(N, RMSE, color = design), alpha = 0.2) +
   # geom_hex(aes(N, RMSE, color = design, fill = design), alpha = 0.2, bins = 50) +
-  # facet_wrap(sp ~ isl, scales = "free_y", ncol = 7) +
+  facet_wrap(sp ~ isl, scales = "free_y", ncol = 7) +
   # ggnewscale::new_scale_color() +
-  # geom_vline(aes(xintercept = sites, color = effort), data = efforts) +
+  geom_vline(aes(xintercept = sites, color = effort), data = efforts) +
   # geom_vline(aes(xintercept = N, color = Year), data = survey_effort_MHI_year) +
   # geom_text_repel(data = survey_effort_MHI_year, 
   #                 aes(x = N, y = 0, label = Year), 
@@ -422,22 +422,23 @@ isl_power %>%
   #                 nudge_x = c(0, 0, 0),
   #                 nudge_y = c(6, 3, 3)) +
 annotate("segment", 
-         x = 498, xend = 498, y = 2500, yend = 1000,
+         x = 498, xend = 498, y = 250000000, yend = 100000000,
          colour = "gray", 
          arrow = arrow()) + 
   annotate("segment",
-           x = 400, xend = 400, y = 1500, yend = 1000,
+           x = 400, xend = 400, y = 150000000, yend = 100000000,
            colour = "gray",
            arrow = arrow()) + 
   annotate("segment", 
-           x = 487, xend = 487, y = 2000, yend = 1000,
+           x = 487, xend = 487, y = 200000000, yend = 100000000,
            colour = "gray", 
            arrow = arrow()) + 
   annotate("text", 
            x = c(400, 487, 498),
-           y = c(1600, 2100, 2600), 
+           y = c(160000000, 210000000, 260000000), 
            label = c("2016", "2019", "2013")) + 
   scale_color_discrete("") + 
+  xlab("Sampling Efforts") + 
   # scale_y_log10() + 
   # scale_x_log10() + 
   # scale_x_log10(breaks = trans_breaks('log10', function(x) 10^x),
@@ -450,5 +451,6 @@ annotate("segment",
   #           hjust = -0.1,
   #           vjust = -0.2,
   #           size = 3) +
-  theme_pubr()
-  
+  theme_pubr() +
+  guides(color = guide_legend(override.aes = list(fill = NA))) + 
+  theme(legend.position = c(0.8, 0.9))
