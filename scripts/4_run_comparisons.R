@@ -404,152 +404,61 @@ strata_num = merge(strata_num, reduced_strata)
 isl_power$design = ifelse(isl_power$design == "downscaled", "zone-based", isl_power$design)
 isl_power$design = ifelse(isl_power$design == "downscaled_alt", "zone-triaged", isl_power$design)
 
-isl_power %>%
-  mutate(RMSE = as.numeric(RMSE)) %>% 
-  ggplot() + 
-  geom_smooth(aes(N, RMSE, color = design), show.legend = T, se = T) +
-  # geom_point(aes(N, RMSE, color = design), alpha = 0.2) +
-  # geom_hex(aes(N, RMSE, color = design, fill = design), alpha = 0.2, bins = 50) +
-  facet_wrap(sp ~ isl, scales = "free_y", ncol = 7) +
-  ggnewscale::new_scale_color() +
-  geom_vline(aes(xintercept = sites, color = effort), data = efforts) +
-  scale_y_log10() +
-  scale_x_log10() +
-  scale_x_log10(breaks = trans_breaks('log10', function(x) 10^x),
-                labels = trans_format('log10', math_format(10^.x)), "Sampling Efforts") +
-  scale_y_log10(breaks = trans_breaks('log10', function(x) 10^x),
-                labels = trans_format('log10', math_format(10^.x)), "RMSE")
-  # geom_vline(aes(xintercept = N, color = Year), data = survey_effort_MHI_year) +
-  # geom_text_repel(data = survey_effort_MHI_year, 
-  #                 aes(x = N, y = 0, label = Year), 
-  #                 fontface = "bold",   
-  #                 nudge_x = c(0, 0, 0),
-  #                 nudge_y = c(6, 3, 3)) +
-  annotate("segment", 
-           x = 498, xend = 498, y = 250000000, yend = 100000000,
-           colour = "gray", 
-           arrow = arrow()) + 
-  annotate("segment",
-           x = 400, xend = 400, y = 150000000, yend = 100000000,
-           colour = "gray",
-           arrow = arrow()) + 
-  annotate("segment", 
-           x = 487, xend = 487, y = 200000000, yend = 100000000,
-           colour = "gray", 
-           arrow = arrow()) + 
-  annotate("text", 
-           x = c(400, 487, 498),
-           y = c(160000000, 210000000, 260000000), 
-           label = c("2016", "2019", "2013")) + 
-  scale_color_discrete("") + 
-  xlab("Sampling Efforts") + 
+(isl_power %>%
+    # subset(isl == "Oahu") %>%
+    mutate(RMSE = as.numeric(RMSE)) %>% 
+    ggplot() + 
+    geom_smooth(aes(N, RMSE, color = design), show.legend = T, se = T) +
+    # geom_point(aes(N, RMSE, color = design), alpha = 0.2) +
+    # geom_hex(aes(N, RMSE, color = design, fill = design), alpha = 0.2, bins = 50) +
+    # facet_wrap(sp ~ isl, scales = "free_y", ncol = 7) +
+    facet_wrap(isl ~ sp, scales = "free_y", ncol = 7) +
+    ggnewscale::new_scale_color() +
+    geom_vline(aes(xintercept = sites, color = effort), data = efforts) +
+    # scale_y_log10() +
+    # scale_x_log10() +
+    scale_x_log10(breaks = trans_breaks('log10', function(x) 10^x),
+                  labels = trans_format('log10', math_format(10^.x)), "Sampling Efforts") +
+    scale_y_log10(breaks = trans_breaks('log10', function(x) 10^x),
+                  labels = trans_format('log10', math_format(10^.x)), "RMSE") + 
+    scale_color_discrete("") + 
+    xlab("Sampling Efforts") + 
+    theme_minimal() +
+    guides(color = guide_legend(override.aes = list(fill = NA))))
 
-
-  # geom_text(data = strata_num,
-  #           aes(label = paste0("\n d=", downscaled, "\n t=", traditional, "\n r=,", reduced)),
-  #           x = -Inf, y = -Inf,
-  #           hjust = -0.1,
-  #           vjust = -0.2,
-#           size = 3) +
-theme_pubr() +
-  guides(color = guide_legend(override.aes = list(fill = NA))) + 
-  theme(legend.position = c(0.8, 0.9))
-
-isl_power %>%
-  # subset(isl == "Oahu") %>% 
-  # subset(sp == "PISCIVORE") %>% 
-  mutate(RMSE = as.numeric(RMSE)) %>% 
-  ggplot() + 
-  geom_smooth(aes(N, RMSE, color = design), show.legend = T, se = T) +
-  # geom_point(aes(N, RMSE, color = design), alpha = 0.2) +
-  # geom_hex(aes(N, RMSE, color = design, fill = design), alpha = 0.2, bins = 50) +
-  facet_wrap(sp ~ isl, scales = "free_y", ncol = 7) +
-  # ggnewscale::new_scale_color() +
-  geom_vline(aes(xintercept = sites, color = effort), data = efforts) +
-  # geom_vline(aes(xintercept = N, color = Year), data = survey_effort_MHI_year) +
-  # geom_text_repel(data = survey_effort_MHI_year, 
-  #                 aes(x = N, y = 0, label = Year), 
-  #                 fontface = "bold",   
-  #                 nudge_x = c(0, 0, 0),
-  #                 nudge_y = c(6, 3, 3)) +
-annotate("segment", 
-         x = 498, xend = 498, y = 250000000, yend = 100000000,
-         colour = "gray", 
-         arrow = arrow()) + 
-  annotate("segment",
-           x = 400, xend = 400, y = 150000000, yend = 100000000,
-           colour = "gray",
-           arrow = arrow()) + 
-  annotate("segment", 
-           x = 487, xend = 487, y = 200000000, yend = 100000000,
-           colour = "gray", 
-           arrow = arrow()) + 
-  annotate("text", 
-           x = c(400, 487, 498),
-           y = c(160000000, 210000000, 260000000), 
-           label = c("2016", "2019", "2013")) + 
-  scale_color_discrete("") + 
-  xlab("Sampling Efforts") + 
-  # scale_y_log10() + 
-  # scale_x_log10() + 
-  # scale_x_log10(breaks = trans_breaks('log10', function(x) 10^x),
-  #               labels = trans_format('log10', math_format(10^.x)), "Sampling Efforts") +
-  # scale_y_log10(breaks = trans_breaks('log10', function(x) 10^x),
-  #               labels = trans_format('log10', math_format(10^.x)), "RMSE") +
-  # geom_text(data = strata_num,
-  #           aes(label = paste0("\n d=", downscaled, "\n t=", traditional, "\n r=,", reduced)),
-  #           x = -Inf, y = -Inf,
-  #           hjust = -0.1,
-  #           vjust = -0.2,
-  #           size = 3) +
-  theme_pubr() +
-  guides(color = guide_legend(override.aes = list(fill = NA))) + 
-  theme(legend.position = c(0.8, 0.9))
-
-isl_power %>%
-  mutate(RMSE = as.numeric(RMSE)) %>% 
-  ggplot() + 
-  geom_smooth(data = isl_power, aes(N, RMSE, color = design), show.legend = T, se = T) +
-  # geom_hex(aes(N, RMSE, color = design, fill = design), alpha = 0.2, bins = 50) +
-  geom_vline(data = efforts, aes(xintercept = sites, color = effort)) +
-  facet_wrap(sp ~ isl, scales = "free_y", ncol = 7) +
-  # ggnewscale::new_scale_color() +
-  # geom_vline(aes(xintercept = N, color = Year), data = survey_effort_MHI_year) +
-  # geom_text_repel(data = survey_effort_MHI_year, 
-  #                 aes(x = N, y = 0, label = Year), 
-  #                 fontface = "bold",   
-  #                 nudge_x = c(0, 0, 0),
-  #                 nudge_y = c(6, 3, 3)) +
-  annotate("segment", 
-           x = 498, xend = 498, y = 250000000, yend = 100000000,
-           colour = "gray", 
-           arrow = arrow()) + 
-  annotate("segment",
-           x = 400, xend = 400, y = 150000000, yend = 100000000,
-           colour = "gray",
-           arrow = arrow()) + 
-  annotate("segment", 
-           x = 487, xend = 487, y = 200000000, yend = 100000000,
-           colour = "gray", 
-           arrow = arrow()) + 
-  annotate("text", 
-           x = c(400, 487, 498),
-           y = c(160000000, 210000000, 260000000), 
-           label = c("2016", "2019", "2013")) + 
-  scale_color_discrete("") + 
-  xlab("Sampling Efforts") + 
-  # scale_y_log10() + 
-  # scale_x_log10() + 
-  # scale_x_log10(breaks = trans_breaks('log10', function(x) 10^x),
-  #               labels = trans_format('log10', math_format(10^.x)), "Sampling Efforts") +
-  # scale_y_log10(breaks = trans_breaks('log10', function(x) 10^x),
-  #               labels = trans_format('log10', math_format(10^.x)), "RMSE") +
-  # geom_text(data = strata_num,
-  #           aes(label = paste0("\n d=", downscaled, "\n t=", traditional, "\n r=,", reduced)),
-  #           x = -Inf, y = -Inf,
-  #           hjust = -0.1,
-  #           vjust = -0.2,
-#           size = 3) +
-theme_pubr() +
-  guides(color = guide_legend(override.aes = list(fill = NA))) + 
-  theme(legend.position = c(0.8, 0.9))
+(isl_power %>%
+    # subset(isl == "Oahu") %>% 
+    # subset(sp == "PISCIVORE") %>% 
+    mutate(RMSE = as.numeric(RMSE)) %>% 
+    ggplot() + 
+    geom_smooth(aes(N, RMSE, color = design), show.legend = T, se = T) +
+    # geom_point(aes(N, RMSE, color = design), alpha = 0.2) +
+    # geom_hex(aes(N, RMSE, color = design, fill = design), alpha = 0.2, bins = 50) +
+    # geom_vline(aes(xintercept = N, color = Year), data = survey_effort_MHI_year) +
+    annotate("segment", 
+             x = 498, xend = 498, y = 250000000, yend = 100000000,
+             colour = "gray", 
+             arrow = arrow()) + 
+    annotate("segment",
+             x = 400, xend = 400, y = 150000000, yend = 100000000,
+             colour = "gray",
+             arrow = arrow()) + 
+    annotate("segment", 
+             x = 487, xend = 487, y = 200000000, yend = 100000000,
+             colour = "gray", 
+             arrow = arrow()) + 
+    annotate("text", 
+             x = c(400, 487, 498),
+             y = c(160000000, 210000000, 260000000), 
+             label = c("2016", "2019", "2013")) + 
+    scale_color_discrete("") + 
+    xlab("Sampling Efforts") + 
+    # scale_y_log10() + 
+    # # scale_x_log10() + 
+    scale_x_log10(breaks = trans_breaks('log10', function(x) 10^x),
+                  labels = trans_format('log10', math_format(10^.x)), "Sampling Efforts") +
+    # scale_y_log10(breaks = trans_breaks('log10', function(x) 10^x),
+    #               labels = trans_format('log10', math_format(10^.x)), "RMSE") +
+    theme_minimal() +
+    guides(color = guide_legend(override.aes = list(fill = NA))) + 
+    theme(legend.position = c(0.8, 0.9)))
