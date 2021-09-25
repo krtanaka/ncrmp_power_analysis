@@ -3,6 +3,8 @@ library(ggplot2)
 library(dplyr)
 library(ggpubr)
 
+rm(list = ls())
+
 areas = NULL
 sims = NULL
 
@@ -37,23 +39,36 @@ for (i in 1:3) {
   
 }
 
-areas = areas %>% 
+(rmse = sims %>% 
+  group_by(strategy) %>% 
+  summarise(rmse = sqrt(mean(error^2))) %>% 
+  mutate(rmse = formatC(rmse, digits = 2)))
+
+(p1 = areas %>% 
   ggplot(aes(x, y)) +
   # coord_fixed() + 
   geom_raster(aes(fill = strat_sets)) + 
-  theme_pubr() + 
+  theme_minimal() + 
   ylab("Northing (km)") + xlab("Easting (km)") + 
   theme(legend.position = "right") + 
   facet_grid(~ strategy) + 
-  scale_fill_gradient(low = "gray", high = "red", "# of sites") 
+  scale_fill_gradient(low = "gray", high = "red", "# of sites"))
+  # scale_fill_gradientn(colours = topo.colors(100)))
 
-sims = sims %>% 
-  ggplot() + 
-  geom_line(aes(year, I_hat, group = sim, color = "gray", alpha = 0.01), show.legend = F) +
-  geom_line(aes(year, I), size = 2, color = "gray10") + 
-  theme_pubr() + 
-  ylab("biomass (g)") +
-  xlab("") + 
-  facet_grid(~ strategy) 
- 
-areas/sims
+(p2 = sims %>% 
+    ggplot() + 
+    geom_line(aes(year, I_hat, group = sim, color = "gray", alpha = 0.01), show.legend = F) +
+    geom_line(aes(year, I), size = 2, color = "gray10") + 
+    theme_minimal() + 
+    # scale_y_log10() + 
+    # scale_x_log10() + 
+    ylab("biomass (g)") +
+    xlab("") + 
+    facet_grid(~ strategy) + 
+    geom_text(
+      data    = rmse,
+      mapping = aes(x = Inf, y = Inf, label = paste0("RMSE = ", rmse)),
+      hjust   = 1,
+      vjust   = 1.5))
+
+p1/p2
