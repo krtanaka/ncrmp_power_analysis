@@ -18,7 +18,7 @@ df <- df %>%
   subset(OBS_YEAR %in% c(2013, 2016, 2019)) %>% 
   subset(ISLAND != "Kahoolawe")
 
-p1 = df %>% 
+(p1 = df %>% 
   group_by(
     ISLAND, 
     # DEPTH_BIN,
@@ -35,9 +35,9 @@ p1 = df %>%
   facet_wrap(~ISLAND, nrow = 3) + 
   theme_minimal() + 
   theme(axis.title.x = element_blank(),
-        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)))
 
-p2 = df %>% 
+(p2 = df %>% 
   group_by(ISLAND, OBS_YEAR) %>% 
   summarise(n = n()) %>% 
   na.omit() %>% 
@@ -59,19 +59,20 @@ p2 = df %>%
     axis.title.x=element_blank(),
     axis.line.y = element_blank(),
     axis.title.y = element_blank())
+)
 
 p1 + p2
 
-survey_effort_MHI = df %>% 
+(survey_effort_MHI = df %>% 
   subset(OBS_YEAR %in% c(2013, 2016, 2019)) %>%
-  # group_by(ISLAND, OBS_YEAR) %>%
-  group_by(OBS_YEAR) %>%
-  summarise(n = n()) %>% 
-  group_by(ISLAND) %>%
-  summarise(high = quantile(n, probs = 0.75),
+  group_by(ISLAND, OBS_YEAR) %>%
+  # group_by(OBS_YEAR) %>%
+  # group_by(ISLAND) %>%
+  summarise(n = n(),
+            high = quantile(n, probs = 0.75),
             median = median(n),
             low = quantile(n, probs = 0.25)) %>% 
-  as.data.frame()
+  as.data.frame())
 
 save(survey_effort_MHI, file = "data/survey_effort_MHI_2014-2019.RData")
 
