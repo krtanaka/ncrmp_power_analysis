@@ -36,3 +36,5 @@ data/.DS_Store
 .Rproj.user/shared/notebooks/paths
 .Rproj.user/shared/notebooks/paths
 *.pper
+*.pper
+*.pper
