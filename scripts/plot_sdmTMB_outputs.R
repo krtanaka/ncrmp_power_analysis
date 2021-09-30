@@ -23,13 +23,32 @@ for (i in 3:6) {
 }
 
 
-(change = trophic %>% 
+(change1 = trophic %>% 
     subset(year == 2006) %>% 
+    subset(sp == "PISCIVORE") %>% 
     group_by(x, y, sp) %>% 
     summarise(est = mean(zeta_s)) %>%  
     ggplot(aes(x, y, fill = est, color = est)) + 
-    # geom_tile(height = 0.8, width = 0.8) +
-    geom_point(alpha = 0.5, size = 0.5) + 
+    geom_tile(height = 0.8, width = 0.8) +
+    # geom_point(alpha = 0.5, size = 0.5) + 
+    coord_fixed() + 
+    facet_grid(~ sp) +
+    ylab("Northings (km)") + 
+    xlab("Eastings (km)") + 
+    scale_fill_gradient2("Linear trend") +
+    scale_color_gradient2("Linear trend") +
+    # ggdark::dark_theme_minimal() +
+    theme_minimal() + 
+    theme(legend.position = c(0.1, 0.3)))
+
+(change2 = trophic %>% 
+    subset(year == 2006) %>% 
+    subset(sp == "PLANKTIVORE") %>% 
+    group_by(x, y, sp) %>% 
+    summarise(est = mean(zeta_s)) %>%  
+    ggplot(aes(x, y, fill = est, color = est)) + 
+    geom_tile(height = 0.8, width = 0.8) +
+    # geom_point(alpha = 0.5, size = 0.5) + 
     coord_fixed() + 
     facet_grid(~ sp) + 
     ylab("Northings (km)") + 
@@ -37,24 +56,117 @@ for (i in 3:6) {
     scale_fill_gradient2("Linear trend") +
     scale_color_gradient2("Linear trend") +
     # ggdark::dark_theme_minimal() +
-    theme_classic() + 
-    theme(legend.position = "right"))
+    theme_minimal() + 
+    theme(legend.position = c(0.1, 0.3)))
 
-(map = trophic %>% 
+(change3 = trophic %>% 
+    subset(year == 2006) %>% 
+    subset(sp == "PRIMARY") %>% 
+    group_by(x, y, sp) %>% 
+    summarise(est = mean(zeta_s)) %>%  
+    ggplot(aes(x, y, fill = est, color = est)) + 
+    geom_tile(height = 0.8, width = 0.8) +
+    # geom_point(alpha = 0.5, size = 0.5) + 
+    coord_fixed() + 
+    facet_grid(~ sp) + 
+    ylab("Northings (km)") + 
+    xlab("Eastings (km)") + 
+    scale_fill_gradient2("Linear trend") +
+    scale_color_gradient2("Linear trend") +
+    # ggdark::dark_theme_minimal() +
+    theme_minimal() + 
+    theme(legend.position = c(0.1, 0.3)))
+
+(change4 = trophic %>% 
+    subset(year == 2006) %>% 
+    subset(sp == "SECONDARY") %>% 
+    group_by(x, y, sp) %>% 
+    summarise(est = mean(zeta_s)) %>%  
+    ggplot(aes(x, y, fill = est, color = est)) + 
+    geom_tile(height = 0.8, width = 0.8) +
+    # geom_point(alpha = 0.5, size = 0.5) + 
+    coord_fixed() + 
+    facet_grid(~ sp) + 
+    ylab("Northings (km)") + 
+    xlab("Eastings (km)") + 
+    scale_fill_gradient2("Linear trend") +
+    scale_color_gradient2("Linear trend") +
+    # ggdark::dark_theme_minimal() +
+    theme_minimal() + 
+    theme(legend.position = c(0.1, 0.3)))
+
+(map1 = trophic %>% 
+    subset(sp == "PISCIVORE") %>% 
     group_by(x, y, sp) %>% 
     summarise(est = median(est)) %>%  
     ggplot(aes(x, y, fill = est, color = est)) + 
-    # geom_tile(height = 0.8, width = 0.8) +
-    geom_point(alpha = 0.5, size = 0.5) + 
+    geom_tile(height = 0.8, width = 0.8) +
+    # geom_point(alpha = 0.5, size = 0.5) + 
     coord_fixed() + 
-    facet_grid(~sp) + 
+    facet_grid(~sp) +
     ylab("Northings (km)") + 
     xlab("Eastings (km)") + 
     scale_fill_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
     scale_color_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
     # ggdark::dark_theme_minimal() +
     theme_minimal() + 
-    theme(legend.position = "right"))
+    theme(legend.position = c(0.1, 0.3)))
+
+(map2 = trophic %>% 
+    subset(sp == "PLANKTIVORE") %>% 
+    group_by(x, y, sp) %>% 
+    summarise(est = median(est)) %>%  
+    ggplot(aes(x, y, fill = est, color = est)) + 
+    geom_tile(height = 0.8, width = 0.8) +
+    # geom_point(alpha = 0.5, size = 0.5) +
+    coord_fixed() + 
+    facet_grid(~sp) +
+    ylab("Northings (km)") + 
+    xlab("Eastings (km)") + 
+    scale_fill_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
+    scale_color_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
+    # ggdark::dark_theme_minimal() +
+    theme_minimal() + 
+    theme(legend.position = c(0.1, 0.3)))
+
+(map3 = trophic %>% 
+    subset(sp == "PRIMARY") %>% 
+    group_by(x, y, sp) %>% 
+    summarise(est = median(est)) %>%  
+    ggplot(aes(x, y, fill = est, color = est)) + 
+    geom_tile(height = 0.8, width = 0.8) +
+    # geom_point(alpha = 0.5, size = 0.5) +
+    coord_fixed() + 
+    facet_grid(~sp) +
+    ylab("Northings (km)") + 
+    xlab("Eastings (km)") + 
+    scale_fill_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
+    scale_color_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
+    # ggdark::dark_theme_minimal() +
+    theme_minimal() + 
+    theme(legend.position = c(0.1, 0.3)))
+
+(map4 = trophic %>% 
+    subset(sp == "SECONDARY") %>% 
+    group_by(x, y, sp) %>% 
+    summarise(est = median(est)) %>%  
+    ggplot(aes(x, y, fill = est, color = est)) + 
+    geom_tile(height = 0.8, width = 0.8) +
+    # geom_point(alpha = 0.5, size = 0.5) +
+    coord_fixed() + 
+    facet_grid(~sp) +
+    ylab("Northings (km)") + 
+    xlab("Eastings (km)") + 
+    scale_fill_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
+    scale_color_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
+    # ggdark::dark_theme_minimal() +
+    theme_minimal() + 
+    theme(legend.position = c(0.1, 0.3)))
+
+grid.arrange(map1, map2, map3, map4, nrow = 1)
+
+grid.arrange(change1, change2, change3, change4, nrow = 1)
+
 
 (trend = trophic %>% 
     group_by(year, sp) %>% 
