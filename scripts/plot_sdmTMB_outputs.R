@@ -4,6 +4,8 @@ library(colorRamps)
 library(ggpubr)
 library(gridExtra)
 
+rm(list = ls())
+
 list = list.files(path = "outputs/", pattern = "_biomass"); list
 
 trophic = NULL
@@ -25,14 +27,14 @@ for (i in 3:6) {
 
 options(digits = 1)
 
-(change1 = trophic %>% 
+(c1 = trophic %>% 
     subset(year == 2006) %>% 
     subset(sp == "PISCIVORE") %>% 
     group_by(x, y, sp) %>% 
     summarise(est = mean(zeta_s)) %>%  
     ggplot(aes(x, y, fill = est, color = est)) + 
-    # geom_tile(height = 0.8, width = 0.8) +
-    geom_point(alpha = 0.5, size = 0.5) +
+    geom_tile(height = 0.8, width = 0.8) +
+    # geom_point(alpha = 0.5, size = 0.5) +
     coord_fixed() + 
     facet_grid(~ sp) +
     ylab("Northings (km)") + 
@@ -43,7 +45,7 @@ options(digits = 1)
     theme_minimal() + 
     theme(legend.position = c(0.15, 0.35)))
 
-(change2 = trophic %>% 
+(c2 = trophic %>% 
     subset(year == 2006) %>% 
     subset(sp == "PLANKTIVORE") %>% 
     group_by(x, y, sp) %>% 
@@ -61,7 +63,7 @@ options(digits = 1)
     theme_minimal() + 
     theme(legend.position = c(0.15, 0.35)))
 
-(change3 = trophic %>% 
+(c3 = trophic %>% 
     subset(year == 2006) %>% 
     subset(sp == "PRIMARY") %>% 
     group_by(x, y, sp) %>% 
@@ -79,7 +81,7 @@ options(digits = 1)
     theme_minimal() + 
     theme(legend.position = c(0.15, 0.35)))
 
-(change4 = trophic %>% 
+(c4 = trophic %>% 
     subset(year == 2006) %>% 
     subset(sp == "SECONDARY") %>% 
     group_by(x, y, sp) %>% 
@@ -98,10 +100,10 @@ options(digits = 1)
     theme(legend.position = c(0.15, 0.35)))
 
 png('/Users/Kisei/Desktop/change.png', height = 3, width = 18, units = "in", res = 100)
-grid.arrange(change1, change2, change3, change4, nrow = 1)
+grid.arrange(c1, c2, c3, c4, nrow = 1)
 dev.off()
 
-(map1 = trophic %>% 
+(m1 = trophic %>% 
     subset(sp == "PISCIVORE") %>% 
     group_by(x, y, sp) %>% 
     summarise(est = median(est)) %>%  
@@ -118,7 +120,7 @@ dev.off()
     theme_minimal() + 
     theme(legend.position = c(0.15, 0.35)))
 
-(map2 = trophic %>% 
+(m2 = trophic %>% 
     subset(sp == "PLANKTIVORE") %>% 
     group_by(x, y, sp) %>% 
     summarise(est = median(est)) %>%  
@@ -135,7 +137,7 @@ dev.off()
     theme_minimal() + 
     theme(legend.position = c(0.15, 0.35)))
 
-(map3 = trophic %>% 
+(m3 = trophic %>% 
     subset(sp == "PRIMARY") %>% 
     group_by(x, y, sp) %>% 
     summarise(est = median(est)) %>%  
@@ -152,7 +154,7 @@ dev.off()
     theme_minimal() + 
     theme(legend.position = c(0.15, 0.35)))
 
-(map4 = trophic %>% 
+(m4 = trophic %>% 
     subset(sp == "SECONDARY") %>% 
     group_by(x, y, sp) %>% 
     summarise(est = median(est)) %>%  
@@ -170,13 +172,10 @@ dev.off()
     theme(legend.position = c(0.15, 0.35)))
 
 png('/Users/Kisei/Desktop/biomass.png', height = 3, width = 18, units = "in", res = 100)
-grid.arrange(map1, map2, map3, map4, nrow = 1)
+grid.arrange(m1, m2, m3, m4, nrow = 1)
 dev.off()
 
-
-
-
-(trend1 = trophic %>% 
+(t1 = trophic %>% 
     subset(sp == "PISCIVORE") %>% 
     group_by(year, sp) %>% 
     summarise(mean_est = median(est),
@@ -196,7 +195,7 @@ dev.off()
     theme_minimal() + 
     theme(legend.position = "right"))
 
-(trend2 = trophic %>% 
+(t2 = trophic %>% 
     subset(sp == "PLANKTIVORE") %>% 
     group_by(year, sp) %>% 
     summarise(mean_est = median(est),
@@ -216,7 +215,7 @@ dev.off()
     theme_minimal() + 
     theme(legend.position = "right"))
 
-(trend3 = trophic %>% 
+(t3 = trophic %>% 
     subset(sp == "PRIMARY") %>% 
     group_by(year, sp) %>% 
     summarise(mean_est = median(est),
@@ -236,7 +235,7 @@ dev.off()
     theme_minimal() + 
     theme(legend.position = "right"))
 
-(trend4 = trophic %>% 
+(t4 = trophic %>% 
     subset(sp == "SECONDARY") %>% 
     group_by(year, sp) %>% 
     summarise(mean_est = median(est),
