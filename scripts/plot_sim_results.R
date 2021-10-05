@@ -52,13 +52,17 @@ for (i in 1:3) {
   ylab("Northing (km)") + xlab("Easting (km)") + 
   theme(legend.position = "right") + 
   facet_grid(~ strategy) + 
-  scale_fill_gradient(low = "gray", high = "red", "# of sites"))
+  # scale_fill_gradient(low = "gray", high = "red", "# of sites")) + 
+  scale_fill_viridis_c("# of sites"))
   # scale_fill_gradientn(colours = topo.colors(100)))
 
 (p2 = sims %>% 
     ggplot() + 
-    geom_line(aes(year, I_hat, group = sim, color = "gray", alpha = 0.01), show.legend = F) +
-    geom_line(aes(year, I), size = 2, color = "gray10") + 
+    geom_line(aes(year, I_hat, group = sim, color = sim), alpha = 0.5, show.legend = T) +
+    scale_color_viridis_c("simulation") + 
+    ggnewscale::new_scale_color() +
+    geom_line(aes(year, I, color = "True biomass"), size = 2) + 
+    scale_color_viridis_d("") + 
     theme_minimal() + 
     # scale_y_log10() + 
     # scale_x_log10() + 

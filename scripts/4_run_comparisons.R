@@ -14,6 +14,8 @@ library(ggnewscale)
 
 rm(list = ls())
 
+select = dplyr::select
+
 load("data/modeled_survey_variability.RData") #modeled at grid scale
 
 # pick an island
@@ -451,7 +453,8 @@ isl_power$design = ifelse(isl_power$design == "downscaled_alt", "zone-triaged", 
              x = c(400, 487, 498),
              y = c(160000000, 210000000, 260000000), 
              label = c("2016", "2019", "2013")) + 
-    scale_color_discrete("") + 
+    # scale_color_discrete("") +
+    scale_color_viridis_d("") + 
     xlab("Sampling Efforts") + 
     # scale_y_log10() + 
     # # scale_x_log10() + 
@@ -462,3 +465,8 @@ isl_power$design = ifelse(isl_power$design == "downscaled_alt", "zone-triaged", 
     theme_minimal() +
     guides(color = guide_legend(override.aes = list(fill = NA))) + 
     theme(legend.position = c(0.8, 0.9)))
+
+df =isl_power %>% 
+  mutate(RMSE = as.numeric(RMSE)) %>% 
+  group_by(isl, sp, design) %>% 
+  summarise(rmse = mean(RMSE, na.rm = T))
