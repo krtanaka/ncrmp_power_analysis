@@ -39,8 +39,10 @@ options(digits = 1)
     facet_grid(~ sp) +
     ylab("Northings (km)") + 
     xlab("Eastings (km)") + 
-    scale_fill_gradient2("Linear trend") +
-    scale_color_gradient2("Linear trend") +
+    # scale_fill_gradient2("Linear trend") +
+    # scale_color_gradient2("Linear trend") +
+    scale_fill_viridis_c("Linear trend") + 
+    scale_color_viridis_c("Linear trend") + 
     # ggdark::dark_theme_minimal() +
     theme_minimal() + 
     theme(legend.position = c(0.15, 0.35)))
@@ -51,14 +53,16 @@ options(digits = 1)
     group_by(x, y, sp) %>% 
     summarise(est = mean(zeta_s)) %>%  
     ggplot(aes(x, y, fill = est, color = est)) + 
-    # geom_tile(height = 0.8, width = 0.8) +
-    geom_point(alpha = 0.5, size = 0.5) +
+    geom_tile(height = 0.8, width = 0.8) +
+    # geom_point(alpha = 0.5, size = 0.5) +
     coord_fixed() + 
     facet_grid(~ sp) + 
     ylab("Northings (km)") + 
     xlab("Eastings (km)") + 
-    scale_fill_gradient2("Linear trend") +
-    scale_color_gradient2("Linear trend") +
+    # scale_fill_gradient2("Linear trend") +
+    # scale_color_gradient2("Linear trend") +
+    scale_fill_viridis_c("Linear trend") + 
+    scale_color_viridis_c("Linear trend") + 
     # ggdark::dark_theme_minimal() +
     theme_minimal() + 
     theme(legend.position = c(0.15, 0.35)))
@@ -69,14 +73,16 @@ options(digits = 1)
     group_by(x, y, sp) %>% 
     summarise(est = mean(zeta_s)) %>%  
     ggplot(aes(x, y, fill = est, color = est)) + 
-    # geom_tile(height = 0.8, width = 0.8) +
-    geom_point(alpha = 0.5, size = 0.5) +
+    geom_tile(height = 0.8, width = 0.8) +
+    # geom_point(alpha = 0.5, size = 0.5) +
     coord_fixed() + 
     facet_grid(~ sp) + 
     ylab("Northings (km)") + 
     xlab("Eastings (km)") + 
-    scale_fill_gradient2("Linear trend") +
-    scale_color_gradient2("Linear trend") +
+    # scale_fill_gradient2("Linear trend") +
+    # scale_color_gradient2("Linear trend") +
+    scale_fill_viridis_c("Linear trend") + 
+    scale_color_viridis_c("Linear trend") + 
     # ggdark::dark_theme_minimal() +
     theme_minimal() + 
     theme(legend.position = c(0.15, 0.35)))
@@ -87,19 +93,21 @@ options(digits = 1)
     group_by(x, y, sp) %>% 
     summarise(est = mean(zeta_s)) %>%  
     ggplot(aes(x, y, fill = est, color = est)) + 
-    # geom_tile(height = 0.8, width = 0.8) +
-    geom_point(alpha = 0.5, size = 0.5) +
+    geom_tile(height = 0.8, width = 0.8) +
+    # geom_point(alpha = 0.5, size = 0.5) +
     coord_fixed() + 
     facet_grid(~ sp) + 
     ylab("Northings (km)") + 
     xlab("Eastings (km)") + 
-    scale_fill_gradient2("Linear trend") +
-    scale_color_gradient2("Linear trend") +
+    # scale_fill_gradient2("Linear trend") +
+    # scale_color_gradient2("Linear trend") +
+    scale_fill_viridis_c("Linear trend") + 
+    scale_color_viridis_c("Linear trend") + 
     # ggdark::dark_theme_minimal() +
     theme_minimal() + 
     theme(legend.position = c(0.15, 0.35)))
 
-png('/Users/Kisei/Desktop/change.png', height = 3, width = 18, units = "in", res = 100)
+png(paste0('/Users/', Sys.info()[7], '/Desktop/change.png'), height = 3, width = 18, units = "in", res = 100)
 grid.arrange(c1, c2, c3, c4, nrow = 1)
 dev.off()
 
@@ -108,14 +116,16 @@ dev.off()
     group_by(x, y, sp) %>% 
     summarise(est = median(est)) %>%  
     ggplot(aes(x, y, fill = est, color = est)) + 
-    # geom_tile(height = 0.8, width = 0.8) +
-    geom_point(alpha = 0.5, size = 0.5) +
+    geom_tile(height = 0.8, width = 0.8) +
+    # geom_point(alpha = 0.5, size = 0.5) +
     coord_fixed() + 
     facet_grid(~sp) +
     ylab("Northings (km)") + 
     xlab("Eastings (km)") + 
-    scale_fill_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
-    scale_color_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
+    # scale_fill_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
+    # scale_color_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
+    scale_fill_viridis_c("g/353 sq.m") + 
+    scale_color_viridis_c("g/353 sq.m") + 
     # ggdark::dark_theme_minimal() +
     theme_minimal() + 
     theme(legend.position = c(0.15, 0.35)))
@@ -131,8 +141,10 @@ dev.off()
     facet_grid(~sp) +
     ylab("Northings (km)") + 
     xlab("Eastings (km)") + 
-    scale_fill_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
-    scale_color_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
+    # scale_fill_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
+    # scale_color_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
+    scale_fill_viridis_c("g/353 sq.m") + 
+    scale_color_viridis_c("g/353 sq.m") + 
     # ggdark::dark_theme_minimal() +
     theme_minimal() + 
     theme(legend.position = c(0.15, 0.35)))
@@ -148,8 +160,10 @@ dev.off()
     facet_grid(~sp) +
     ylab("Northings (km)") + 
     xlab("Eastings (km)") + 
-    scale_fill_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
-    scale_color_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
+    # scale_fill_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
+    # scale_color_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
+    scale_fill_viridis_c("g/353 sq.m") + 
+    scale_color_viridis_c("g/353 sq.m") + 
     # ggdark::dark_theme_minimal() +
     theme_minimal() + 
     theme(legend.position = c(0.15, 0.35)))
@@ -165,13 +179,15 @@ dev.off()
     facet_grid(~sp) +
     ylab("Northings (km)") + 
     xlab("Eastings (km)") + 
-    scale_fill_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
-    scale_color_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
+    # scale_fill_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
+    # scale_color_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
+    scale_fill_viridis_c("g/353 sq.m") + 
+    scale_color_viridis_c("g/353 sq.m") + 
     # ggdark::dark_theme_minimal() +
     theme_minimal() + 
     theme(legend.position = c(0.15, 0.35)))
 
-png('/Users/Kisei/Desktop/biomass.png', height = 3, width = 18, units = "in", res = 100)
+png(paste0('/Users/', Sys.info()[7], '/Desktop/biomass.png'), height = 3, width = 18, units = "in", res = 100)
 grid.arrange(m1, m2, m3, m4, nrow = 1)
 dev.off()
 
@@ -180,7 +196,7 @@ dev.off()
     group_by(year, sp) %>% 
     summarise(mean_est = median(est),
               sd = sd(est, na.rm = T)) %>%
-    ggplot(aes(year, mean_est, color = mean_est)) + 
+    ggplot(aes(year, mean_est)) + 
     geom_line(show.legend = F) +
     geom_point(size = 3, show.legend = F) + 
     geom_errorbar(aes(ymin = ifelse(mean_est - sd < 0, 0, mean_est - sd), 
@@ -200,7 +216,7 @@ dev.off()
     group_by(year, sp) %>% 
     summarise(mean_est = median(est),
               sd = sd(est, na.rm = T)) %>%
-    ggplot(aes(year, mean_est, color = mean_est)) + 
+    ggplot(aes(year, mean_est)) + 
     geom_line(show.legend = F) +
     geom_point(size = 3, show.legend = F) + 
     geom_errorbar(aes(ymin = ifelse(mean_est - sd < 0, 0, mean_est - sd), 
@@ -220,7 +236,7 @@ dev.off()
     group_by(year, sp) %>% 
     summarise(mean_est = median(est),
               sd = sd(est, na.rm = T)) %>%
-    ggplot(aes(year, mean_est, color = mean_est)) + 
+    ggplot(aes(year, mean_est)) + 
     geom_line(show.legend = F) +
     geom_point(size = 3, show.legend = F) + 
     geom_errorbar(aes(ymin = ifelse(mean_est - sd < 0, 0, mean_est - sd), 
@@ -240,7 +256,7 @@ dev.off()
     group_by(year, sp) %>% 
     summarise(mean_est = median(est),
               sd = sd(est, na.rm = T)) %>%
-    ggplot(aes(year, mean_est, color = mean_est)) + 
+    ggplot(aes(year, mean_est)) + 
     geom_line(show.legend = F) +
     geom_point(size = 3, show.legend = F) + 
     geom_errorbar(aes(ymin = ifelse(mean_est - sd < 0, 0, mean_est - sd), 
@@ -255,6 +271,7 @@ dev.off()
     theme_minimal() + 
     theme(legend.position = "right"))
 
-png('/Users/Kisei/Desktop/trend.png', height = 3, width = 18, units = "in", res = 100)
-grid.arrange(trend1, trend2, trend3, trend4, nrow = 1)
+png(paste0('/Users/', Sys.info()[7], '/Desktop/trend.png'), height = 3, width = 18, units = "in", res = 100)
+grid.arrange(t1, t2, t3, t4, nrow = 1)
 dev.off()
+
