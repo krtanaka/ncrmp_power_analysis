@@ -411,22 +411,22 @@ isl_power$design = ifelse(isl_power$design == "downscaled_alt", "zone-triaged", 
     mutate(RMSE = as.numeric(RMSE)) %>% 
     ggplot() + 
     geom_smooth(aes(N, RMSE, color = design), show.legend = T, se = T) +
+    scale_color_viridis_d("") + 
+    ggnewscale::new_scale_color() +
+    facet_wrap(isl ~ sp, scales = "free_y", ncol = 7) +
+    scale_x_log10(breaks = trans_breaks('log10', function(x) 10^x),
+                  labels = trans_format('log10', math_format(10^.x)), "Sampling Efforts") +
+    # scale_y_log10(breaks = trans_breaks('log10', function(x) 10^x),
+    #               labels = trans_format('log10', math_format(10^.x)), "RMSE") + 
+    guides(color = guide_legend(override.aes = list(fill = NA))) + 
+    # geom_vline(aes(xintercept = sites, color = effort), data = efforts) +
     # geom_point(aes(N, RMSE, color = design), alpha = 0.2) +
     # geom_hex(aes(N, RMSE, color = design, fill = design), alpha = 0.2, bins = 50) +
     # facet_wrap(sp ~ isl, scales = "free_y", ncol = 7) +
-    facet_wrap(isl ~ sp, scales = "free_y", ncol = 7) +
-    ggnewscale::new_scale_color() +
-    geom_vline(aes(xintercept = sites, color = effort), data = efforts) +
     # scale_y_log10() +
     # scale_x_log10() +
-    scale_x_log10(breaks = trans_breaks('log10', function(x) 10^x),
-                  labels = trans_format('log10', math_format(10^.x)), "Sampling Efforts") +
-    scale_y_log10(breaks = trans_breaks('log10', function(x) 10^x),
-                  labels = trans_format('log10', math_format(10^.x)), "RMSE") + 
-    scale_color_discrete("") + 
     xlab("Sampling Efforts") + 
-    theme_minimal() +
-    guides(color = guide_legend(override.aes = list(fill = NA))))
+    theme_minimal())
 
 (isl_power %>%
     # subset(isl == "Oahu") %>% 

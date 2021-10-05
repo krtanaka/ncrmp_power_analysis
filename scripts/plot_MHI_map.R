@@ -3,6 +3,11 @@ library(ggplot2)
 library(rnaturalearth)
 library(marmap)
 library(raster)
+library(rmapshaper)
+library(ggrepel)
+library(dplyr)
+
+rm(list = ls())
 
 world <- ne_countries(scale = "large", returnclass = "sf")
 
@@ -66,12 +71,13 @@ map <- ggplot(data = world) +
                   fontface = "bold",   
                   nudge_x = c(0.5, 0.5, 0.5, 0.5, 0.5),
                   nudge_y = c(0.5, 0.5, 0.5, 0.5, 0.5)) +
-  theme_pubr() + 
+  theme_minimal() + 
   theme(
     # axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
     axis.title = element_blank())
     # legend.position = c(0.1, 0.3))
 
-pdf('/Users/Kisei.Tanaka/Desktop/MHI_200m_Bathy_Countour.pdf', height = 5, width = 7)
+# pdf('/Users/Kisei.Tanaka/Desktop/MHI_200m_Bathy_Countour.pdf', height = 5, width = 7)
+png('/Users/Kisei.Tanaka/Desktop/MHI_200m_Bathy_Countour.png', height = 5, width = 7, res = 100, units = "in")
 print(map)
 dev.off()
