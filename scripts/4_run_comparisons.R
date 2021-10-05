@@ -466,7 +466,23 @@ isl_power$design = ifelse(isl_power$design == "downscaled_alt", "zone-triaged", 
     guides(color = guide_legend(override.aes = list(fill = NA))) + 
     theme(legend.position = c(0.8, 0.9)))
 
-df =isl_power %>% 
+df = isl_power %>% 
   mutate(RMSE = as.numeric(RMSE)) %>% 
-  group_by(isl, sp, design) %>% 
+  group_by(isl, sp, design, N) %>% 
   summarise(rmse = mean(RMSE, na.rm = T))
+
+df$rmse = formatC(df$rmse, format = "e", digits = 2)
+
+df$isl[duplicated(df$isl)] <- NA
+df$sp[duplicated(df$sp)] <- NA
+
+colnames(df) = c("Island", "Trophic_group", "Survey_design", "RMSE")
+
+df$Survey_design = gsub("(^[[:alpha:]])", "\\U\\1", df$Survey_design, perl = T)
+df$Trophic_group = tolower(df$Trophic_group)
+df$Trophic_group = gsub("(^[[:alpha:]])", "\\U\\1", df$Trophic_group, perl = T)
+df[is.na(df)] <- " "
+
+readr::write_csv(df, 'outputs/results.csv')
+
+summary_table(mtcars2, )

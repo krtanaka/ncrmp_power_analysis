@@ -1,85 +1,85 @@
-"","isl","sp","design","rmse"
-"1","Hawaii","PISCIVORE","traditional",20203000
-"2","Hawaii","PISCIVORE","zone-based",24625200
-"3","Hawaii","PISCIVORE","zone-triaged",18379000
-"4","Hawaii","PLANKTIVORE","traditional",66214000
-"5","Hawaii","PLANKTIVORE","zone-based",75740000
-"6","Hawaii","PLANKTIVORE","zone-triaged",65312000
-"7","Hawaii","PRIMARY","traditional",157530000
-"8","Hawaii","PRIMARY","zone-based",210914000
-"9","Hawaii","PRIMARY","zone-triaged",129948000
-"10","Hawaii","SECONDARY","traditional",70746000
-"11","Hawaii","SECONDARY","zone-based",85474000
-"12","Hawaii","SECONDARY","zone-triaged",58100000
-"13","Kauai","PISCIVORE","traditional",55380000
-"14","Kauai","PISCIVORE","zone-based",51076000
-"15","Kauai","PISCIVORE","zone-triaged",46246000
-"16","Kauai","PLANKTIVORE","traditional",99482000
-"17","Kauai","PLANKTIVORE","zone-based",88406000
-"18","Kauai","PLANKTIVORE","zone-triaged",96702000
-"19","Kauai","PRIMARY","traditional",244600000
-"20","Kauai","PRIMARY","zone-based",229528000
-"21","Kauai","PRIMARY","zone-triaged",209920000
-"22","Kauai","SECONDARY","traditional",147574000
-"23","Kauai","SECONDARY","zone-based",138074000
-"24","Kauai","SECONDARY","zone-triaged",132438000
-"25","Lanai","PISCIVORE","traditional",6230800
-"26","Lanai","PISCIVORE","zone-based",9393600
-"27","Lanai","PISCIVORE","zone-triaged",6806200
-"28","Lanai","PLANKTIVORE","traditional",36020000
-"29","Lanai","PLANKTIVORE","zone-based",34990000
-"30","Lanai","PLANKTIVORE","zone-triaged",34742000
-"31","Lanai","PRIMARY","traditional",22974000
-"32","Lanai","PRIMARY","zone-based",34145200
-"33","Lanai","PRIMARY","zone-triaged",22266400
-"34","Lanai","SECONDARY","traditional",11380600
-"35","Lanai","SECONDARY","zone-based",17076000
-"36","Lanai","SECONDARY","zone-triaged",11775000
-"37","Maui","PISCIVORE","traditional",37888000
-"38","Maui","PISCIVORE","zone-based",41286000
-"39","Maui","PISCIVORE","zone-triaged",28488000
-"40","Maui","PLANKTIVORE","traditional",135718000
-"41","Maui","PLANKTIVORE","zone-based",140370000
-"42","Maui","PLANKTIVORE","zone-triaged",117326000
-"43","Maui","PRIMARY","traditional",274968000
-"44","Maui","PRIMARY","zone-based",289284000
-"45","Maui","PRIMARY","zone-triaged",194824000
-"46","Maui","SECONDARY","traditional",103458000
-"47","Maui","SECONDARY","zone-based",119184000
-"48","Maui","SECONDARY","zone-triaged",84264000
-"49","Molokai","PISCIVORE","traditional",37886000
-"50","Molokai","PISCIVORE","zone-based",34880000
-"51","Molokai","PISCIVORE","zone-triaged",35786000
-"52","Molokai","PLANKTIVORE","traditional",66878000
-"53","Molokai","PLANKTIVORE","zone-based",58822000
-"54","Molokai","PLANKTIVORE","zone-triaged",58536000
-"55","Molokai","PRIMARY","traditional",236660000
-"56","Molokai","PRIMARY","zone-based",223120000
-"57","Molokai","PRIMARY","zone-triaged",234300000
-"58","Molokai","SECONDARY","traditional",101094000
-"59","Molokai","SECONDARY","zone-based",91866000
-"60","Molokai","SECONDARY","zone-triaged",97586000
-"61","Niihau","PISCIVORE","traditional",40850000
-"62","Niihau","PISCIVORE","zone-based",39460000
-"63","Niihau","PISCIVORE","zone-triaged",32464000
-"64","Niihau","PLANKTIVORE","traditional",49904000
-"65","Niihau","PLANKTIVORE","zone-based",52508000
-"66","Niihau","PLANKTIVORE","zone-triaged",58962000
-"67","Niihau","PRIMARY","traditional",178980000
-"68","Niihau","PRIMARY","zone-based",172560000
-"69","Niihau","PRIMARY","zone-triaged",169140000
-"70","Niihau","SECONDARY","traditional",82034000
-"71","Niihau","SECONDARY","zone-based",78564000
-"72","Niihau","SECONDARY","zone-triaged",62844000
-"73","Oahu","PISCIVORE","traditional",24272000
-"74","Oahu","PISCIVORE","zone-based",22418000
-"75","Oahu","PISCIVORE","zone-triaged",22106000
-"76","Oahu","PLANKTIVORE","traditional",87152000
-"77","Oahu","PLANKTIVORE","zone-based",84996000
-"78","Oahu","PLANKTIVORE","zone-triaged",81336000
-"79","Oahu","PRIMARY","traditional",199520000
-"80","Oahu","PRIMARY","zone-based",183240000
-"81","Oahu","PRIMARY","zone-triaged",178380000
-"82","Oahu","SECONDARY","traditional",126654000
-"83","Oahu","SECONDARY","zone-based",121942000
-"84","Oahu","SECONDARY","zone-triaged",117650000
+Island,Trophic_group,Survey_design,RMSE
+Hawaii,Piscivore,Traditional,2.02e+07
+ , ,Zone-based,2.46e+07
+ , ,Zone-triaged,1.84e+07
+ ,Planktivore,Traditional,6.62e+07
+ , ,Zone-based,7.57e+07
+ , ,Zone-triaged,6.53e+07
+ ,Primary,Traditional,1.58e+08
+ , ,Zone-based,2.11e+08
+ , ,Zone-triaged,1.30e+08
+ ,Secondary,Traditional,7.07e+07
+ , ,Zone-based,8.55e+07
+ , ,Zone-triaged,5.81e+07
+Kauai, ,Traditional,5.54e+07
+ , ,Zone-based,5.11e+07
+ , ,Zone-triaged,4.62e+07
+ , ,Traditional,9.95e+07
+ , ,Zone-based,8.84e+07
+ , ,Zone-triaged,9.67e+07
+ , ,Traditional,2.45e+08
+ , ,Zone-based,2.30e+08
+ , ,Zone-triaged,2.10e+08
+ , ,Traditional,1.48e+08
+ , ,Zone-based,1.38e+08
+ , ,Zone-triaged,1.32e+08
+Lanai, ,Traditional,6.23e+06
+ , ,Zone-based,9.39e+06
+ , ,Zone-triaged,6.81e+06
+ , ,Traditional,3.60e+07
+ , ,Zone-based,3.50e+07
+ , ,Zone-triaged,3.47e+07
+ , ,Traditional,2.30e+07
+ , ,Zone-based,3.41e+07
+ , ,Zone-triaged,2.23e+07
+ , ,Traditional,1.14e+07
+ , ,Zone-based,1.71e+07
+ , ,Zone-triaged,1.18e+07
+Maui, ,Traditional,3.79e+07
+ , ,Zone-based,4.13e+07
+ , ,Zone-triaged,2.85e+07
+ , ,Traditional,1.36e+08
+ , ,Zone-based,1.40e+08
+ , ,Zone-triaged,1.17e+08
+ , ,Traditional,2.75e+08
+ , ,Zone-based,2.89e+08
+ , ,Zone-triaged,1.95e+08
+ , ,Traditional,1.03e+08
+ , ,Zone-based,1.19e+08
+ , ,Zone-triaged,8.43e+07
+Molokai, ,Traditional,3.79e+07
+ , ,Zone-based,3.49e+07
+ , ,Zone-triaged,3.58e+07
+ , ,Traditional,6.69e+07
+ , ,Zone-based,5.88e+07
+ , ,Zone-triaged,5.85e+07
+ , ,Traditional,2.37e+08
+ , ,Zone-based,2.23e+08
+ , ,Zone-triaged,2.34e+08
+ , ,Traditional,1.01e+08
+ , ,Zone-based,9.19e+07
+ , ,Zone-triaged,9.76e+07
+Niihau, ,Traditional,4.08e+07
+ , ,Zone-based,3.95e+07
+ , ,Zone-triaged,3.25e+07
+ , ,Traditional,4.99e+07
+ , ,Zone-based,5.25e+07
+ , ,Zone-triaged,5.90e+07
+ , ,Traditional,1.79e+08
+ , ,Zone-based,1.73e+08
+ , ,Zone-triaged,1.69e+08
+ , ,Traditional,8.20e+07
+ , ,Zone-based,7.86e+07
+ , ,Zone-triaged,6.28e+07
+Oahu, ,Traditional,2.43e+07
+ , ,Zone-based,2.24e+07
+ , ,Zone-triaged,2.21e+07
+ , ,Traditional,8.72e+07
+ , ,Zone-based,8.50e+07
+ , ,Zone-triaged,8.13e+07
+ , ,Traditional,2.00e+08
+ , ,Zone-based,1.83e+08
+ , ,Zone-triaged,1.78e+08
+ , ,Traditional,1.27e+08
+ , ,Zone-based,1.22e+08
+ , ,Zone-triaged,1.18e+08
