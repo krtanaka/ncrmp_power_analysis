@@ -476,13 +476,46 @@ df$rmse = formatC(df$rmse, format = "e", digits = 2)
 # df$isl[duplicated(df$isl)] <- NA
 # df$sp[duplicated(df$sp)] <- NA
 
-colnames(df) = c("Island", "Trophic_group", "Survey_design", "RMSE")
+colnames(df) = c("Island", "Trophic_group", "Survey_design", "Survey_efforts", "RMSE")
 
 df$Survey_design = gsub("(^[[:alpha:]])", "\\U\\1", df$Survey_design, perl = T)
 df$Trophic_group = tolower(df$Trophic_group)
 df$Trophic_group = gsub("(^[[:alpha:]])", "\\U\\1", df$Trophic_group, perl = T)
-df[is.na(df)] <- " "
+# df[is.na(df)] <- " "
+
+png('outputs/')
+
+(df %>% 
+  ggplot(aes(x = Island, y = RMSE, fill = Survey_design)) +
+    # ggplot(aes(x = Trophic_group, y = RMSE, fill = Survey_design)) + 
+    geom_boxplot(outlier.shape = NA) +
+    facet_wrap(~ Trophic_group, scale = "free_y", nrow = 1) +
+    # facet_grid(~ Trophic_group, scale = "free") +
+    # facet_grid(~ Island, scale = "free") + 
+    scale_y_log10() +
+    # scale_y_continuous(limits = quantile(df$RMSE, c(0.2, 0.9))) + 
+    scale_fill_viridis_d("") + 
+    xlab("") + 
+    # coord_flip() + 
+    # theme_pubr() + 
+    theme_minimal() + 
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)))
+
+df = isl_power %>% 
+  mutate(RMSE = as.numeric(RMSE)) %>% 
+  group_by(
+    # isl, 
+    design
+    # sp
+  ) %>% 
+  summarise(rmse = mean(RMSE, na.rm = T), 
+            sd = sd(RMSE, na.rm = T))
+
+df$rmse = formatC(df$rmse, format = "e", digits = 2)
+df$sd = formatC(df$sd, format = "e", digits = 2)
+
+df
+
 
 readr::write_csv(df, 'outputs/results.csv')
 
-summary_table(mtcars2, )
