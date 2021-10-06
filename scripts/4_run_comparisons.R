@@ -473,8 +473,8 @@ df = isl_power %>%
 
 df$rmse = formatC(df$rmse, format = "e", digits = 2)
 
-df$isl[duplicated(df$isl)] <- NA
-df$sp[duplicated(df$sp)] <- NA
+# df$isl[duplicated(df$isl)] <- NA
+# df$sp[duplicated(df$sp)] <- NA
 
 colnames(df) = c("Island", "Trophic_group", "Survey_design", "RMSE")
 
