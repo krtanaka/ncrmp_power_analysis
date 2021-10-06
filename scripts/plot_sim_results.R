@@ -53,13 +53,14 @@ for (i in 1:3) {
   theme(legend.position = "right") + 
   facet_grid(~ strategy) + 
   # scale_fill_gradient(low = "gray", high = "red", "# of sites")) + 
-  scale_fill_viridis_c("# of sites"))
+  scale_fill_viridis_c("# of sites") + 
+    ggtitle("(a)"))
   # scale_fill_gradientn(colours = topo.colors(100)))
 
 (p2 = sims %>% 
     ggplot() + 
     geom_line(aes(year, I_hat, group = sim, color = sim), alpha = 0.5, show.legend = T) +
-    scale_color_viridis_c("simulation") + 
+    scale_color_viridis_c("Simulation") + 
     ggnewscale::new_scale_color() +
     geom_line(aes(year, I, color = "True biomass"), size = 2) + 
     scale_color_viridis_d("") + 
@@ -73,6 +74,7 @@ for (i in 1:3) {
       data    = rmse,
       mapping = aes(x = Inf, y = Inf, label = paste0("RMSE = ", rmse)),
       hjust   = 1,
-      vjust   = 1.5))
+      vjust   = 2) + 
+    ggtitle("(b)"))
 
 p1/p2
