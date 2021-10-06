@@ -504,9 +504,10 @@ png('outputs/')
 df = isl_power %>% 
   mutate(RMSE = as.numeric(RMSE)) %>% 
   group_by(
-    # isl, 
-    design
-    # sp
+    isl,
+    design,
+    sp
+    # N
   ) %>% 
   summarise(rmse = mean(RMSE, na.rm = T), 
             sd = sd(RMSE, na.rm = T))
@@ -516,6 +517,15 @@ df$sd = formatC(df$sd, format = "e", digits = 2)
 
 df
 
+library(data.table)
+DT <- df %>% 
+  # subset(sp == "PRIMARY") %>% 
+  # subset(sp == "SECONDARY") %>% 
+  # subset(sp == "PLANKTIVORE") %>% 
+  # subset(sp == "PISCIVORE") %>% 
+  data.table()
+
+DT[ , .SD[which.min(rmse)], by = isl]
 
 readr::write_csv(df, 'outputs/results.csv')
 
