@@ -40,11 +40,11 @@ islands = c("Kauai", #1
             "Lanai", #8
             "Molokini", #9
             "Kahoolawe", #10
-            "Hawaii")[5]
+            "Hawaii")#[5]
 
 # response_variable = "fish_count";      sp = ifelse(uku_or_not == T, "Aprion virescens", "Chromis vanderbilti")
 # response_variable = "fish_biomass";    sp = ifelse(uku_or_not == T, "Aprion virescens", "Acanthurus olivaceus")
-response_variable = "trophic_biomass"; sp = c("PISCIVORE", "PLANKTIVORE", "PRIMARY", "SECONDARY", "TOTAL")[1]
+response_variable = "trophic_biomass"; sp = c("PISCIVORE", "PLANKTIVORE", "PRIMARY", "SECONDARY", "TOTAL")[4]
 
 if (response_variable == "fish_count") {
   
@@ -133,9 +133,9 @@ ISL_this_utm = spTransform(ISL_this,CRS(paste0("+proj=utm +units=km +zone=",zone
 ISL_this_sf = st_transform(st_as_sf(ISL_this), crs = paste0("+proj=utm +units=km +zone=",zone))
 
 n_knots = 350
-n_knots = 100 # a coarse mesh for speed
+# n_knots = 100 # a coarse mesh for speed
 rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search") # search
-rea_spde <- make_mesh(df, c("X", "Y"), cutoff  = n_knots, type = "cutoff") # predefined
+# rea_spde <- make_mesh(df, c("X", "Y"), cutoff  = n_knots, type = "cutoff") # predefined
 
 #build barrier to mesh
 rea_spde_coast = add_barrier_mesh(rea_spde , ISL_this_sf)
@@ -198,7 +198,9 @@ max(density_model$gradients)
 
 df$residuals <- residuals(density_model)
 par(pty = "s")
-qqnorm(df$residuals, ylim = c(-5, 5), xlim = c(-5, 5), bty = "n", pch = 20); abline(a = 0, b = 1)
+png(paste0('outputs/qq_', sp, ',png'), width = 4, height = 4.5, units = "in", res = 100)
+qqnorm(df$residuals, ylim = c(-5, 5), xlim = c(-5, 5), bty = "n", pch = 20, main = sp); abline(a = 0, b = 1)
+dev.off()
 
 m_p <- predict(density_model); m_p = m_p[,c("response", "est")]
 m_p$back_abs_res = abs(df$residuals)
