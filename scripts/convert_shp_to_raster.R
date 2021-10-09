@@ -18,7 +18,11 @@ rm(list = ls())
 
 # plan(multisession) # Uncomment if you are running this on Windows OS
 
+<<<<<<< Updated upstream
 spatial_resolution = 100 # spatial resolution in m
+=======
+spatial_resolution = 500 # spatial resolution in m
+>>>>>>> Stashed changes
 cores = 64
 
 shp_path = "G:/GIS/"
