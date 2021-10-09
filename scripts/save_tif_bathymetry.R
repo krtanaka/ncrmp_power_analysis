@@ -23,15 +23,15 @@ topo %>%
   group_by(x, y) %>%
   summarise(x = mean(x),
             y = mean(y),
-            Topography = mean(gua_mb_ld_5m_mosaic , na.rm = T)) %>%
+            Topography = mean(gua_nthmp_dem_10m_mosaic, na.rm = T)) %>%
   ggplot(aes(x, y, fill = Topography, color = Topography)) +
   # geom_hex(bins = 50)
   # geom_tile(aes(width = 500, height = 500)) +
-  geom_raster()
+  geom_raster() + 
   # geom_point() + 
   scale_fill_viridis_c() +
   coord_fixed() +
   ggdark::dark_theme_minimal() +
   theme(axis.title = element_blank())
 
-save(topo, file = 'data/gis_bathymetry/raster/Topography_SRTM15.RData')
+save(topo, file = 'data/gis_bathymetry/raster/gua_nthmp_dem_10m_mosaic.RData')
