@@ -4,6 +4,7 @@ library(rgeos)
 library(pbapply)
 library(jubilee)
 library(future.apply)
+library(dplyr)
 
 rm(list = ls())
 
@@ -17,7 +18,7 @@ rm(list = ls())
 
 # plan(multisession) # Uncomment if you are running this on Windows OS
 
-spatial_resolution = 1000 # spatial resolution in m
+spatial_resolution = 100 # spatial resolution in m
 cores = 64
 
 shp_path = "G:/GIS/"
@@ -27,15 +28,15 @@ shp_path = getwd()
 ##################################
 ### Hard/Soft Bottom Substrate ###
 ##################################
-shp_list = list.files(path = paste0(shp_path, "hardsoft/MHI/"), pattern = "shp.shp"); shp_list
+shp_list = list.files(path = paste0(shp_path, "/data/gis_hard_soft/shapefile/"), pattern = "shp.shp")[1]; shp_list
 for (shp_i in 1:length(shp_list)) {
   
   start = Sys.time()
   
-  # shp_i = 5
+  shp_i = 1
   
   # Import shapefile
-  df <- readOGR(paste0(shp_path, "hardsoft/MHI/", shp_list[shp_i]))[4]
+  df <- readOGR(paste0(shp_path, "/data/gis_hard_soft/shapefile/", shp_list[shp_i])); plot(df)
   df <- df[df$HardSoft != "Land",]
   df <- df[df$HardSoft != "Other",]
   df <- df[df$HardSoft != "Unknown",]
@@ -84,8 +85,8 @@ for (shp_i in 1:length(shp_list)) {
   
   # Write ID values covering the largest area per pixel into raster template
   r[] <- as.numeric(r_val)
-  # plot(r, col = rainbow(length(unique(r_val))))
-  # plot(df, border = "grey45", add = TRUE)
+  plot(r, col = rainbow(length(unique(r_val))))
+  plot(df, border = "grey45", add = TRUE)
   
   island_name = tolower(substr(shp_list[shp_i],1,nchar(shp_list[shp_i])-18))
   
@@ -93,7 +94,7 @@ for (shp_i in 1:length(shp_list)) {
   
   raster_and_table = list(r, table)
   
-  save(raster_and_table, file = paste0("/mnt/ldrive/ktanaka/ncrmp_power_analysis/hardsoft_", island_name, "_", spatial_resolution, ".RData"))
+  save(raster_and_table, file = paste0("/mnt/ldrive/ktanaka/ncrmp_power_analysis/data/gis_hard_soft/", island_name, "_", spatial_resolution, ".RData"))
   
   end = Sys.time()
   
@@ -106,18 +107,16 @@ for (shp_i in 1:length(shp_list)) {
 ##################################
 ### regional sub-island sector ###
 ##################################
-shp_list = list.files(path = paste0(shp_path, "sector/MHI/"), pattern = ".shp"); shp_list
+shp_list = list.files(path = paste0(shp_path, "/data/gis_sector/shapefile/"), pattern = ".shp")[1]; shp_list
 for (shp_i in 1:length(shp_list)) {
   
   start = Sys.time()
   
-  # shp_i = 5
+  shp_i = 1
   
   # Import shapefile
-  df <- readOGR(paste0(shp_path, "sector/MHI/", shp_list[shp_i]))[1]
-  df <- df[df$SEC_NAME != "Land",]
-  df <- df[df$SEC_NAME != "Other",]
-  
+  df <- readOGR(paste0(shp_path, "/data/gis_sector/shapefile/", shp_list[shp_i])); plot(df)
+
   df@data
   table = data.frame(df@data, i = 0:(length(df)-1)); table
   
@@ -164,8 +163,8 @@ for (shp_i in 1:length(shp_list)) {
   
   # Write ID values covering the largest area per pixel into raster template
   r[] <- as.numeric(r_val)
-  # plot(r, col = topo.colors(length(unique(r))))
-  # plot(df, border = "grey45", add = TRUE)
+  plot(r, col = topo.colors(length(unique(r))))
+  plot(df, border = "grey45", add = TRUE)
   
   island_name = tolower(substr(shp_list[shp_i], 1, nchar(shp_list[shp_i])-12))
   
@@ -173,7 +172,7 @@ for (shp_i in 1:length(shp_list)) {
   
   raster_and_table = list(r, table)
   
-  save(raster_and_table, file = paste0("/mnt/ldrive/ktanaka/ncrmp_power_analysis/sector_", island_name, "_", spatial_resolution, ".RData"))
+  save(raster_and_table, file = paste0("/mnt/ldrive/ktanaka/ncrmp_power_analysis/data/gis_sector/", island_name, "_", spatial_resolution, ".RData"))
   
   end = Sys.time()
   
@@ -186,15 +185,15 @@ for (shp_i in 1:length(shp_list)) {
 ######################
 ### reef component ###
 ######################
-shp_list = list.files(path = paste0(shp_path, "reef/MHI/"), pattern = ".shp"); shp_list
+shp_list = list.files(path = paste0(shp_path, "/data/gis_reef/shapefile/"), pattern = ".shp")[1]; shp_list
 for (shp_i in 1:length(shp_list)) {
   
   start = Sys.time()
   
-  # shp_i = 6
+  shp_i = 1
   
   # Import shapefile
-  df <- readOGR(paste0(shp_path, "reef/MHI/", shp_list[shp_i]))[1]
+  df <- readOGR(paste0(shp_path, "/data/gis_reef/shapefile/", shp_list[shp_i])); plot(df)
   df <- df[df$REEF_ZONE != "Land",]
   df <- df[df$REEF_ZONE != "Other",]
   df <- df[df$REEF_ZONE != "Reef Crest/Reef Flat",]
