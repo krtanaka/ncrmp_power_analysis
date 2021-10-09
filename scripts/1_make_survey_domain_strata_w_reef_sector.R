@@ -38,7 +38,7 @@ df = df %>%
 df$cell = 1:dim(df)[1]; df$cell = as.numeric(df$cell)
 df$division = as.numeric(1)
 
-# plot(df$longitude, df$latitude, pch = 20, bty = "l", ann = F, col = 2)
+plot(df$longitude, df$latitude, pch = 20, bty = "l", ann = F, col = 2)
 
 #############################################################
 ### import sector/reefzones shapefile                     ###
