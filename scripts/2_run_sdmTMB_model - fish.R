@@ -40,7 +40,7 @@ islands = c("Kauai", #1
             "Lanai", #8
             "Molokini", #9
             "Kahoolawe", #10
-            "Hawaii")[5]
+            "Hawaii")#[1]
 
 # response_variable = "fish_count";      sp = ifelse(uku_or_not == T, "Aprion virescens", "Chromis vanderbilti")
 # response_variable = "fish_biomass";    sp = ifelse(uku_or_not == T, "Aprion virescens", "Acanthurus olivaceus")
@@ -132,8 +132,8 @@ ISL_this = ISL_bounds[which(ISL_bounds$ISLAND %in% toupper(islands)),]
 ISL_this_utm = spTransform(ISL_this,CRS(paste0("+proj=utm +units=km +zone=",zone)))
 ISL_this_sf = st_transform(st_as_sf(ISL_this), crs = paste0("+proj=utm +units=km +zone=",zone))
 
-n_knots = 350
-# n_knots = 100 # a coarse mesh for speed
+n_knots = 300
+n_knots = 100 # a coarse mesh for speed
 rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search") # search
 # rea_spde <- make_mesh(df, c("X", "Y"), cutoff  = n_knots, type = "cutoff") # predefined
 
@@ -149,8 +149,8 @@ points(rea_spde_coast$loc_xy,col = "green", pch = ".", cex = 5)
 bar_i = rea_spde_coast$barrier_triangles
 norm_i = rea_spde_coast$normal_triangles
 points(rea_spde_coast$spde$mesh$loc[,1], rea_spde_coast$spde$mesh$loc[,2], pch = ".", col = "black")
-points(rea_spde_coast$mesh_sf$V1[bar_i], rea_spde_coast$mesh_sf$V2[bar_i], col = "red", pch = 20, cex = .5)
-points(rea_spde_coast$mesh_sf$V1[norm_i], rea_spde_coast$mesh_sf$V2[norm_i], col = "blue", pch = 20, cex = .5)
+points(rea_spde_coast$mesh_sf$V1[bar_i], rea_spde_coast$mesh_sf$V2[bar_i], col = "red", pch = 20, cex = 2)
+points(rea_spde_coast$mesh_sf$V1[norm_i], rea_spde_coast$mesh_sf$V2[norm_i], col = "blue", pch = 20, cex = 2)
 # dev.off()
 
 df$year = df$OBS_YEAR
@@ -169,8 +169,8 @@ density_model <- sdmTMB(
   
   data = df, 
   
-  formula = response ~ as.factor(year) + depth_scaled + depth_scaled2,
-  # formula = response ~ as.factor(year) + s(depth, k = 5),
+  # formula = response ~ as.factor(year) + depth_scaled + depth_scaled2,
+  formula = response ~ as.factor(year) + s(depth, k = 5),
   # formula = response ~ as.factor(year) + s(depth, k=5) + s(temp, k=5),
   # formula = response ~ as.factor(year) + s(temp, k=5) + s(depth, k=5) + depth_scaled + depth_scaled2,
   
@@ -198,7 +198,7 @@ max(density_model$gradients)
 
 df$residuals <- residuals(density_model)
 par(pty = "s")
-png(paste0('outputs/qq_', sp, ',png'), width = 4, height = 4.5, units = "in", res = 100)
+png(paste0('outputs/qq_', sp, '.png'), width = 4, height = 4.5, units = "in", res = 100)
 qqnorm(df$residuals, ylim = c(-5, 5), xlim = c(-5, 5), bty = "n", pch = 20, main = sp); abline(a = 0, b = 1)
 dev.off()
 
