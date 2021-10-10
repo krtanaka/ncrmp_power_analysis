@@ -18,17 +18,16 @@ load("data/gis_bathymetry/raster/gua_nthmp_dem_10m_mosaic.RData")
 
 df = topo; rm(topo)
 
-df$longitude = df$x
-df$latitude = df$y
+# change to 100 m res
+df$longitude = round(df$x*0.1, 0)
+df$latitude = round(df$y*0.1, 0)
 
-df <- df %>%
-  group_by(longitude, latitude) %>%
-  summarise(Topography = mean(gua_nthmp_dem_10m_mosaic, na.rm = T))
+df = df %>% 
+  group_by(longitude, latitude) %>% 
+  summarise(gua_nthmp_dem_10m_mosaic = mean(gua_nthmp_dem_10m_mosaic))
 
 df$cell = 1:dim(df)[1]; df$cell = as.numeric(df$cell)
 df$division = as.numeric(1)
-
-plot(df$longitude, df$latitude, pch = ".", bty = "l", ann = F, col = 2)
 
 #############################################################
 ### import sector/reefzones shapefile                     ###
@@ -44,15 +43,16 @@ rm(raster_and_table)
 sector = rasterToPoints(sector) %>% as.data.frame(); colnames(sector) = c("x", "y", "z")
 reef = rasterToPoints(reef) %>% as.data.frame(); colnames(reef) = c("x", "y", "z")
 
-plot(sector$x, sector$y, pch = ".", bty = "l", ann = F, col = 4)
-points(reef$x, reef$y, pch = ".", bty = "l", ann = F, col = 2)
-
 # merge sectors -----------------------------------------------------------
-utmcoor <- SpatialPoints(cbind(sector$x, sector$y), proj4string = CRS("+proj=utm +units=m +zone=55"))
-longlatcoor <- spTransform(utmcoor,CRS("+proj=longlat"))
-sector$lon <- coordinates(longlatcoor)[,1]
-sector$lat <- coordinates(longlatcoor)[,2]
-rm(longlatcoor, utmcoor)
+sector$lon = sector$x
+sector$lat = sector$y
+
+sector$lon = round(sector$x*0.1, 0)
+sector$lat = round(sector$y*0.1, 0)
+sector = sector %>% 
+  group_by(lon, lat) %>% 
+  summarise(z = round(mean(z), 0))
+
 sector$sector_name = as.numeric(as.factor(sector$z))
 sector = as.matrix(sector[,c("lon", "lat", "sector_name")])
 e = extent(sector[,1:2])
@@ -63,14 +63,6 @@ dim(crm_res); crm_res
 res = 10  # rasterize it, but be careful with resolutions, lower = better but more missing points
 r <- raster(e, ncol = round((dim(crm_res)[2]/res), digits = 0), nrow = round(dim(crm_res)[1]/res, digits = 0))
 sector <- rasterize(sector[, 1:2], r, sector[,3], fun = mean)
-sector %>% 
-  rasterToPoints(spatial = T) %>% 
-  as.data.frame() %>%
-  ggplot(aes(x, y, fill = layer)) + 
-  geom_raster() + 
-  coord_fixed() +
-  # scale_fill_viridis_b("") + 
-  ggdark::dark_theme_minimal()
 dim(sector)
 sector
 default_proj = "+init=epsg:4326 +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +towgs84=0,0,0"
@@ -87,10 +79,13 @@ colnames(sector) = c("longitude", "latitude", "cell", "sector")
 summary(sector)
 
 sector %>% 
-  ggplot(aes(longitude, latitude, color = factor(round(sector, 0)))) + 
-  geom_point() + 
+  mutate(longitude = round(longitude*0.01, 0),
+         latitude = round(latitude*0.01, 0)) %>%
+  group_by(longitude, latitude) %>%
+  summarise(sector = mean(sector, na.rm = T)) %>%
+  ggplot(aes(longitude, latitude, fill = factor(round(sector, 0)))) + 
+  geom_tile() + 
   coord_fixed() + 
-  # scale_fill_viridis_b("") + 
   ggdark::dark_theme_minimal()
 
 df = merge(df, sector, by = c("cell"))
@@ -157,38 +152,44 @@ df = df[ , -which(names(df) %in% c("longitude.y", "latitude.y", "longitude.y", "
 # make strata by depth * sector * reef type -------------------------------
 
 df$depth_bin = ""
-df$depth_bin = ifelse(df$Topography <= 0  & df$Topography >= -6, 1L, df$depth_bin) 
-df$depth_bin = ifelse(df$Topography < -6  & df$Topography >= -18, 2L, df$depth_bin) 
-df$depth_bin = ifelse(df$Topography < -18, 3L, df$depth_bin) 
+df$depth_bin = ifelse(df$gua_nthmp_dem_10m_mosaic <= 0  & df$gua_nthmp_dem_10m_mosaic >= -6, 1L, df$depth_bin) 
+df$depth_bin = ifelse(df$gua_nthmp_dem_10m_mosaic < -6  & df$gua_nthmp_dem_10m_mosaic >= -18, 2L, df$depth_bin) 
+df$depth_bin = ifelse(df$gua_nthmp_dem_10m_mosaic < -18, 3L, df$depth_bin) 
 
 df$sector = as.character(df$sector)
 df$reef = as.character(df$reef)
 
-df$strat = paste(df$depth_bin, df$sector, df$reef, sep = "_")
+df$strat = paste(df$depth_bin, df$sector
+                 # , df$reef
+                 , sep = "_")
 df$strat = as.numeric(as.factor(df$strat))
 
-df$depth = as.numeric(df$Topography*-1)
+df$depth = as.numeric(df$gua_nthmp_dem_10m_mosaic*-1)
 
 colnames(df)[2:3] = c("longitude", "latitude")
 
-depth = df %>% 
-  ggplot( aes(longitude, latitude)) + 
-  geom_tile(aes(fill = depth, width = 0.005, height = 0.005)) +
-  scale_fill_gradientn(colours = colorRamps::matlab.like(100), "Bathymetry (m)") +
-  coord_fixed() +
-  ggdark::dark_theme_minimal() +
-  theme(axis.title = element_blank(),
-        legend.position = "bottom")
+# utmcoor <- SpatialPoints(cbind(df$longitude, df$latitude), proj4string = CRS("+proj=utm +units=m +zone=55"))
+# longlatcoor <- spTransform(utmcoor,CRS("+proj=longlat"))
+# df$longitude <- coordinates(longlatcoor)[,1]
+# df$latitude <- coordinates(longlatcoor)[,2]
 
-sector = df %>% 
-  ggplot( aes(longitude, latitude, fill = factor(sector))) + 
-  geom_tile(aes(width = 0.005, height = 0.005)) +
-  scale_fill_discrete("sector") +
-  coord_fixed() +
-  theme_minimal() + 
-  ggdark::dark_theme_minimal() +
-  theme(axis.title = element_blank(),
-        legend.position = "bottom")
+(depth = df %>% 
+    ggplot( aes(longitude.y, latitude.y, fill = depth)) + 
+    geom_raster(interpolate = T) +
+    scale_fill_gradientn(colours = colorRamps::matlab.like(100), "Bathymetry (m)") +
+    coord_fixed() +
+    ggdark::dark_theme_minimal() +
+    theme(axis.title = element_blank(),
+          legend.position = "bottom"))
+
+(sector = df %>% 
+    ggplot( aes(longitude.y, latitude.y, fill = factor(sector))) + 
+    geom_raster() +
+    scale_fill_discrete("sector") +
+    coord_fixed() +
+    ggdark::dark_theme_minimal() +
+    theme(axis.title = element_blank(),
+          legend.position = "bottom"))
 
 reef = df %>% 
   ggplot( aes(longitude, latitude, fill = as.factor(reef))) + 
@@ -207,25 +208,10 @@ print(p)
 
 df = as.data.frame(df)
 
-cell = rasterFromXYZ(df[,c("longitude", "latitude", "cell")]); plot(cell)
-division = rasterFromXYZ(df[,c("longitude", "latitude", "division")]); plot(division)
-strat = rasterFromXYZ(df[,c("longitude", "latitude", "strat")]); plot(strat)
-depth = rasterFromXYZ(df[,c("longitude", "latitude", "depth")]); plot(depth)
-
-default_proj = "+init=epsg:4326 +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +towgs84=0,0,0"
-
-## UTM projection for Hawaii = 5, for Kauai-Maui = 4
-zone <- (floor((df$longitude[1] + 180)/6) %% 60) + 1
-
-## http://www.gdsihawaii.com/hawpacgis/docs/HawaiiCooSys.pdf
-# utm_proj <- "+proj=utm +ellps=WGS84 +datum=WGS84 +units=km +no_defs"
-utm_proj <- "+proj=utm +zone=4 +ellps=WGS84 +datum=WGS84 +units=km +no_defs"
-# utm_proj <- "+proj=utm +zone=5 +ellps=WGS84 +datum=WGS84 +units=km +no_defs"
-
-crs(cell) = default_proj; cell = projectRaster(cell, crs = utm_proj); plot(cell)
-crs(division) = default_proj; division = projectRaster(division, crs = utm_proj); plot(division)
-crs(strat) = default_proj; strat = projectRaster(strat, crs = utm_proj); plot(strat)
-crs(depth) = default_proj; depth = projectRaster(depth, crs = utm_proj); plot(depth)
+cell = rasterFromXYZ(df[,c("longitude.y", "latitude.y", "cell")]); plot(cell)
+division = rasterFromXYZ(df[,c("longitude.y", "latitude.y", "division")]); plot(division)
+strat = rasterFromXYZ(df[,c("longitude.y", "latitude.y", "strat")]); plot(strat)
+depth = rasterFromXYZ(df[,c("longitude.y", "latitude.y", "depth")]); plot(depth)
 
 survey_grid_kt = stack(cell, division, strat, depth)
 survey_grid_kt$strat = round(survey_grid_kt$strat, digits = 0)
@@ -252,6 +238,4 @@ sp::plot(p)
 
 survey_grid_kt = readAll(survey_grid_kt)
 save(survey_grid_kt, file = paste0("data/survey_grid_w_sector_reef/survey_grid_", islands[il], ".RData"))
-
-}
 
