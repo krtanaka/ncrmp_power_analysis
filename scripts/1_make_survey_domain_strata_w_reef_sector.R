@@ -19,8 +19,8 @@ load("data/gis_bathymetry/raster/gua_nthmp_dem_10m_mosaic.RData")
 df = topo; rm(topo)
 
 # change to 100 m res
-df$longitude = round(df$x*0.1, 0)
-df$latitude = round(df$y*0.1, 0)
+df$longitude = round(df$x*0.01, 0)
+df$latitude = round(df$y*0.01, 0)
 
 df = df %>% 
   group_by(longitude, latitude) %>% 
@@ -47,8 +47,8 @@ reef = rasterToPoints(reef) %>% as.data.frame(); colnames(reef) = c("x", "y", "z
 sector$lon = sector$x
 sector$lat = sector$y
 
-sector$lon = round(sector$x*0.1, 0)
-sector$lat = round(sector$y*0.1, 0)
+sector$lon = round(sector$x*0.01, 0)
+sector$lat = round(sector$y*0.01, 0)
 sector = sector %>% 
   group_by(lon, lat) %>% 
   summarise(z = round(mean(z), 0))
@@ -79,10 +79,10 @@ colnames(sector) = c("longitude", "latitude", "cell", "sector")
 summary(sector)
 
 sector %>% 
-  mutate(longitude = round(longitude*0.01, 0),
-         latitude = round(latitude*0.01, 0)) %>%
-  group_by(longitude, latitude) %>%
-  summarise(sector = mean(sector, na.rm = T)) %>%
+  # mutate(longitude = round(longitude*0.01, 0),
+  #        latitude = round(latitude*0.01, 0)) %>%
+  # group_by(longitude, latitude) %>%
+  # summarise(sector = mean(sector, na.rm = T)) %>%
   ggplot(aes(longitude, latitude, fill = factor(round(sector, 0)))) + 
   geom_tile() + 
   coord_fixed() + 
@@ -175,7 +175,7 @@ colnames(df)[2:3] = c("longitude", "latitude")
 
 (depth = df %>% 
     ggplot( aes(longitude.y, latitude.y, fill = depth)) + 
-    geom_raster(interpolate = T) +
+    geom_raster() +
     scale_fill_gradientn(colours = colorRamps::matlab.like(100), "Bathymetry (m)") +
     coord_fixed() +
     ggdark::dark_theme_minimal() +
@@ -193,7 +193,7 @@ colnames(df)[2:3] = c("longitude", "latitude")
 
 reef = df %>% 
   ggplot( aes(longitude, latitude, fill = as.factor(reef))) + 
-  geom_tile(aes(width = 0.005, height = 0.005)) +
+  geom_raster() +
   scale_fill_discrete("reef") +
   coord_fixed() +
   theme_minimal() + 
@@ -213,29 +213,29 @@ division = rasterFromXYZ(df[,c("longitude.y", "latitude.y", "division")]); plot(
 strat = rasterFromXYZ(df[,c("longitude.y", "latitude.y", "strat")]); plot(strat)
 depth = rasterFromXYZ(df[,c("longitude.y", "latitude.y", "depth")]); plot(depth)
 
-survey_grid_kt = stack(cell, division, strat, depth)
-survey_grid_kt$strat = round(survey_grid_kt$strat, digits = 0)
-# values(survey_grid_kt$strat) = ifelse(values(survey_grid_kt$strat) > 3, 3, values(survey_grid_kt$strat))
-values(survey_grid_kt$division) = ifelse(is.na(values(survey_grid_kt$division)), NA, 1)
+survey_grid_gua = stack(cell, division, strat, depth)
+survey_grid_gua$strat = round(survey_grid_gua$strat, digits = 0)
+# values(survey_grid_gua$strat) = ifelse(values(survey_grid_gua$strat) > 3, 3, values(survey_grid_gua$strat))
+values(survey_grid_gua$division) = ifelse(is.na(values(survey_grid_gua$division)), NA, 1)
 
 sp::spplot(survey_grid$cell) #SimSurvey example
-sp::spplot(survey_grid_kt$cell)
+sp::spplot(survey_grid_gua$cell)
 
 sp::spplot(survey_grid$division) #SimSurvey example
-sp::spplot(survey_grid_kt$division)
+sp::spplot(survey_grid_gua$division)
 
 sp::spplot(survey_grid$strat) #SimSurvey example
-sp::spplot(survey_grid_kt$strat)
+sp::spplot(survey_grid_gua$strat)
 
 sp::spplot(survey_grid$depth) #SimSurvey example
-sp::spplot(survey_grid_kt$depth)
+sp::spplot(survey_grid_gua$depth)
 
 p <- raster::rasterToPolygons(survey_grid$strat, dissolve = TRUE)
 sp::plot(p)
 
-p <- raster::rasterToPolygons(survey_grid_kt$strat, dissolve = TRUE)
+p <- raster::rasterToPolygons(survey_grid_gua$strat, dissolve = TRUE)
 sp::plot(p)
 
-survey_grid_kt = readAll(survey_grid_kt)
-save(survey_grid_kt, file = paste0("data/survey_grid_w_sector_reef/survey_grid_", islands[il], ".RData"))
+survey_grid_gua = readAll(survey_grid_gua)
+save(survey_grid_gua, file = "data/survey_grid_w_sector_reef/survey_grid_.RData")
 
