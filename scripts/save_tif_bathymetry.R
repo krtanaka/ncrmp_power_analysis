@@ -4,6 +4,8 @@
 ### NOAA NGDC   (Dataset ID: usgsCeCrm10)                                 ###
 #############################################################################
 
+rm(list = ls())
+
 library(dplyr)
 library(ggplot2)
 library(raster)

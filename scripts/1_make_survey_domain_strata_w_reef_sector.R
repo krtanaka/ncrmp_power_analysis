@@ -14,31 +14,21 @@ library(patchwork)
 library(SimSurvey)
 library(sf)
 
-load("data/gis_bathymetry/raster/Topography_SRTM15.RData")
+load("data/gis_bathymetry/raster/gua_nthmp_dem_10m_mosaic.RData")
 
-df_base = topo; rm(topo)
+df = topo; rm(topo)
 
-df_base$longitude = df_base$x
-df_base$latitude = df_base$y
+df$longitude = df$x
+df$latitude = df$y
 
-box_extent = read.csv("data/misc/Guam MP extents.csv")
-
-df <- df_base 
-# %>% 
-#   subset(
-#     longitude < max(box_extent$Long.E) &
-#       longitude > min(box_extent$Long.W) &
-#       latitude > min(box_extent$Lat.S) & 
-#       latitude < max(box_extent$Lat.N)) 
-
-df = df %>%
+df <- df %>%
   group_by(longitude, latitude) %>%
-  summarise(Topography = mean(Topography, na.rm = T))
+  summarise(Topography = mean(gua_nthmp_dem_10m_mosaic, na.rm = T))
 
 df$cell = 1:dim(df)[1]; df$cell = as.numeric(df$cell)
 df$division = as.numeric(1)
 
-plot(df$longitude, df$latitude, pch = 20, bty = "l", ann = F, col = 2)
+plot(df$longitude, df$latitude, pch = ".", bty = "l", ann = F, col = 2)
 
 #############################################################
 ### import sector/reefzones shapefile                     ###
@@ -46,19 +36,19 @@ plot(df$longitude, df$latitude, pch = 20, bty = "l", ann = F, col = 2)
 ### these are outputs from "convert_shp_to_data.frame.R   ###
 #############################################################
 
-load("data/gis_sector/ector/raster/HAW.RData"); sector = raster_and_table[[1]]
-load("data/gis_reef/raster/haw.RData"); reef = raster_and_table[[1]]
+load("data/gis_sector/gua_base_land_openwater_mpa__100.RData"); sector = raster_and_table[[1]]
+# load("data/gis_reef/raster/haw.RData"); reef = raster_and_table[[1]]
 
 rm(raster_and_table)
 
 sector = rasterToPoints(sector) %>% as.data.frame(); colnames(sector) = c("x", "y", "z")
 reef = rasterToPoints(reef) %>% as.data.frame(); colnames(reef) = c("x", "y", "z")
 
-# plot(sector$lon, sector$lat, pch = ".", bty = "l", ann = F, col = 4)
-# points(reef$lon, reef$lat, pch = ".", bty = "l", ann = F, col = 2)
+plot(sector$x, sector$y, pch = ".", bty = "l", ann = F, col = 4)
+points(reef$x, reef$y, pch = ".", bty = "l", ann = F, col = 2)
 
 # merge sectors -----------------------------------------------------------
-utmcoor <- SpatialPoints(cbind(sector$x, sector$y), proj4string = CRS("+proj=utm +units=m +zone=4"))
+utmcoor <- SpatialPoints(cbind(sector$x, sector$y), proj4string = CRS("+proj=utm +units=m +zone=55"))
 longlatcoor <- spTransform(utmcoor,CRS("+proj=longlat"))
 sector$lon <- coordinates(longlatcoor)[,1]
 sector$lat <- coordinates(longlatcoor)[,2]
