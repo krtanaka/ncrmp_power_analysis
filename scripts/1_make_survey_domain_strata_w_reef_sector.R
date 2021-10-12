@@ -201,8 +201,17 @@ reef = df %>%
   theme(axis.title = element_blank(),
         legend.position = "bottom")
 
+(strata = df %>% 
+    ggplot( aes(longitude.y, latitude.y, fill = factor(strat))) + 
+    geom_raster() +
+    scale_fill_discrete("Strata") +
+    coord_fixed() +
+    ggdark::dark_theme_minimal() +
+    theme(axis.title = element_blank(),
+          legend.position = "bottom"))
+
 # pdf(paste0("outputs/survey_grid_", islands[il], ".pdf"), height = 8, width = 10)
-p =  depth + sector + reef
+p =  depth + sector + strata
 print(p)
 # dev.off()
 
