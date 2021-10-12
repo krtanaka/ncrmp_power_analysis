@@ -24,7 +24,7 @@ cores = 64
 shp_path = "G:/GIS/"
 shp_path = "/mnt/ldrive/ktanaka/GIS/"
 shp_path = "N:/GIS/Projects/CommonMaps/01_Preprocess/MARI/GUA/"
-shp_path = getwd()
+shp_path = getwd(); shp_path
 
 ##################################
 ### Hard/Soft Bottom Substrate ###
