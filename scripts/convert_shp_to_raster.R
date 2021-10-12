@@ -18,26 +18,30 @@ rm(list = ls())
 
 # plan(multisession) # Uncomment if you are running this on Windows OS
 
-spatial_resolution = 100 # spatial resolution in m
+spatial_resolution = 5000 # spatial resolution in m
 cores = 64
 
-shp_path = "G:/GIS/"
-shp_path = "/mnt/ldrive/ktanaka/GIS/"
-shp_path = "N:/GIS/Projects/CommonMaps/01_Preprocess/MARI/GUA/"
-shp_path = getwd(); shp_path
+# shp_path = "G:/GIS/"
+# shp_path = "/mnt/ldrive/ktanaka/GIS/"
+# shp_path = "N:/GIS/Projects/CommonMaps/01_Preprocess/MARI/GUA/"
+# shp_path = getwd(); shp_path
+
 
 ##################################
 ### Hard/Soft Bottom Substrate ###
 ##################################
-shp_list = list.files(path = paste0(shp_path, "bathymetry/"), pattern = "shp"); shp_list
+
+shp_list = list.files(path = "data/gis_hardsoft/shapefile", pattern = ".shp"); shp_list
+shp_list = shp_list[c(6, 15)]
+
 for (shp_i in 1:length(shp_list)) {
   
   start = Sys.time()
   
-  shp_i = 1
+  # shp_i = 1
   
   # Import shapefile
-  df <- readOGR(paste0(shp_path, "/data/gis_hard_soft/shapefile/", shp_list[shp_i])); plot(df)
+  df <- readOGR(paste0("data/gis_hardsoft/shapefile/", shp_list[shp_i])); plot(df)
   df <- df[df$HardSoft != "Land",]
   df <- df[df$HardSoft != "Other",]
   df <- df[df$HardSoft != "Unknown",]
@@ -95,7 +99,7 @@ for (shp_i in 1:length(shp_list)) {
   
   raster_and_table = list(r, table)
   
-  save(raster_and_table, file = paste0("/mnt/ldrive/ktanaka/ncrmp_power_analysis/data/gis_hard_soft/", island_name, "_", spatial_resolution, ".RData"))
+  save(raster_and_table, file = paste0("/mnt/ldrive/ktanaka/ncrmp_power_analysis/data/gis_hardsoft/raster/", island_name, "_", spatial_resolution, ".RData"))
   
   end = Sys.time()
   
@@ -105,10 +109,14 @@ for (shp_i in 1:length(shp_list)) {
   
 }
 
-##################################
-### Hard/Soft Bottom Substrate ###
-##################################
-shp_list = list.files(path = paste0(shp_path, "/data/gis_hard_soft/shapefile/"), pattern = "shp.shp")[1]; shp_list
+
+##################
+### Reef zones ###
+##################
+
+shp_list = list.files(path = "N:/GIS/Projects/CommonMaps/01_Preprocess/MARI/GUA/reefzone/", pattern = ".shp"); shp_list
+shp_list = shp_list[c(1, 3, 5, 7, 10, 12)]
+
 for (shp_i in 1:length(shp_list)) {
   
   start = Sys.time()
@@ -116,16 +124,18 @@ for (shp_i in 1:length(shp_list)) {
   shp_i = 1
   
   # Import shapefile
-  df <- readOGR(paste0(shp_path, "/data/gis_hard_soft/shapefile/", shp_list[shp_i])); plot(df)
-  df <- df[df$HardSoft != "Land",]
-  df <- df[df$HardSoft != "Other",]
-  df <- df[df$HardSoft != "Unknown",]
+  df <- readOGR(paste0("N:/GIS/Projects/CommonMaps/01_Preprocess/MARI/GUA/reefzone/", shp_list[shp_i]))
+  df <- df[df$Zone_Code != "LND",]
+  df <- df[df$Zone_Code != "Other",]
+  df <- df[df$Zone_Code != "RCF",]
+  df <- df[df$Zone_Code != "LAG",]
+  df <- df[df$Zone_Code != "UNK",]
   
   df@data
   table = data.frame(df@data, i = 0:(length(df)-1)); table
   
   table = table %>% 
-    group_by(HardSoft) %>% 
+    group_by(Zone_Code) %>% 
     summarise(i = paste0(i, collapse = ",")) 
   
   # Raster template 
