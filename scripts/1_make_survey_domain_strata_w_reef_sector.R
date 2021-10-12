@@ -14,11 +14,11 @@ library(patchwork)
 library(SimSurvey)
 library(sf)
 
-load("data/gis_bathymetry/raster/gua_nthmp_dem_10m_mosaic.RData")
+load("data/gis_bathymetry/raster/gua_nthmp_dem_10m_mosaic.RData") # assuming this is 10 m res layer
 
 df = topo; rm(topo)
 
-# change to 100 m res
+# change to 1000 m res
 df$longitude = round(df$x*0.01, 0)
 df$latitude = round(df$y*0.01, 0)
 
@@ -29,11 +29,11 @@ df = df %>%
 df$cell = 1:dim(df)[1]; df$cell = as.numeric(df$cell)
 df$division = as.numeric(1)
 
-#############################################################
-### import sector/reefzones shapefile                     ###
-### adjust resolutions and merge with crm bathymetry data ###
-### these are outputs from "convert_shp_to_data.frame.R   ###
-#############################################################
+###########################################################
+### import sector/reefzones shapefile                   ###
+### adjust resolutions and merge with bathymetry data   ###
+### these are outputs from "convert_shp_to_data.frame.R ###
+###########################################################
 
 load("data/gis_sector/gua_base_land_openwater_mpa__100.RData"); sector = raster_and_table[[1]]
 # load("data/gis_reef/raster/haw.RData"); reef = raster_and_table[[1]]
