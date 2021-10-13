@@ -10,11 +10,13 @@ library(dplyr)
 library(ggplot2)
 library(raster)
 library(tidyr)
+library(marmap)
+library(lattice)
 
 topo = raster("L:/ktanaka/GIS/bathymetry/gua_nthmp_dem_10m_mosaic.tif") # Guam
-topo = raster("L:/ktanaka/GIS/bathymetry/sai_mb_5m.tif") #Saipan
-topo = raster("L:/ktanaka/GIS/bathymetry/Rota_5m_bathymetry.asc") 
-topo = raster("L:/ktanaka/GIS/bathymetry/tinian_5m.asc") 
+topo = raster("L:/ktanaka/GIS/bathymetry/sai_mb_5m.tif") # Saipan
+topo = raster("L:/ktanaka/GIS/bathymetry/Rota_5m_bathymetry.asc") # Rota
+topo = raster("L:/ktanaka/GIS/bathymetry/tinian_5m.asc") # Tinian
 
 topo[topo <= -30] <- NA
 topo[topo >= 0] <- NA
@@ -38,5 +40,7 @@ save(topo, file = 'data/gis_bathymetry/raster/gua_nthmp_dem_10m_mosaic.tif.RData
 save(topo, file = 'data/gis_bathymetry/raster/sai_mb_5m.tif.RData')
 save(topo, file = 'data/gis_bathymetry/raster/rota_5m_bathymetry.asc.RData')
 save(topo, file = 'data/gis_bathymetry/raster/tinian_5m.asc.RData')
+
+wireframe(unclass(as.bathy(topo)), shade = TRUE, aspect = c(1/2, 0.1))
 
 
