@@ -19,30 +19,29 @@ rm(list = ls())
 # plan(multisession) # Uncomment if you are running this on Windows OS
 
 spatial_resolution = 100 # spatial resolution in m
-cores = 64
+cores = 64 # number of cores to use
 
-# shp_path = "G:/GIS/"
-# shp_path = "/mnt/ldrive/ktanaka/GIS/"
+shp_path = "L:/ktanaka/GIS" # pc
+# shp_path = "/mnt/ldrive/ktanaka/GIS/" # Onaga
 # shp_path = "N:/GIS/Projects/CommonMaps/01_Preprocess/MARI/GUA/"
-# shp_path = getwd(); shp_path
 
 ##################################
 ### Hard/Soft Bottom Substrate ###
 ##################################
-shp_list = list.files(path = "data/gis_hardsoft/shapefile", pattern = ".shp"); shp_list
-shp_list = shp_list[c(6, 15)]
+shp_list = list.files(path = paste0(shp_path, "/hardsoft/"), pattern = "\\.shp$", full.names = T); shp_list
+shp_list = shp_list[c(1)]; shp_list
 
 for (shp_i in 1:length(shp_list)) {
   
   start = Sys.time()
-  
+
   # shp_i = 1
   
   # Import shapefile
-  df <- readOGR(paste0("data/gis_hardsoft/shapefile/", shp_list[shp_i])); plot(df)
+  df <- readOGR(shp_list[shp_i])
   df <- df[df$HardSoft != "Land",]
   df <- df[df$HardSoft != "Other",]
-  df <- df[df$HardSoft != "Unknown",]
+  # df <- df[df$HardSoft != "Unknown",]
   
   df@data
   table = data.frame(df@data, i = 0:(length(df)-1)); table
@@ -57,8 +56,8 @@ for (shp_i in 1:length(shp_list)) {
   res(r) <- spatial_resolution # spatial resolution in m
   
   # Per pixel, identify ID covering largest area, try jubilee.mcsapply() or pbsapply(), or future_lapply()
-  # r_val <-  simplify2array(future_lapply(1:ncell(r), function(i) {
-  r_val <-  jubilee.mcsapply(1:ncell(r), mc.cores = cores, function(i) {
+  r_val <-  simplify2array(future_lapply(1:ncell(r), function(i) {
+  # r_val <-  jubilee.mcsapply(1:ncell(r), mc.cores = cores, function(i) {
     
     r_dupl <- r
     r_dupl[i] <- 1
@@ -84,20 +83,21 @@ for (shp_i in 1:length(shp_list)) {
       return(rownames(sp_df_crp@data)[index])
       
     }
-  })
+  }))
   
   # Write ID values covering the largest area per pixel into raster template
   r[] <- as.numeric(r_val)
   plot(r, col = rainbow(length(unique(r_val))))
   plot(df, border = "grey45", add = TRUE)
   
-  island_name = tolower(substr(shp_list[shp_i],1,nchar(shp_list[shp_i])-18))
+  # island_name = tolower(substr(shp_list[shp_i], 25, nchar(shp_list[shp_i])-19))
+  island_name = tolower(substr(shp_list[shp_i], 25, nchar(shp_list[shp_i])))
   
   r = readAll(r)
   
   raster_and_table = list(r, table)
   
-  save(raster_and_table, file = paste0("/mnt/ldrive/ktanaka/ncrmp_power_analysis/data/gis_hardsoft/raster/", island_name, "_", spatial_resolution, ".RData"))
+  save(raster_and_table, file = paste0("data/gis_hardsoft/raster/", island_name, "_", spatial_resolution, ".RData"))
   
   end = Sys.time()
   
@@ -107,20 +107,20 @@ for (shp_i in 1:length(shp_list)) {
   
 }
 
-##################
-### Reef Zones ###
-##################
-shp_list = list.files(path = "N:/GIS/Projects/CommonMaps/01_Preprocess/MARI/GUA/reefzone/", pattern = ".shp"); shp_list
-shp_list = shp_list[c(1, 3, 5, 7, 10, 12)]; shp_list
+#################
+### Reef Zone ###
+#################
+shp_list = list.files(path = paste0(shp_path, "/reefzone/"), pattern = "\\.shp$", full.names = T); shp_list
+shp_list = shp_list[c(1)]; shp_list
 
 for (shp_i in 1:length(shp_list)) {
   
   start = Sys.time()
   
-  shp_i = 2
+  shp_i = 1 
   
   # Import shapefile
-  df <- readOGR(paste0("N:/GIS/Projects/CommonMaps/01_Preprocess/MARI/GUA/reefzone/", shp_list[shp_i]))
+  df <- readOGR(shp_list[shp_i])
   df <- df[df$Zone_Code != "LND",]
   df <- df[df$Zone_Code != "Other",]
   df <- df[df$Zone_Code != "RCF",]
@@ -174,13 +174,14 @@ for (shp_i in 1:length(shp_list)) {
   plot(r, col = rainbow(length(unique(r_val))))
   plot(df, border = "grey45", add = TRUE)
   
-  island_name = tolower(substr(shp_list[shp_i],1,nchar(shp_list[shp_i])-18))
+  # island_name = tolower(substr(shp_list[shp_i], 25, nchar(shp_list[shp_i])-19))
+  island_name = tolower(substr(shp_list[shp_i], 25, nchar(shp_list[shp_i])))
   
   r = readAll(r)
   
   raster_and_table = list(r, table)
   
-  save(raster_and_table, file = paste0("/mnt/ldrive/ktanaka/ncrmp_power_analysis/data/gis_hard_soft/", island_name, "_", spatial_resolution, ".RData"))
+  save(raster_and_table, file = paste0("data/gis_hardsoft/raster/", island_name, "_", spatial_resolution, ".RData"))
   
   end = Sys.time()
   
@@ -193,8 +194,8 @@ for (shp_i in 1:length(shp_list)) {
 ##################################
 ### Regional Sub-Island Sector ###
 ##################################
-shp_list = list.files(path = "N:/GIS/Projects/CommonMaps/01_Preprocess/MARI/GUA/sector/", pattern = ".shp"); shp_list
-shp_list = shp_list[c(1, 3, 5, 7, 9, 11, 13, 15, 17, 19)]; shp_list
+shp_list = list.files(path = paste0(shp_path, "/sector/"), pattern = "\\.shp$", full.names = T); shp_list
+shp_list = shp_list[c(1)]; shp_list
 
 for (shp_i in 1:length(shp_list)) {
   
@@ -203,13 +204,14 @@ for (shp_i in 1:length(shp_list)) {
   shp_i = 1
   
   # Import shapefile
-  df <- readOGR(paste0("N:/GIS/Projects/CommonMaps/01_Preprocess/MARI/GUA/sector/", shp_list[shp_i]))
-
+  df <- readOGR(shp_list[shp_i])
+  
   df@data
   table = data.frame(df@data, i = 0:(length(df)-1)); table
   
   table = table %>% 
-    group_by(SEC_NAME) %>% 
+    # group_by(SEC_NAME) %>% 
+    group_by(OID_) %>% 
     summarise(i = paste0(i, collapse = ",")) 
   
   # Raster template 
@@ -254,13 +256,14 @@ for (shp_i in 1:length(shp_list)) {
   plot(r, col = topo.colors(length(unique(r))))
   plot(df, border = "grey45", add = TRUE)
   
-  island_name = tolower(substr(shp_list[shp_i], 1, nchar(shp_list[shp_i])-12))
+  # island_name = tolower(substr(shp_list[shp_i], 25, nchar(shp_list[shp_i])-19))
+  island_name = tolower(substr(shp_list[shp_i], 23, nchar(shp_list[shp_i])))
   
   r = readAll(r)
   
   raster_and_table = list(r, table)
   
-  save(raster_and_table, file = paste0("/mnt/ldrive/ktanaka/ncrmp_power_analysis/data/gis_sector/", island_name, "_", spatial_resolution, ".RData"))
+  save(raster_and_table, file = paste0("data/gis_sector/raster/", island_name, "_", spatial_resolution, ".RData"))
   
   end = Sys.time()
   
@@ -273,7 +276,9 @@ for (shp_i in 1:length(shp_list)) {
 ######################
 ### Marine Reserve ###
 ######################
-shp_list = list.files(path = paste0(shp_path, "/data/gis_reserve"), pattern = ".shp")[1]; shp_list
+shp_list = list.files(path = paste0(shp_path, "/reserve"), pattern = "\\.shp$", full.names = T); shp_list
+shp_list = shp_list[c(1)]; shp_list
+
 for (shp_i in 1:length(shp_list)) {
   
   start = Sys.time()
@@ -281,7 +286,7 @@ for (shp_i in 1:length(shp_list)) {
   shp_i = 1
   
   # Import shapefile
-  df <- readOGR(paste0(shp_path, "/data/gis_reserve/", shp_list[shp_i]))
+  df <- readOGR(shp_list[shp_i])
   df <- df[df$Sector != "Land",]
   df <- df[df$Sector != "Other",]
 
@@ -332,13 +337,14 @@ for (shp_i in 1:length(shp_list)) {
   plot(r, col = topo.colors(length(unique(r))))
   plot(df, border = "grey45", add = TRUE)
   
-  island_name = tolower(substr(shp_list[shp_i], 1, nchar(shp_list[shp_i])-12))
+  # island_name = tolower(substr(shp_list[shp_i], 25, nchar(shp_list[shp_i])-19))
+  island_name = tolower(substr(shp_list[shp_i], 24, nchar(shp_list[shp_i])))
   
   r = readAll(r)
   
   raster_and_table = list(r, table)
   
-  save(raster_and_table, file = paste0("/mnt/ldrive/ktanaka/ncrmp_power_analysis/reef_", island_name, "_", spatial_resolution, ".RData"))
+  save(raster_and_table, file = paste0("data/gis_reserve/raster/", island_name, "_", spatial_resolution, ".RData"))
   
   end = Sys.time()
   
