@@ -18,7 +18,7 @@ rm(list = ls())
 
 # plan(multisession) # Uncomment if you are running this on Windows OS
 
-spatial_resolution = 100 # spatial resolution in m
+spatial_resolution = 10000 # spatial resolution in m
 cores = 64 # number of cores to use
 
 # shp_path = "L:/ktanaka/GIS" # pc
@@ -40,7 +40,7 @@ for (shp_i in 1:length(shp_list)) {
   df <- readOGR(shp_list[shp_i])
   df <- df[df$HardSoft != "Land",]
   df <- df[df$HardSoft != "Other",]
-  df <- df[df$HardSoft != "Unknown",]
+  # df <- df[df$HardSoft != "Unknown",]
   
   df@data
   table = data.frame(df@data, i = 0:(length(df)-1)); table
