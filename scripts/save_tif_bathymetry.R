@@ -34,7 +34,9 @@ topo %>%
   coord_fixed() +
   theme(axis.title = element_blank())
 
-save(topo, file = 'data/gis_bathymetry/raster/gua_nthmp_dem_10m_mosaic.RData')
+save(topo, file = 'data/gis_bathymetry/raster/gua_nthmp_dem_10m_mosaic.tif.RData')
 save(topo, file = 'data/gis_bathymetry/raster/sai_mb_5m.tif.RData')
-save(topo, file = 'data/gis_bathymetry/raster/rota_5m_bathymetry.RData')
+save(topo, file = 'data/gis_bathymetry/raster/rota_5m_bathymetry.asc.RData')
+save(topo, file = 'data/gis_bathymetry/raster/tinian_5m.asc.RData')
+
 
