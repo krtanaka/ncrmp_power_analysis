@@ -36,9 +36,9 @@ I
 # simulate stratified random surveys --------------------------------------
 
 n_sims = 100 # number of simulations
-total_sample = 30 # total sample efforts you want to deploy
-min_sets = 2 # minimum number of sets per strat
-set_den = 2/1000 # number of sets per [grid unit = km] squared)
+total_sample = 50 # total sample efforts you want to deploy
+min_sets = 0 # minimum number of sets per strat
+# set_den = 5 # number of sets per [grid unit = km] squared)
 trawl_dim = c(0.01, 0.0353) # 0.000353 sq.km (353 sq.m) from two 15-m diameter survey cylinders
 resample_cells = F
 
@@ -98,10 +98,10 @@ sp_I <- sp_I[i, ]
 sp_I$sim <- s
 setdet <- merge(sets, sp_I, by = c("sim", "year", "cell"))
 
-setdet$n <- stats::rbinom(rep(1, nrow(setdet)), 
-                          size = round(setdet$N/setdet$cell_sets), 
-                          # prob = (setdet$tow_area/setdet$cell_area) * q(setdet$age))
-                          prob = (setdet$tow_area/setdet$cell_area))
+setdet$n <- stats::rbinom(rep(1, nrow(setdet)),
+                          size = round(setdet$N/setdet$cell_sets),
+                          # size = round(setdet$N/1),
+                          prob = (setdet$tow_area/setdet$cell_area)*0.5)
 
 setkeyv(setdet, "set")
 setkeyv(sets, "set")
