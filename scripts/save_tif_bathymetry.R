@@ -14,9 +14,30 @@ library(marmap)
 library(lattice)
 
 topo = raster("L:/ktanaka/GIS/bathymetry/gua_nthmp_dem_10m_mosaic.tif") # Guam
+
+topo <- aggregate(topo, fact = 10)
+res(topo)
+
 topo = raster("L:/ktanaka/GIS/bathymetry/sai_mb_5m.tif") # Saipan
 topo = raster("L:/ktanaka/GIS/bathymetry/Rota_5m_bathymetry.asc") # Rota
 topo = raster("L:/ktanaka/GIS/bathymetry/tinian_5m.asc") # Tinian
+
+#get some sample data
+data(meuse.grid)
+gridded(meuse.grid) <- ~x+y
+meuse.raster <- raster(meuse.grid)
+res(meuse.raster)
+#[1] 40 40
+
+#aggregate from 40x40 resolution to 120x120 (factor = 3)
+meuse.raster.aggregate <- aggregate(meuse.raster, fact=3)
+res(meuse.raster.aggregate)
+#[1] 120 120
+
+#disaggregate from 40x40 resolution to 10x10 (factor = 4)
+meuse.raster.disaggregate <- disaggregate(meuse.raster, fact=4)
+res(meuse.raster.disaggregate)
+#[1] 10 10
 
 topo[topo <= -30] <- NA
 topo[topo >= 0] <- NA
