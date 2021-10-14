@@ -6,6 +6,7 @@ library(raster)
 library(tidyr)
 library(marmap)
 library(lattice)
+library(rayshader)
 
 islands = c("gua", "rot", "sai", "tin")
 
