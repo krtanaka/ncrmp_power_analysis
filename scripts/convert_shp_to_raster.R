@@ -21,7 +21,7 @@ rm(list = ls())
 spatial_resolution = 100 # spatial resolution in m
 cores = 64 # number of cores to use
 
-# shp_path = "L:/ktanaka/GIS" # pc
+shp_path = "L:/ktanaka/GIS" # pc
 shp_path = "/mnt/ldrive/ktanaka/GIS/" # Onaga
 # shp_path = "N:/GIS/Projects/CommonMaps/01_Preprocess/MARI/GUA/"
 
