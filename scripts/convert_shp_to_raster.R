@@ -29,13 +29,14 @@ shp_path = "/mnt/ldrive/ktanaka/GIS/" # Onaga
 ### Hard/Soft Bottom Substrate ###
 ##################################
 shp_list = list.files(path = paste0(shp_path, "/hardsoft/"), pattern = "\\.shp$", full.names = T); shp_list
+shp_list = shp_list[c(13, 15, 18)]
 
 for (shp_i in 1:length(shp_list)) {
   
   start = Sys.time()
 
-  shp_i = 1
-  
+  # shp_i = 1
+
   # Import shapefile
   df <- readOGR(shp_list[shp_i])
   df <- df[df$HardSoft != "Land",]
@@ -110,17 +111,19 @@ for (shp_i in 1:length(shp_list)) {
 ### Reef Zone ###
 #################
 shp_list = list.files(path = paste0(shp_path, "/reefzone/"), pattern = "\\.shp$", full.names = T); shp_list
+shp_list = shp_list[c(9, 10, 11)]
 
 for (shp_i in 1:length(shp_list)) {
   
   start = Sys.time()
   
-  # shp_i = 1
+  # shp_i = 3
   
   # Import shapefile
   df <- readOGR(shp_list[shp_i])
   names(df)[2] = "ZONE_CODE"
   df <- df[df$ZONE_CODE != "LND",]
+  df <- df[df$ZONE_CODE != "Land",]
   df <- df[df$ZONE_CODE != "Other",]
   # df <- df[df$Zone_Code != "RCF",]
   # df <- df[df$Zone_Code != "LAG",]
