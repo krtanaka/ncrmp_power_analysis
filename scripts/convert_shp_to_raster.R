@@ -18,7 +18,7 @@ rm(list = ls())
 
 # plan(multisession) # Uncomment if you are running this on Windows OS
 
-spatial_resolution = 10000 # spatial resolution in m
+spatial_resolution = 100 # spatial resolution in m
 cores = 64 # number of cores to use
 
 # shp_path = "L:/ktanaka/GIS" # pc
