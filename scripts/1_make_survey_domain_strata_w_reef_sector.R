@@ -18,13 +18,12 @@ islands = c("gua", "rot", "sai", "tin")
 
 for (isl in 1:length(islands)) {
   
-  isl = 2
+  isl = 4
   
   load(paste0("data/gis_bathymetry/raster/", islands[isl], ".RData"))
   
   df = topo; rm(topo)
   
-  # change to 1000 m res
   df$longitude = df$x
   df$latitude = df$y
   
@@ -46,15 +45,15 @@ for (isl in 1:length(islands)) {
     load("data/gis_reef/raster/gua.RData"); reef = raster_and_table[[1]]; reef_name = raster_and_table[[2]]
   }
   if (isl == 2) {
-    # load("data/gis_sector/raster/kau.RData"); sector = raster_and_table[[1]]
+    load("data/gis_reef/raster/rot.RData"); sector = raster_and_table[[1]] # using reef raster as a placeholder bc there is no sector for this island
     load("data/gis_reef/raster/rot.RData"); reef = raster_and_table[[1]]
   }
   if (isl == 3) {
-    # load("data/gis_sector/raster/lan.RData"); sector = raster_and_table[[1]]
+    load("data/gis_reef/raster/sai.RData"); sector = raster_and_table[[1]] # using reef raster as a placeholder bc there is no sector for this island
     load("data/gis_reef/raster/sai.RData"); reef = raster_and_table[[1]]
   }
   if (isl == 4) {
-    # load("data/gis_sector/raster/timai.RData"); sector = raster_and_table[[1]]
+    load("data/gis_reef/raster/tin.RData"); sector = raster_and_table[[1]] # using reef raster as a placeholder bc there is no sector for this island
     load("data/gis_reef/raster/tin.RData"); reef = raster_and_table[[1]]
   }
  
@@ -62,6 +61,12 @@ for (isl in 1:length(islands)) {
   
   sector = rasterToPoints(sector) %>% as.data.frame(); colnames(sector) = c("x", "y", "z")
   reef = rasterToPoints(reef) %>% as.data.frame(); colnames(reef) = c("x", "y", "z")
+  
+  if (isl %in% c(2:4)) {
+    
+    sector$z = 1
+    
+  }
   
   # merge sectors -----------------------------------------------------------
  

@@ -48,7 +48,7 @@ response_variable = "trophic_biomass"; sp = c("PISCIVORE", "PLANKTIVORE", "PRIMA
 
 if (response_variable == "fish_count") {
   
-  load("data/rea/ALL_REA_FISH_RAW_SST.RData")
+  load("data/rea/SURVEY MASTER.RData")
   
   df = df %>% 
     subset(REGION == region & ISLAND %in% islands) %>% 
