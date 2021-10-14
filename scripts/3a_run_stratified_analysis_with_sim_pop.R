@@ -17,7 +17,7 @@ set.seed(42)
 # options(scipen = 999, digits = 2)
 
 # pick an island ----------------------------------------------------------
-island = c("Hawaii", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:7, 1)]
+island = c("gua", "rot", "sai", "tin")[sample(1:7, 1)]
 load(paste0("data/survey_grid_w_sector_reef/survey_grid_", island, ".RData"))
 print(island)
 
@@ -26,7 +26,7 @@ sim = sim_abundance(years = 2000:2020,
                     ages = 1:2,
                     R = sim_R(log_mean = log(100), log_sd = 0.8),
                     Z = sim_Z(log_mean = log(0.5))) %>% 
-  sim_distribution(grid = survey_grid_kt)
+  sim_distribution(grid = survey_grid_ncrmp)
 
 I <- sim$N
 I

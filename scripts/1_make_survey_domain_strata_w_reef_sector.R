@@ -18,7 +18,7 @@ islands = c("gua", "rot", "sai", "tin")
 
 for (isl in 1:length(islands)) {
   
-  isl = 4
+  # isl = 4
   
   load(paste0("data/gis_bathymetry/raster/", islands[isl], ".RData"))
   
@@ -261,4 +261,3 @@ for (isl in 1:length(islands)) {
   save(survey_grid_ncrmp, file = paste0("data/survey_grid_w_sector_reef/survey_grid_", islands[isl], ".RData"))
   
 }
-
