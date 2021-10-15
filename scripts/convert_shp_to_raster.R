@@ -22,14 +22,14 @@ spatial_resolution = 100 # spatial resolution in m
 cores = 64 # number of cores to use
 
 shp_path = "L:/ktanaka/GIS" # pc
-shp_path = "/mnt/ldrive/ktanaka/GIS/" # Onaga
+# shp_path = "/mnt/ldrive/ktanaka/GIS/" # Onaga
 # shp_path = "N:/GIS/Projects/CommonMaps/01_Preprocess/MARI/GUA/"
 
 ##################################
 ### Hard/Soft Bottom Substrate ###
 ##################################
 shp_list = list.files(path = paste0(shp_path, "/hardsoft/"), pattern = "\\.shp$", full.names = T); shp_list
-shp_list = shp_list[c(13, 15, 18)]
+shp_list = shp_list[c(1:2, 12:14)]; shp_list
 
 for (shp_i in 1:length(shp_list)) {
   
@@ -39,9 +39,12 @@ for (shp_i in 1:length(shp_list)) {
 
   # Import shapefile
   df <- readOGR(shp_list[shp_i])
-  df <- df[df$HardSoft != "Land",]
-  df <- df[df$HardSoft != "Other",]
-  # df <- df[df$HardSoft != "Unknown",]
+  
+  table(df$HardSoft)
+  
+  df <- df[df$HardSoft %in% c("Hard", "hard", "Unknown", "unknown"),]
+  
+  plot(df, pch = ".")
   
   df@data
   table = data.frame(df@data, i = 0:(length(df)-1)); table
@@ -111,24 +114,24 @@ for (shp_i in 1:length(shp_list)) {
 ### Reef Zone ###
 #################
 shp_list = list.files(path = paste0(shp_path, "/reefzone/"), pattern = "\\.shp$", full.names = T); shp_list
-shp_list = shp_list[c(9, 10, 11)]
+shp_list = shp_list[c(1, 9:11)]; shp_list
 
 for (shp_i in 1:length(shp_list)) {
   
   start = Sys.time()
   
-  # shp_i = 3
+  # shp_i = 1
   
   # Import shapefile
   df <- readOGR(shp_list[shp_i])
+  
   names(df)[2] = "ZONE_CODE"
-  df <- df[df$ZONE_CODE != "LND",]
-  df <- df[df$ZONE_CODE != "Land",]
-  df <- df[df$ZONE_CODE != "Other",]
-  # df <- df[df$Zone_Code != "RCF",]
-  # df <- df[df$Zone_Code != "LAG",]
-  df <- df[df$ZONE_CODE != "UNK",]
-  df <- df[df$ZONE_CODE != "OTH",]
+  
+  table(df$ZONE_CODE)
+  
+  df <- df[df$ZONE_CODE %in% c("Backreef", "Forereef", "Lagoon", "BRF", "FRF", "LAG"),]
+
+  plot(df, pch = ".")
   
   df@data
   table = data.frame(df@data, i = 0:(length(df)-1)); table
@@ -203,7 +206,7 @@ for (shp_i in 1:length(shp_list)) {
   
   start = Sys.time()
   
-  shp_i = 1
+  # shp_i = 1
   
   # Import shapefile
   df <- readOGR(shp_list[shp_i])

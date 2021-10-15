@@ -48,14 +48,14 @@ response_variable = "trophic_biomass"; sp = c("PISCIVORE", "PLANKTIVORE", "PRIMA
 
 if (response_variable == "fish_count") {
   
-  load("data/rea/SURVEY MASTER.RData")
+  load("data/rea/fish_site_data.Rdata")
   
-  df = df %>% 
-    subset(REGION == region & ISLAND %in% islands) %>% 
+  df = wsd %>% 
+    # subset(REGION == region & ISLAND %in% islands) %>% 
     # mutate(response = ifelse(TAXONNAME == sp, COUNT*100, 0)) %>%
-    mutate(response = ifelse(TAXONNAME == sp, COUNT, 0)) %>%
+    # mutate(response = ifelse(TAXONNAME == sp, COUNT, 0)) %>%
     group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR) %>% 
-    summarise(response = sum(response, na.rm = T),
+    summarise(response = sum(TotFishAbund, na.rm = T),
               depth = mean(DEPTH, na.rm = T))
   
   df %>% ggplot(aes(response)) + geom_histogram() + 
