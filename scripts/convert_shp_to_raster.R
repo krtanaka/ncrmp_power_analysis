@@ -29,13 +29,13 @@ shp_path = "/mnt/ldrive/ktanaka/GIS/" # Onaga
 ### Hard/Soft Bottom Substrate ###
 ##################################
 shp_list = list.files(path = paste0(shp_path, "/hardsoft/"), pattern = "\\.shp$", full.names = T); shp_list
-shp_list = shp_list[c(1:2, 12:14)]; shp_list
+shp_list = shp_list[c(2, 12:14)]; shp_list
 
 for (shp_i in 1:length(shp_list)) {
   
   start = Sys.time()
 
-  shp_i = 1
+  # shp_i = 1
 
   # Import shapefile
   df <- readOGR(shp_list[shp_i])
