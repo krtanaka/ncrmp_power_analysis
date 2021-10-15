@@ -17,7 +17,7 @@ topo = raster("data/gis_bathymetry/raster/etopo.nc")
 topo = raster("data/gis_bathymetry/raster/gebco.nc")
 
 topo = as.data.frame(rasterToPoints(topo))
-topo$Altitude = ifelse(topo$Altitude %in% c(-3000:0), topo$Altitude, NA)
+# topo$Altitude = ifelse(topo$Altitude %in% c(-3000:0), topo$Altitude, NA)
 topo$Altitude = ifelse(topo$Altitude < 0, topo$Altitude, NA)
 topo = topo %>% drop_na() %>% dplyr::select(x, y, Altitude)
 
@@ -32,9 +32,13 @@ topo %>%
 
 save(topo, file = 'data/gis_bathymetry/raster/Topography_SRTM15.RData')
 
+wireframe(volcano, shade = TRUE,
+          aspect = c(61/87, 0.4),
+          light.source = c(10,0,10))
+
 wireframe(unclass(as.bathy(topo)), 
           shade = T, 
-          aspect = c(1/0.3, 0.1),
+          aspect = c(541/181, 0.1),
           par.box = c(col = "gray"),
           scales = list(arrows = FALSE, col = "transparent"), # col="black" is required 
           zlab = "", 
