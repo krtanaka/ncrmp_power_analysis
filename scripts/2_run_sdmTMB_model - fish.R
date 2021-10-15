@@ -9,109 +9,22 @@ library(sf)
 
 rm(list = ls())
 
-# 4 functional groups
-# live coral cover
-# adult juvenile density
+load("data/rea/fish_site_data.Rdata")
 
-# for Uku: 
-# Total numerical density estimates (individuals per 100 m2) were obtained by dividing fish counts in each survey by the survey area (353 m2 from two 15-m diameter survey cylinders) and multiplying by 100. - Nadon et al. 2020
+islands = as.character(unique(wsd$ISLAND))[9]
 
-region = "MHI"
-uku_or_not = F
+unit = c("biomass", "abundance")[1]
 
-## top 5 taxa by abundance or biomass
-# load("data/rea/ALL_REA_FISH_RAW.rdata")
-# df %>%
-#   subset(REGION == region) %>%
-#   group_by(TAXONNAME) %>%
-#   # summarise(n = sum(BIOMASS_G_M2, na.rm = T)) %>%
-#   summarise(n = sum(COUNT, na.rm = T)) %>%
-#   mutate(freq = n/sum(n)) %>%
-#   arrange(desc(freq)) %>%
-#   top_n(5)
+response = c("PISCIVORE_BIO", "PLANKTIVORE_BIO", "PRIMARY_BIO", "SECONDARY_BIO", "TotFishBio")[5]
 
-islands = c("Kauai", #1
-            "Lehua", #2
-            "Niihau", #3
-            "Kaula", #4
-            "Oahu", #5
-            "Molokai", #6
-            "Maui", #7
-            "Lanai", #8
-            "Molokini", #9
-            "Kahoolawe", #10
-            "Hawaii")#[5]
+df = wsd %>% 
+  subset(ISLAND %in% islands) %>%
+  group_by(LONGITUDE, LATITUDE, DATE_) %>% 
+  summarise(response = sum(TotFishBio, na.rm = T),
+            depth = mean(DEPTH, na.rm = T))
 
-# response_variable = "fish_count";      sp = ifelse(uku_or_not == T, "Aprion virescens", "Chromis vanderbilti")
-# response_variable = "fish_biomass";    sp = ifelse(uku_or_not == T, "Aprion virescens", "Acanthurus olivaceus")
-response_variable = "trophic_biomass"; sp = c("PISCIVORE", "PLANKTIVORE", "PRIMARY", "SECONDARY", "TOTAL")[1]
-
-if (response_variable == "fish_count") {
-  
-  load("data/rea/fish_site_data.Rdata")
-  
-  df = wsd %>% 
-    # subset(REGION == region & ISLAND %in% islands) %>% 
-    # mutate(response = ifelse(TAXONNAME == sp, COUNT*100, 0)) %>%
-    # mutate(response = ifelse(TAXONNAME == sp, COUNT, 0)) %>%
-    group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR) %>% 
-    summarise(response = sum(TotFishAbund, na.rm = T),
-              depth = mean(DEPTH, na.rm = T))
-  
-  df %>% ggplot(aes(response)) + geom_histogram() + 
-    df %>% group_by(OBS_YEAR) %>% summarise(n = mean(response)) %>% ggplot(aes(OBS_YEAR, n)) + geom_line()
-  
-}
-
-if (response_variable == "fish_biomass") {
-  
-  load("data/rea/ALL_REA_FISH_RAW.rdata")
-  
-  df = df %>% 
-    subset(REGION == region & ISLAND %in% islands) %>% 
-    mutate(response = ifelse(TAXONNAME == sp, BIOMASS_G_M2, 0)) %>%  
-    # mutate(response = ifelse(TAXONNAME == sp, BIOMASS_G_M2*0.001, 0)) %>%  
-    group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR) %>% 
-    summarise(response = sum(response, na.rm = T),
-              depth = mean(DEPTH, na.rm = T))
-  
-  df %>% ggplot(aes(response)) + geom_histogram() + 
-    df %>% group_by(OBS_YEAR) %>% summarise(n = mean(response)) %>% ggplot(aes(OBS_YEAR, n)) + geom_line()
-} 
-
-if (response_variable == "trophic_biomass") {
-  
-  load("data/rea/ALL_REA_FISH_RAW_SST.RData")
-  df[df == -9991] <- NA
-  
-  if (sp == "TOTAL") {
-    
-    df = df %>% 
-      subset(REGION == region & ISLAND %in% islands) %>% 
-      mutate(response = ifelse(TROPHIC_MONREP %in% c("PISCIVORE", "PLANKTIVORE", "PRIMARY", "SECONDARY"), BIOMASS_G_M2, 0)) %>%  
-      group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR, DATE) %>% 
-      summarise(response = sum(response, na.rm = T), 
-                depth = mean(DEPTH, na.rm = T),
-                temp = mean(mean_SST_CRW_Daily_DY01, na.rm = T))  %>% 
-      na.omit()
-    
-  } else {
-    
-    df = df %>% 
-      subset(REGION == region & ISLAND %in% islands) %>% 
-      mutate(response = ifelse(TROPHIC_MONREP == sp, BIOMASS_G_M2, 0)) %>%  
-      group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR) %>% 
-      summarise(response = sum(response, na.rm = T), 
-                depth = mean(DEPTH, na.rm = T),
-                temp = mean(mean_SST_CRW_Daily_DY01, na.rm = T))  %>% 
-      na.omit()
-    
-  }
-  
-  df %>% ggplot(aes(response)) + geom_histogram() + 
-    df %>% group_by(OBS_YEAR) %>% summarise(n = median(response)) %>% ggplot(aes(OBS_YEAR, n)) + geom_line()
-  
-}
+df %>% ggplot(aes(response)) + geom_histogram() + 
+  df %>% group_by(DATE_) %>% summarise(n = mean(response)) %>% ggplot(aes(OBS_YEAR, n)) + geom_line()
 
 # north-south gradient
 df %>% 
@@ -310,15 +223,15 @@ years = sort(as.vector(unique(df$year)))
 
 # only depth covariate
 for (y in 1:length(years)) {
-
+  
   # y = 1
-
+  
   grid_y = grid[,c("X", "Y", "Topography")]
   colnames(grid_y)[3] = "depth"
   grid_y$depth = grid_y$depth *-1
   grid_y$year = years[[y]]
   grid_year = rbind(grid_year, grid_y)
-
+  
 }
 
 grid_year$depth_scaled = scale(log(grid_year$depth+0.0001))
