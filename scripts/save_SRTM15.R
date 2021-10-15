@@ -16,16 +16,12 @@ topo = raster("data/gis_bathymetry/raster/srtm30.nc")
 topo = raster("data/gis_bathymetry/raster/etopo.nc")
 topo = raster("data/gis_bathymetry/raster/gebco.nc")
 
-topo = raster("etopo180_e146_1835_4408.nc")
-topo = raster("GEBCO_2020_634c_9bc8_a85c.nc")
-topo = raster("usgsCeCrm10_Lon0360_84b5_0453_d127.nc")
-topo = raster("srtm15plus_d126_a144_18da.nc")
-
 topo = as.data.frame(rasterToPoints(topo))
 names(topo)[3] = "Altitude"
-# topo$Altitude = ifelse(topo$Altitude %in% c(-3000:0), topo$Altitude, NA)
+
+# topo$Altitude = ifelse(topo$Altitude %in% c(-30:0), topo$Altitude, NA)
 topo$Altitude = ifelse(topo$Altitude >= 0, topo$Altitude, NA)
-# topo$Altitude = ifelse(topo$Altitude <= 0, topo$Altitude, 0)
+topo$Altitude = ifelse(topo$Altitude <= 0, topo$Altitude, NA)
 topo = topo %>% drop_na() %>% dplyr::select(x, y, Altitude)
 
 topo %>%
@@ -37,20 +33,22 @@ topo %>%
   ggdark::dark_theme_minimal() +
   theme(axis.title = element_blank())
 
+topo = topo %>% subset(y < 14 & y > 13 & x > 144.5 & x < 145.5)
+
 # save(topo, file = 'data/gis_bathymetry/raster/Topography_SRTM15.RData')
 
 wireframe(unclass(as.bathy(topo)), 
           shade = T,
           aspect = c(length(unique(topo$y))/length(unique(topo$x)), 0.1),
           par.box = c(col = "transparent"),
-          # scales = list(arrows = FALSE, col = "transparent"), # col="black" is required
-          # par.settings = list(axis.line = list(col = 'transparent')),
+          scales = list(arrows = FALSE, col = "transparent"), # col="black" is required
+          par.settings = list(axis.line = list(col = 'transparent')),
           light.source = c(10,0,10),
           zlab = "", 
           xlab = "",
           ylab = "",
           perspective = T,
-          screen = list(z = -15, x = -55),
+          screen = list(z = 20, x = -60, y = 20),
           zoom = 1.3)
 
 topo = topo %>% 
