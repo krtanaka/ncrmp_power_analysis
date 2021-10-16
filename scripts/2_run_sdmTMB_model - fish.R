@@ -15,9 +15,9 @@ islands = as.character(unique(wsd$ISLAND))[9]
 
 unit = c("biomass", "abundance")[1]
 
-response = c("PISCIVORE_BIO", "PLANKTIVORE_BIO", "PRIMARY_BIO", "SECONDARY_BIO", "TotFishBio")[1]
+response = c("PISCIVORE_BIO", "PLANKTIVORE_BIO", "PRIMARY_BIO", "SECONDARY_BIO", "TotFishBio")[5]
 
-wsd$time = as.numeric(as.POSIXct(wsd$DATE_, format="%Y-%m-%d")) #unix time
+wsd$time = as.numeric(as.POSIXct(wsd$DATE_, format="%Y-%m-%d")) # unix time
 
 wsd$response = response
 
@@ -26,7 +26,8 @@ df = wsd %>%
   # group_by(LONGITUDE, LATITUDE, time) %>%
   group_by(LONGITUDE, LATITUDE, OBS_YEAR) %>%
   summarise(response = mean(PISCIVORE_BIO, na.rm = T),
-            depth = mean(DEPTH, na.rm = T))
+            depth = mean(DEPTH, na.rm = T)) %>%  
+  subset(response < quantile(response, prob = 0.99))
 
 df %>% ggplot(aes(response)) + geom_histogram() +
   df %>% group_by(OBS_YEAR) %>% summarise(n = mean(response)) %>% ggplot(aes(OBS_YEAR, n)) + geom_point() + geom_line()
@@ -43,8 +44,8 @@ ISL_this = ISL_bounds[which(ISL_bounds$ISLAND %in% toupper(islands)),]
 ISL_this_utm = spTransform(ISL_this,CRS(paste0("+proj=utm +units=km +zone=",zone)))
 ISL_this_sf = st_transform(st_as_sf(ISL_this), crs = paste0("+proj=utm +units=km +zone=",zone))
 
-n_knots = 1000
-# n_knots = 100 # a coarse mesh for speed
+n_knots = 300
+n_knots = 100 # a coarse mesh for speed
 rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search") # search
 # rea_spde <- make_mesh(df, c("X", "Y"), cutoff  = n_knots, type = "cutoff") # predefined
 
