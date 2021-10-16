@@ -17,21 +17,17 @@ unit = c("biomass", "abundance")[1]
 
 response = c("PISCIVORE_BIO", "PLANKTIVORE_BIO", "PRIMARY_BIO", "SECONDARY_BIO", "TotFishBio")[5]
 
+wsd$time = as.numeric(as.POSIXct(wsd$DATE_, format="%Y-%m-%d")) #unix time
+
 df = wsd %>% 
   subset(ISLAND %in% islands) %>%
-  group_by(LONGITUDE, LATITUDE, DATE_) %>% 
+  # group_by(LONGITUDE, LATITUDE, time) %>%
+  group_by(LONGITUDE, LATITUDE, OBS_YEAR) %>%
   summarise(response = sum(TotFishBio, na.rm = T),
             depth = mean(DEPTH, na.rm = T))
 
-df %>% ggplot(aes(response)) + geom_histogram() + 
-  df %>% group_by(DATE_) %>% summarise(n = mean(response)) %>% ggplot(aes(OBS_YEAR, n)) + geom_line()
-
-# north-south gradient
-df %>% 
-  group_by(ISLAND) %>% 
-  summarise(n = mean(response, na.rm = T),
-            lat = mean(LATITUDE)) %>% 
-  arrange(desc(lat)) 
+df %>% ggplot(aes(response)) + geom_histogram() +
+  df %>% group_by(OBS_YEAR) %>% summarise(n = mean(response)) %>% ggplot(aes(OBS_YEAR, n)) + geom_point() + geom_line()
 
 zone <- (floor((df$LONGITUDE[1] + 180)/6) %% 60) + 1
 xy_utm = as.data.frame(cbind(utm = project(as.matrix(df[, c("LONGITUDE", "LATITUDE")]), paste0("+proj=utm +units=km +zone=", zone))))
@@ -39,13 +35,13 @@ colnames(xy_utm) = c("X", "Y")
 df = cbind(df, xy_utm)
 
 # Read in Island Boundaries
-load('data/MHI_islands_shp.RData')
+load('data/misc/MHI_islands_shp.RData')
 crs(ISL_bounds) = "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
 ISL_this = ISL_bounds[which(ISL_bounds$ISLAND %in% toupper(islands)),]
 ISL_this_utm = spTransform(ISL_this,CRS(paste0("+proj=utm +units=km +zone=",zone)))
 ISL_this_sf = st_transform(st_as_sf(ISL_this), crs = paste0("+proj=utm +units=km +zone=",zone))
 
-n_knots = 500
+n_knots = 300
 n_knots = 100 # a coarse mesh for speed
 rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search") # search
 # rea_spde <- make_mesh(df, c("X", "Y"), cutoff  = n_knots, type = "cutoff") # predefined
@@ -71,19 +67,13 @@ df$depth_scaled = scale(log(df$depth))
 df$depth_scaled2 = df$depth_scaled ^ 2
 
 plot(df$depth, df$response, pch = 20, bty = "n")
-plot(df$temp, df$response, pch = 20, bty = "n")
-
-obs_year = unique(df$year)
-full_year = seq(min(df$year), max(df$year), by = 1)
-missing_year = setdiff(full_year, obs_year)
-missing_year = as.integer(missing_year);missing_year
 
 density_model <- sdmTMB(
   
   data = df, 
   
-  # formula = response ~ as.factor(year) + depth_scaled + depth_scaled2,
-  formula = response ~ as.factor(year) + s(depth, k = 5),
+  formula = response ~ as.factor(year) + depth_scaled + depth_scaled2,
+  # formula = response ~ as.factor(year) + s(depth, k = 5),
   # formula = response ~ as.factor(year) + s(depth, k=5) + s(temp, k=5),
   # formula = response ~ as.factor(year) + s(temp, k=5) + s(depth, k=5) + depth_scaled + depth_scaled2,
   
