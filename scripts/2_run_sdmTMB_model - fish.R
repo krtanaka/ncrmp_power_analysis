@@ -15,15 +15,17 @@ islands = as.character(unique(wsd$ISLAND))[9]
 
 unit = c("biomass", "abundance")[1]
 
-response = c("PISCIVORE_BIO", "PLANKTIVORE_BIO", "PRIMARY_BIO", "SECONDARY_BIO", "TotFishBio")[5]
+response = c("PISCIVORE_BIO", "PLANKTIVORE_BIO", "PRIMARY_BIO", "SECONDARY_BIO", "TotFishBio")[1]
 
 wsd$time = as.numeric(as.POSIXct(wsd$DATE_, format="%Y-%m-%d")) #unix time
+
+wsd$response = response
 
 df = wsd %>% 
   subset(ISLAND %in% islands) %>%
   # group_by(LONGITUDE, LATITUDE, time) %>%
   group_by(LONGITUDE, LATITUDE, OBS_YEAR) %>%
-  summarise(response = sum(TotFishBio, na.rm = T),
+  summarise(response = mean(PISCIVORE_BIO, na.rm = T),
             depth = mean(DEPTH, na.rm = T))
 
 df %>% ggplot(aes(response)) + geom_histogram() +
@@ -42,16 +44,13 @@ ISL_this_utm = spTransform(ISL_this,CRS(paste0("+proj=utm +units=km +zone=",zone
 ISL_this_sf = st_transform(st_as_sf(ISL_this), crs = paste0("+proj=utm +units=km +zone=",zone))
 
 n_knots = 300
-n_knots = 100 # a coarse mesh for speed
+# n_knots = 100 # a coarse mesh for speed
 rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search") # search
 # rea_spde <- make_mesh(df, c("X", "Y"), cutoff  = n_knots, type = "cutoff") # predefined
 
 #build barrier to mesh
 rea_spde_coast = add_barrier_mesh(rea_spde , ISL_this_sf)
 
-# pdf(paste0("outputs/SPDE_mesh_field_", n_knots, ".pdf"), height = 8, width = 8)
-# par(mfrow = c(1,2), pty = 's')
-# plot(xy_utm, pch = ".", bty = 'n')
 plot(rea_spde_coast$mesh, asp = 1, pch = "."); axis(1); axis(2)
 plot(ISL_this_utm, add = TRUE)
 points(rea_spde_coast$loc_xy,col = "green", pch = ".", cex = 5)
@@ -60,7 +59,6 @@ norm_i = rea_spde_coast$normal_triangles
 points(rea_spde_coast$spde$mesh$loc[,1], rea_spde_coast$spde$mesh$loc[,2], pch = ".", col = "black")
 points(rea_spde_coast$mesh_sf$V1[bar_i], rea_spde_coast$mesh_sf$V2[bar_i], col = "red", pch = 4, cex = .5)
 points(rea_spde_coast$mesh_sf$V1[norm_i], rea_spde_coast$mesh_sf$V2[norm_i], col = "blue", pch = 1, cex = .5)
-# dev.off()
 
 df$year = df$OBS_YEAR
 df$depth_scaled = scale(log(df$depth))
@@ -72,11 +70,10 @@ density_model <- sdmTMB(
   
   data = df, 
   
-  formula = response ~ as.factor(year) + depth_scaled + depth_scaled2,
-  # formula = response ~ as.factor(year) + s(depth, k = 5),
+  # formula = response ~ as.factor(year) + depth_scaled + depth_scaled2,
+  formula = response ~ as.factor(year) + s(depth, k = 5),
   # formula = response ~ as.factor(year) + s(depth, k=5) + s(temp, k=5),
-  # formula = response ~ as.factor(year) + s(temp, k=5) + s(depth, k=5) + depth_scaled + depth_scaled2,
-  
+
   silent = F, 
   # extra_time = missing_year,
   spatial_trend = T, 
@@ -106,6 +103,8 @@ qqnorm(df$residuals, ylim = c(-5, 5), xlim = c(-5, 5), bty = "n", pch = 20); abl
 m_p <- predict(density_model); m_p = m_p[,c("response", "est")]
 m_p$back_abs_res = abs(df$residuals)
 
+ggdark::invert_geom_defaults()
+
 p1 = ggplot(df, aes_string("X", "Y", color = "residuals")) +
   geom_point(alpha = 0.8, size = round(abs(df$residuals), digits = 0)) + 
   # facet_wrap(.~ISLAND, scales = "free") +
@@ -132,8 +131,12 @@ r <- density_model$tmb_obj$report()
 r
 
 # prediction onto new data grid
-load("data/crm/Topography_NOAA_CRM_vol10.RData") # bathymetry 
-load("data/crm/Topography_NOAA_CRM_vol10_SST_CRW_Monthly.RData") # bathymetry with monthly SST
+load("data/gis_bathymetry/raster/gua.RData") # bathymetry 
+
+utmcoor <- SpatialPoints(cbind(topo$x, topo$y), proj4string = CRS("+proj=utm +units=m +zone=55"))
+longlatcoor <- spTransform(utmcoor,CRS("+proj=longlat"))
+topo$x <- coordinates(longlatcoor)[,1]
+topo$y <- coordinates(longlatcoor)[,2]
 # topo$x = ifelse(topo$x > 180, topo$x - 360, topo$x)
 
 grid = topo
@@ -160,64 +163,11 @@ grid_year = NULL
 
 years = sort(as.vector(unique(df$year)))
 
-# aggregating SST annually
-# for (y in 1:length(years)) {
-#   
-#   # y = 1
-#   
-#   grid_year_sst = grid %>% select(contains(as.character(years[[y]])))
-#   
-#   grid_y = NULL
-#   
-#   grid_depth = grid[,3]
-#   grid_xy = grid[,442:443]
-#   
-#   for (m in 1:12) {
-#     
-#     grid_m = cbind(grid_xy, grid_depth, grid_year_sst[,m])
-#     colnames(grid_m)[4] = "temp"
-#     grid_y = rbind(grid_y, grid_m)
-#     
-#   }
-#   
-#   grid_y = grid_y %>% 
-#     group_by(X, Y) %>% 
-#     summarise(temp = mean(temp), 
-#               depth = mean(grid_depth)*-1)
-#   
-#   grid_y$year = years[[y]]
-#   
-#   grid_year = rbind(grid_year, grid_y)
-#   
-#   rm(grid_depth, grid_xy, grid_y, grid_year_sst, grid_m)
-#   
-# }
-
-# # aggregating SST at each month-year time step, e.g., 03/1985 - 03/2021
-# for (t in 1:435) { 
-#   
-#   # t = 1
-#   
-#   grid_t = grid[,c(442, 443, t+3)]
-#   grid_t$time = colnames(grid_t)[3]
-#   colnames(grid_t)[3] = "temp"
-#   
-#   
-#   grid_year = rbind(grid_year, grid_t)
-#   print(t/435)
-#   
-# }
-# 
-# grid_year$year = substr(grid_year$time, 1, 4)
-# grid_year = grid_year %>% subset(year %in% years)
-
-# only depth covariate
 for (y in 1:length(years)) {
   
   # y = 1
   
-  grid_y = grid[,c("X", "Y", "Topography")]
-  colnames(grid_y)[3] = "depth"
+  grid_y = grid[,c("X", "Y", "depth")]
   grid_y$depth = grid_y$depth *-1
   grid_y$year = years[[y]]
   grid_year = rbind(grid_year, grid_y)
@@ -227,35 +177,20 @@ for (y in 1:length(years)) {
 grid_year$depth_scaled = scale(log(grid_year$depth+0.0001))
 grid_year$depth_scaled2 = grid_year$depth_scaled ^ 2
 
-grid_year_missing = NULL
-
-for (y in 1:length(missing_year)) {
-  
-  # y = 1
-  
-  # Add missing years to our grid:
-  grid_from_missing_yr <- grid_year[grid_year$year ==  missing_year[[y]]-1, ]
-  grid_from_missing_yr$year <-  missing_year[[y]] # `L` because `year` is an integer in the data
-  grid_year_missing <- rbind(grid_year_missing, grid_from_missing_yr)
-  
-}
-
-# grid_year = rbind(grid_year, grid_year_missing)
-
-# set the area argument to 0.0081 km2 since our grid cells are 90 m x 90 m = 0.0081 square kilometers
+# set the area argument to 0.01 km2 since our grid cells are 100 m x 100 m = 0.01 square kilometers
 p <- predict(density_model, 
              newdata = grid_year, 
-             return_tmb_object = T, area = 0.0081)
+             return_tmb_object = T, area = 0.01)
 
-p$data$sp = sp
+p$data$response = response
 sdm_output = p$data
 
-# save(sdm_output, file = paste0("outputs/density_results_", sp, "_", response_variable, "_", n_knots, "_", region, ".RData"))
+save(sdm_output, file = paste0("outputs/sdmTMB_results_", response, "_", unit, "_", n_knots, "_", ".RData"))
 
 plot_map_raster <- function(dat, column = "est") {
   
   ggplot(dat, aes_string("X", "Y", fill = column)) +
-    geom_tile(aes(height = 0.5, width = 0.5), alpha = 0.8) +
+    geom_tile(aes(height = 0.5, width = 0.5), alpha = 0.5) +
     # geom_raster() +
     facet_wrap(~year) +
     coord_fixed() +
@@ -267,7 +202,7 @@ plot_map_raster <- function(dat, column = "est") {
 }
 
 # pick out a single year to plot since they should all be the same for the slopes. Note that these are in log space.
-plot_map_raster(filter(p$data, year == 2019), "zeta_s")
+plot_map_raster(filter(p$data, year == unique(p$data$year)[1]), "zeta_s")
 plot_map_raster(p$data, "est") + ggtitle("Predicted density (g/sq.m) (fixed effects + all random effects)")
 plot_map_raster(p$data, "exp(est_non_rf)") + ggtitle("Prediction (fixed effects only)")
 plot_map_raster(p$data, "omega_s") + ggtitle("Spatial random effects only")
@@ -276,42 +211,31 @@ plot_map_raster(p$data, "epsilon_st") + ggtitle("Spatiotemporal random effects o
 # look at just the spatiotemporal random effects:
 plot_map_raster(p$data, "est_rf") + scale_fill_gradient2()
 
-trend = plot_map_raster(filter(p$data, year == 2015), "zeta_s") + ggtitle("Linear trend")
-
-density_map = p$data %>% 
-  # group_by(X, Y) %>% 
-  # summarise(est = mean(est)) %>% 
-  ggplot(aes_string("X", "Y", fill = "exp(est)")) +
-  geom_tile(aes(height = 1, width = 1)) +
-  # geom_point(alpha = 0.5) +
-  facet_wrap(~year) +
-  coord_fixed() +
-  xlab("Eastings (km)") +
-  ylab("Northings (km)") + 
-  # scale_fill_gradientn(colours = matlab.like(100), "g / m^2") +
-  scale_fill_gradientn(colours = matlab.like(100), "kg/sq.m") +
-  # scale_color_gradientn(colours = matlab.like(100), "# per 353 m^2") +
-  ggtitle(paste0(sp, " predicted density 2015-2019")) + 
-  ggdark::dark_theme_minimal() +
-  theme(legend.position = "right")
+(density_map = p$data %>% 
+    ggplot(aes_string("X", "Y", fill = "exp(est)")) +
+    geom_tile(aes(height = 0.1, width = 0.1)) +
+    facet_wrap(~year) +
+    coord_fixed() +
+    xlab("Eastings (km)") +
+    ylab("Northings (km)") + 
+    scale_fill_gradientn(colours = matlab.like(100), "g/sq.m") +
+    ggtitle(paste0("Predicted ", response, " 2015-2019")) +
+    ggdark::dark_theme_minimal() +
+    theme(legend.position = "right"))
 
 index <- get_index(p, bias_correct = F)
 
 ggdark::invert_geom_defaults()
 
-relative_biomass = index %>%
-  ggplot(aes(year, est)) + 
-  geom_line() +
-  geom_point(size = 3) +
-  geom_ribbon(aes(ymin = lwr, ymax = upr), alpha = 0.2, colour = NA) +
-  xlab('Year') + 
-  # ylab('biomass') +
-  ylab('metric tonnes') +
-  # ylab('total count (n)') + 
-  ggtitle("Biomass estimate") +
-  # ggtitle("Abundance estimate") + 
-  ggdark::dark_theme_minimal()
-# theme_pubr()
+(relative_biomass = index %>%
+    ggplot(aes(year, est)) + 
+    geom_line() +
+    geom_point(size = 3) +
+    geom_ribbon(aes(ymin = lwr, ymax = upr), alpha = 0.2, colour = NA) +
+    xlab('Year') + 
+    ylab('biomass') +
+    ggtitle("Biomass estimate") +
+    theme_pubr())
 
 index %>% 
   mutate(cv = sqrt(exp(se^2) - 1)) %>% 
@@ -323,20 +247,10 @@ index %>%
 cog <- get_cog(p) # calculate centre of gravity for each data point
 cog$utm = ifelse(cog$coord == "X", "Eastings", "Northings")
 
-density_cog = ggplot(cog, aes(year, est, ymin = lwr, ymax = upr)) +
-  geom_ribbon(alpha = 0.2) +
-  geom_line() + 
-  geom_point(size = 3) +
-  facet_wrap(~utm, scales = "free_y") + 
-  ggtitle("Center of gravity") + 
-  ggdark::dark_theme_minimal()
-# theme_pubr()
-
-# table of COG by latitude
-plot(data.frame(Y = p$data$Y, est = exp(p$data$est), year = p$data$year) %>%
-       group_by(year) %>% summarize(cog = sum(Y * est) / sum(est)), type = "b", bty = "l", ylab = "Northing")
-
-png("/Users/kisei/Desktop/sdmTMB.png", height = 8, width = 12, units = "in", res = 100)
-(density_map + trend )/ (relative_biomass+density_cog)
-dev.off()
-
+(density_cog = ggplot(cog, aes(year, est, ymin = lwr, ymax = upr)) +
+    geom_ribbon(alpha = 0.2) +
+    geom_line() + 
+    geom_point(size = 3) +
+    facet_wrap(~utm, scales = "free_y") + 
+    ggtitle("Center of gravity") + 
+    theme_pubr())
