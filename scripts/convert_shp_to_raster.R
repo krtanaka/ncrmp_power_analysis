@@ -35,7 +35,7 @@ for (shp_i in 1:length(shp_list)) {
   
   start = Sys.time()
 
-  # shp_i = 1
+  shp_i = 1
 
   # Import shapefile
   df <- readOGR(shp_list[shp_i])
