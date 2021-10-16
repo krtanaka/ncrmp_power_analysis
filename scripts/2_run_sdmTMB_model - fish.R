@@ -43,7 +43,7 @@ ISL_this = ISL_bounds[which(ISL_bounds$ISLAND %in% toupper(islands)),]
 ISL_this_utm = spTransform(ISL_this,CRS(paste0("+proj=utm +units=km +zone=",zone)))
 ISL_this_sf = st_transform(st_as_sf(ISL_this), crs = paste0("+proj=utm +units=km +zone=",zone))
 
-n_knots = 300
+n_knots = 1000
 # n_knots = 100 # a coarse mesh for speed
 rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search") # search
 # rea_spde <- make_mesh(df, c("X", "Y"), cutoff  = n_knots, type = "cutoff") # predefined
@@ -72,8 +72,7 @@ density_model <- sdmTMB(
   
   # formula = response ~ as.factor(year) + depth_scaled + depth_scaled2,
   formula = response ~ as.factor(year) + s(depth, k = 5),
-  # formula = response ~ as.factor(year) + s(depth, k=5) + s(temp, k=5),
-
+  
   silent = F, 
   # extra_time = missing_year,
   spatial_trend = T, 
@@ -107,7 +106,6 @@ ggdark::invert_geom_defaults()
 
 p1 = ggplot(df, aes_string("X", "Y", color = "residuals")) +
   geom_point(alpha = 0.8, size = round(abs(df$residuals), digits = 0)) + 
-  # facet_wrap(.~ISLAND, scales = "free") +
   xlab("Eastings") +
   ylab("Northings") + 
   scale_color_gradient2() + 
