@@ -22,7 +22,7 @@ knots = c(100, 300, 500, 1000)[3]
 
 for (r in 1:length(response_variables)) {
   
-  # r = 3
+  # r = 5
   
   response = response_variables[r]
   
@@ -204,17 +204,17 @@ for (r in 1:length(response_variables)) {
   save(sdm_output, file = paste0("outputs/sdmTMB_results_", response, "_", unit, "_", knots, "knots_", family, ".RData"))
   
   # plot_map_raster <- function(dat, column = "est") {
-  #   
+  # 
   #   ggplot(dat, aes_string("X", "Y", fill = column)) +
   #     geom_tile(aes(height = 0.5, width = 0.5), alpha = 0.5) +
   #     # geom_raster() +
   #     facet_wrap(~year) +
   #     coord_fixed() +
   #     xlab("Eastings (km)") +
-  #     ylab("Northings (km)") + 
+  #     ylab("Northings (km)") +
   #     scale_fill_gradientn(colours = matlab.like(100), "") +
   #     ggdark::dark_theme_minimal()
-  #   
+  # 
   # }
   # 
   # # pick out a single year to plot since they should all be the same for the slopes. Note that these are in log space.
@@ -251,11 +251,11 @@ for (r in 1:length(response_variables)) {
   # ggdark::invert_geom_defaults()
   # 
   # (relative_biomass = index %>%
-  #     ggplot(aes(year, est)) + 
+  #     ggplot(aes(year, est)) +
   #     geom_line() +
   #     geom_point(size = 3) +
   #     geom_ribbon(aes(ymin = lwr, ymax = upr), alpha = 0.2, colour = NA) +
-  #     xlab('Year') + 
+  #     xlab('Year') +
   #     ylab('biomass') +
   #     ggtitle("Biomass estimate") +
   #     theme_pubr())
