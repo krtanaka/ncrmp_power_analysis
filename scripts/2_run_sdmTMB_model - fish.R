@@ -15,13 +15,14 @@ islands = as.character(unique(wsd$ISLAND))[9]
 
 unit = c("biomass", "abundance")[1]
 
-response_variables = c("PISCIVORE_BIO", "PLANKTIVORE_BIO", "PRIMARY_BIO", "SECONDARY_BIO", "TotFishBio")
+if (unit == "biomass") response_variables = c("PISCIVORE_BIO", "PLANKTIVORE_BIO", "PRIMARY_BIO", "SECONDARY_BIO", "TotFishBio")
+if (unit == "abundance") response_variables = c("PISCIVORE_ABUN", "PLANKTIVORE_ABUN", "PRIMARY_ABUN", "SECONDARY_ABUN", "TotFishAbund")
 
-knots = c(100, 300, 500)[1]
+knots = c(100, 300, 500, 1000)[3]
 
 for (r in 1:length(response_variables)) {
   
-  # r = 4
+  # r = 2
   
   response = response_variables[r]
   
@@ -38,8 +39,8 @@ for (r in 1:length(response_variables)) {
     # group_by(LONGITUDE, LATITUDE, time) %>%
     group_by(LONGITUDE, LATITUDE, OBS_YEAR) %>%
     summarise(response = mean(response, na.rm = T),
-              depth = mean(DEPTH, na.rm = T)) %>%  
-    subset(response < quantile(response, prob = 0.99))
+              depth = mean(DEPTH, na.rm = T)) %>% 
+    subset(response < quantile(response, prob = 0.999))
   
   df %>% ggplot(aes(response)) + geom_histogram() +
     df %>% group_by(OBS_YEAR) %>% summarise(n = mean(response)) %>% ggplot(aes(OBS_YEAR, n)) + geom_point() + geom_line()
@@ -81,22 +82,21 @@ for (r in 1:length(response_variables)) {
     
     data = df, 
     
+    # formula = response ~ 0 + as.factor(year), #index standardization
+    # formula = response ~ 1, #just estimates and intercept and accounts for all other variation through the random effects
     # formula = response ~ as.factor(year) + depth_scaled + depth_scaled2,
-    # formula = response ~ as.factor(year) + s(depth, k = 5),
-    formula = response ~ as.factor(year) + s(depth, k = 3),
-    
+    formula = response ~ as.factor(year) + s(depth, k = 5),
+    # formula = response ~ as.factor(year) + s(depth, k = 3),
     
     silent = F, 
-    # extra_time = missing_year,
     spatial_trend = T, 
     spatial_only = F, 
     time = "year", 
     spde = rea_spde, 
     anisotropy = T,
-    family = tweedie(link = "log"),
+    # family = tweedie(link = "log"),
     # family = poisson(link = "log"),
-    # family = binomial(link = "logit"), weights = n,
-    # family = nbinom2(link = "log"),
+    family = nbinom2(link = "log"),
     # family = Beta(link = "logit"),
     
     control = sdmTMBcontrol(step.min = 0.01, step.max = 1)
@@ -109,6 +109,9 @@ for (r in 1:length(response_variables)) {
   max(density_model$gradients)
   
   df$residuals <- residuals(density_model)
+  
+  hist(df$residuals, breaks = 30)
+  
   par(pty = "s")
   
   png(paste0('outputs/qq_', response, '_', knots, '_knots.png'), height = 4, width = 4, units = "in", res = 100)
@@ -117,8 +120,6 @@ for (r in 1:length(response_variables)) {
   
   m_p <- predict(density_model); m_p = m_p[,c("response", "est")]
   m_p$back_abs_res = abs(df$residuals)
-  
-  # ggdark::invert_geom_defaults()
   
   p1 = ggplot(df, aes_string("X", "Y", color = "residuals")) +
     geom_point(alpha = 0.8, size = round(abs(df$residuals), digits = 0)) + 
@@ -198,9 +199,11 @@ for (r in 1:length(response_variables)) {
   p$data$response = response
   sdm_output = p$data
   
-  save(sdm_output, file = paste0("outputs/sdmTMB_results_", response, "_", unit, "_", knots, "knots.RData"))
+  family = as.character(density_model$family[1])
   
-    # plot_map_raster <- function(dat, column = "est") {
+  save(sdm_output, file = paste0("outputs/sdmTMB_results_", response, "_", unit, "_", knots, "knots_", family, ".RData"))
+  
+  # plot_map_raster <- function(dat, column = "est") {
   #   
   #   ggplot(dat, aes_string("X", "Y", fill = column)) +
   #     geom_tile(aes(height = 0.5, width = 0.5), alpha = 0.5) +
@@ -236,6 +239,8 @@ for (r in 1:length(response_variables)) {
       ggdark::dark_theme_minimal() +
       # theme_pubr() + 
       theme(legend.position = "right"))
+  
+  ggdark::invert_geom_defaults()
   
   png(paste0('outputs/predicted_', unit, '_', response, '_', knots, '_knots.png'), height = 5, width = 5, units = "in", res = 100)
   print(density_map)
