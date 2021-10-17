@@ -18,11 +18,11 @@ unit = c("biomass", "abundance")[1]
 if (unit == "biomass") response_variables = c("PISCIVORE_BIO", "PLANKTIVORE_BIO", "PRIMARY_BIO", "SECONDARY_BIO", "TotFishBio")
 if (unit == "abundance") response_variables = c("PISCIVORE_ABUN", "PLANKTIVORE_ABUN", "PRIMARY_ABUN", "SECONDARY_ABUN", "TotFishAbund")
 
-knots = c(100, 300, 500, 1000)[3]
+knots = c(100, 300, 500, 1000)[1]
 
 for (r in 1:length(response_variables)) {
   
-  # r = 5
+  r = 1
   
   response = response_variables[r]
   
