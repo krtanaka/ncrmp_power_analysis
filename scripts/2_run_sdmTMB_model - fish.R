@@ -17,7 +17,7 @@ rm(list = ls())
 # Total numerical density estimates (individuals per 100 m2) were obtained by dividing fish counts in each survey by the survey area (353 m2 from two 15-m diameter survey cylinders) and multiplying by 100. - Nadon et al. 2020
 
 region = "MHI"
-uku_or_not = F
+uku_or_not = T
 
 ## top 5 taxa by abundance or biomass
 # load("data/rea/ALL_REA_FISH_RAW.rdata")
@@ -40,10 +40,10 @@ islands = c("Kauai", #1
             "Lanai", #8
             "Molokini", #9
             "Kahoolawe", #10
-            "Hawaii")#[1]
+            "Hawaii")[1]
 
-# response_variable = "fish_count";      sp = ifelse(uku_or_not == T, "Aprion virescens", "Chromis vanderbilti")
-# response_variable = "fish_biomass";    sp = ifelse(uku_or_not == T, "Aprion virescens", "Acanthurus olivaceus")
+response_variable = "fish_count";      sp = ifelse(uku_or_not == T, "Aprion virescens", "Chromis vanderbilti")
+response_variable = "fish_biomass";    sp = ifelse(uku_or_not == T, "Aprion virescens", "Acanthurus olivaceus")
 response_variable = "trophic_biomass"; sp = c("PISCIVORE", "PLANKTIVORE", "PRIMARY", "SECONDARY", "TOTAL")[4]
 
 if (response_variable == "fish_count") {
@@ -181,10 +181,10 @@ density_model <- sdmTMB(
   time = "year", 
   spde = rea_spde, 
   anisotropy = T,
-  family = tweedie(link = "log"),
+  # family = tweedie(link = "log"),
   # family = poisson(link = "log"),
   # family = binomial(link = "logit"), weights = n,
-  # family = nbinom2(link = "log"),
+  family = nbinom2(link = "log"),
   # family = Beta(link = "logit"),
   
   control = sdmTMBcontrol(step.min = 0.01, step.max = 1)
@@ -312,15 +312,15 @@ years = sort(as.vector(unique(df$year)))
 
 # only depth covariate
 for (y in 1:length(years)) {
-
+  
   # y = 1
-
+  
   grid_y = grid[,c("X", "Y", "Topography")]
   colnames(grid_y)[3] = "depth"
   grid_y$depth = grid_y$depth *-1
   grid_y$year = years[[y]]
   grid_year = rbind(grid_year, grid_y)
-
+  
 }
 
 grid_year$depth_scaled = scale(log(grid_year$depth+0.0001))
@@ -366,7 +366,7 @@ plot_map_raster <- function(dat, column = "est") {
 }
 
 # pick out a single year to plot since they should all be the same for the slopes. Note that these are in log space.
-plot_map_raster(filter(p$data, year == 2019), "zeta_s")
+plot_map_raster(filter(p$data, year == unique(p$data$year)[1]), "zeta_s")
 plot_map_raster(p$data, "est") + ggtitle("Predicted density (g/sq.m) (fixed effects + all random effects)")
 plot_map_raster(p$data, "exp(est_non_rf)") + ggtitle("Prediction (fixed effects only)")
 plot_map_raster(p$data, "omega_s") + ggtitle("Spatial random effects only")
@@ -375,41 +375,41 @@ plot_map_raster(p$data, "epsilon_st") + ggtitle("Spatiotemporal random effects o
 # look at just the spatiotemporal random effects:
 plot_map_raster(p$data, "est_rf") + scale_fill_gradient2()
 
-trend = plot_map_raster(filter(p$data, year == 2015), "zeta_s") + ggtitle("Linear trend")
+(trend = plot_map_raster(filter(p$data, year == unique(p$data$year)[1]), "zeta_s") + ggtitle("Linear trend"))
 
-density_map = p$data %>% 
-  # group_by(X, Y) %>% 
-  # summarise(est = mean(est)) %>% 
-  ggplot(aes_string("X", "Y", fill = "exp(est)")) +
-  geom_tile(aes(height = 1, width = 1)) +
-  # geom_point(alpha = 0.5) +
-  facet_wrap(~year) +
-  coord_fixed() +
-  xlab("Eastings (km)") +
-  ylab("Northings (km)") + 
-  # scale_fill_gradientn(colours = matlab.like(100), "g / m^2") +
-  scale_fill_gradientn(colours = matlab.like(100), "kg/sq.m") +
-  # scale_color_gradientn(colours = matlab.like(100), "# per 353 m^2") +
-  ggtitle(paste0(sp, " predicted density 2015-2019")) + 
-  ggdark::dark_theme_minimal() +
-  theme(legend.position = "right")
+(density_map = p$data %>% 
+    # group_by(X, Y) %>% 
+    # summarise(est = mean(est)) %>% 
+    ggplot(aes_string("X", "Y", fill = "exp(est)")) +
+    geom_tile(aes(height = 1, width = 1)) +
+    # geom_point(alpha = 0.5) +
+    facet_wrap(~year) +
+    coord_fixed() +
+    xlab("Eastings (km)") +
+    ylab("Northings (km)") + 
+    # scale_fill_gradientn(colours = matlab.like(100), "g / m^2") +
+    scale_fill_gradientn(colours = matlab.like(100), "kg/sq.m") +
+    # scale_color_gradientn(colours = matlab.like(100), "# per 353 m^2") +
+    ggtitle(paste0(sp, " predicted density 2015-2019")) + 
+    ggdark::dark_theme_minimal() +
+    theme(legend.position = "right"))
 
 index <- get_index(p, bias_correct = F)
 
 ggdark::invert_geom_defaults()
 
-relative_biomass = index %>%
-  ggplot(aes(year, est)) + 
-  geom_line() +
-  geom_point(size = 3) +
-  geom_ribbon(aes(ymin = lwr, ymax = upr), alpha = 0.2, colour = NA) +
-  xlab('Year') + 
-  # ylab('biomass') +
-  ylab('metric tonnes') +
-  # ylab('total count (n)') + 
-  ggtitle("Biomass estimate") +
-  # ggtitle("Abundance estimate") + 
-  ggdark::dark_theme_minimal()
+(relative_biomass = index %>%
+    ggplot(aes(year, est)) + 
+    geom_line() +
+    geom_point(size = 3) +
+    geom_ribbon(aes(ymin = lwr, ymax = upr), alpha = 0.2, colour = NA) +
+    xlab('Year') + 
+    # ylab('biomass') +
+    ylab('metric tonnes') +
+    # ylab('total count (n)') + 
+    ggtitle("Biomass estimate") +
+    # ggtitle("Abundance estimate") + 
+    ggdark::dark_theme_minimal())
 # theme_pubr()
 
 index %>% 
@@ -422,13 +422,13 @@ index %>%
 cog <- get_cog(p) # calculate centre of gravity for each data point
 cog$utm = ifelse(cog$coord == "X", "Eastings", "Northings")
 
-density_cog = ggplot(cog, aes(year, est, ymin = lwr, ymax = upr)) +
-  geom_ribbon(alpha = 0.2) +
-  geom_line() + 
-  geom_point(size = 3) +
-  facet_wrap(~utm, scales = "free_y") + 
-  ggtitle("Center of gravity") + 
-  ggdark::dark_theme_minimal()
+(density_cog = ggplot(cog, aes(year, est, ymin = lwr, ymax = upr)) +
+    geom_ribbon(alpha = 0.2) +
+    geom_line() + 
+    geom_point(size = 3) +
+    facet_wrap(~utm, scales = "free_y") + 
+    ggtitle("Center of gravity") + 
+    ggdark::dark_theme_minimal())
 # theme_pubr()
 
 # table of COG by latitude
