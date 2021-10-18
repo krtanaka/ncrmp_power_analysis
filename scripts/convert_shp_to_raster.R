@@ -21,8 +21,8 @@ rm(list = ls())
 spatial_resolution = 100 # spatial resolution in m
 cores = 64 # number of cores to use
 
-# shp_path = "L:/ktanaka/GIS" # pc
-shp_path = "/mnt/ldrive/ktanaka/GIS/" # Onaga
+shp_path = "L:/ktanaka/GIS" # pc
+# shp_path = "/mnt/ldrive/ktanaka/GIS/" # Onaga
 # shp_path = "N:/GIS/Projects/CommonMaps/01_Preprocess/MARI/GUA/"
 
 ##################################
@@ -35,7 +35,7 @@ for (shp_i in 1:length(shp_list)) {
   
   start = Sys.time()
 
-  shp_i = 1
+  # shp_i = 1
 
   # Import shapefile
   df <- readOGR(shp_list[shp_i])
