@@ -20,7 +20,7 @@ load("data/modeled_survey_variability.RData") #modeled at grid scale
 # options(scipen = 999, digits = 2)
 
 # pick an island ----------------------------------------------------------
-island = c("gua", "rot", "sai", "tin")[1]#[sample(1:4, 1)]
+island = c("gua", "rot", "sai", "tin")[4]#[sample(1:4, 1)]
 print(island)
 
 # pick survey design ------------------------------------------------------
@@ -33,13 +33,13 @@ if (design == "traditional") load(paste0("data/survey_grid_w_sector_reef/survey_
 
 # bring in sim$ as a place holder -----------------------------------------
 
-sim = sim_abundance(years = 2000:2020,
-                    ages = 1:2,
-                    R = sim_R(log_mean = log(50), log_sd = 0.8),
-                    Z = sim_Z(log_mean = log(0.2))) %>%
-  sim_distribution(grid = survey_grid_ncrmp)
-
-save(sim, file = paste0('outputs/sim_abundance_distribution_', island, '.Rdata'))
+# sim = sim_abundance(years = 2000:2020,
+#                     ages = 1:2,
+#                     R = sim_R(log_mean = log(50), log_sd = 0.8),
+#                     Z = sim_Z(log_mean = log(0.2))) %>%
+#   sim_distribution(grid = survey_grid_ncrmp)
+# 
+# save(sim, file = paste0('outputs/sim_abundance_distribution_', island, '.Rdata'))
 
 load(paste0('outputs/sim_abundance_distribution_', island, '.Rdata'))
 
