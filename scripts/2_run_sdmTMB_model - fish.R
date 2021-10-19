@@ -22,7 +22,7 @@ knots = c(100, 300, 500, 1000)[1]
 
 for (r in 1:length(response_variables)) {
   
-  r = 3
+  r = 1
   
   response = response_variables[r]
   

@@ -20,7 +20,7 @@ load("data/modeled_survey_variability.RData") #modeled at grid scale
 # options(scipen = 999, digits = 2)
 
 # pick an island ----------------------------------------------------------
-island = c("Hawaii", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:7, 1)]
+island = c("gua", "rot", "sai", "tin")[1]#[sample(1:4, 1)]
 print(island)
 
 # pick survey design ------------------------------------------------------
@@ -36,7 +36,7 @@ sim = sim_abundance(years = 2000:2020,
                     ages = 1:2,
                     R = sim_R(log_mean = log(50), log_sd = 0.8),
                     Z = sim_Z(log_mean = log(0.2))) %>% 
-  sim_distribution(grid = survey_grid_kt)
+  sim_distribution(grid = survey_grid_ncrmp)
 
 #population variable that we will replace...
 I <- sim$N
