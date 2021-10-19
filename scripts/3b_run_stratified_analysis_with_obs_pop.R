@@ -28,15 +28,19 @@ print(island)
 design = c("traditional", "downscaled", "downscaled_alt")[1]
 
 if (design == "traditional") load(paste0("data/survey_grid_w_sector_reef/survey_grid_", island, ".RData")) #survey domain with sector & reef & depth_bins
-if (design == "downscaled") load(paste0("data/survey_grid_w_zones/fish/survey_grid_", island, ".RData")) #survey domain with tom's downscaled zones
-if (design == "downscaled_alt") load(paste0("data/survey_grid_w_zones_alt/fish/survey_grid_", island, ".RData")) #survey domain with tom's downscaled zones
+# if (design == "downscaled") load(paste0("data/survey_grid_w_zones/fish/survey_grid_", island, ".RData")) #survey domain with tom's downscaled zones
+# if (design == "downscaled_alt") load(paste0("data/survey_grid_w_zones_alt/fish/survey_grid_", island, ".RData")) #survey domain with tom's downscaled zones
 
 # bring in sim$ as a place holder -----------------------------------------
-sim = sim_abundance(years = 2000:2020, 
-                    ages = 1:2,
-                    R = sim_R(log_mean = log(50), log_sd = 0.8),
-                    Z = sim_Z(log_mean = log(0.2))) %>% 
-  sim_distribution(grid = survey_grid_ncrmp)
+
+# sim = sim_abundance(years = 2000:2020, 
+#                     ages = 1:2,
+#                     R = sim_R(log_mean = log(50), log_sd = 0.8),
+#                     Z = sim_Z(log_mean = log(0.2))) %>% 
+#   sim_distribution(grid = survey_grid_ncrmp)
+# save(sim, file = paste0('outputs/sim_abundance_distribution_', island, '.Rdata'))
+
+load(paste0('outputs/sim_abundance_distribution_', island, '.Rdata'))
 
 #population variable that we will replace...
 I <- sim$N
@@ -48,7 +52,7 @@ I
 # list = list.files(path = "outputs/", pattern = "_count"); list
 
 # fish_or_trophic_biomass
-list = list.files(path = "outputs/", pattern = "_biomass"); list
+list = list.files(path = "outputs/", pattern = "biomass_100knots.RData"); list
 
 ## coral_cover
 # list = list.files(path = "outputs/", pattern = "_cover"); list
@@ -60,15 +64,15 @@ i = 4
 
 load(paste0("outputs/", list[i]))
 sp = strsplit(list[i], split = "_")[[1]][3]; sp
-response_scale = strsplit(list[i], split = "_")[[1]][4]; response_scale
+response_scale = strsplit(list[i], split = "_")[[1]][5]; response_scale
 
 # replace sim$ with sdmTMB outputs  -----------------------------------------
 
 # Need to match sim and sdm
-sdm = sdm_output[,c("X", "Y", "longitude", "latitude", "year", "est" )]; rm(sdm_output)
+sdm = sdm_output[,c("X", "Y", "year", "est" )]; rm(sdm_output)
 colnames(sdm)[1:2] = c("x", "y")
 sdm$est = exp(sdm$est); hist(sdm$est);summary(sdm$est)
-sdm$est = sdm$est*(res(survey_grid_kt)[1] * res(survey_grid_kt)[2]*1000000); hist(sdm$est); summary(sdm$est) # convert g/sq.m to q/ whatever given cell size
+sdm$est = sdm$est*(res(survey_grid_ncrmp)[1] * res(survey_grid_ncrmp)[2]); hist(sdm$est); summary(sdm$est) # convert g/sq.m to g/ whatever given cell size
 
 # replace sim$years and sim$ages
 sim$years = sort(unique(sdm$year))
