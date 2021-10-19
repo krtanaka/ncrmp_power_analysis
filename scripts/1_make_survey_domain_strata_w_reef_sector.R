@@ -267,7 +267,10 @@ for (isl in 1:length(islands)) {
   
   colnames(df)[2:3] = c("longitude", "latitude")
   
-  # utmcoor <- SpatialPoints(cbind(df$longitude, df$latitude), proj4string = CRS("+proj=utm +units=m +zone=55"))
+  df$longitude = df$longitude * 0.001
+  df$latitude = df$latitude * 0.001
+  
+  # utmcoor <- SpatialPoints(cbind(df$longitude, df$latitude), proj4string = CRS("+proj=utm +units=km +zone=55"))
   # longlatcoor <- spTransform(utmcoor,CRS("+proj=longlat"))
   # df$longitude <- coordinates(longlatcoor)[,1]
   # df$latitude <- coordinates(longlatcoor)[,2]
