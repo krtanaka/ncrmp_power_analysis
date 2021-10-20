@@ -66,10 +66,17 @@ cells$latitude <- coordinates(longlatcoor)[,2]
 sets <- cells[, .SD[sample(.N, strat_sets, replace = resample_cells)], 
               by = c("strat")]
 
+id <- seq(1,dim(sets)[1],1)
+id = sprintf("site_%02d", id)
+
 # count number of distinct sim*year*cell combinations
 sets[, `:=`(cell_sets, .N), by = c("cell")]
 sets$set <- seq(nrow(sets))
-sets 
+sets = sets  %>% 
+  mutate(id = id) %>% 
+  select(id, x, y, longitude, latitude, depth, strat, strat_area)
+
+readr::write_csv(sets, file = paste0("outputs/", island, "_", total_sample, "_sites.csv"))
 
 (bathymetry = cells %>% 
     ggplot(aes(x, y)) +
@@ -89,9 +96,19 @@ sets
     theme_minimal() + 
     theme(legend.position = "right"))
 
+(site_density = cells %>% 
+    ggplot(aes(x, y)) +
+    geom_raster(aes(fill = strat_sets)) + 
+    scale_fill_viridis_c("Site_allocation") + 
+    ylab("Northings (km)") + xlab("Eastings (km)") +
+    coord_fixed() +
+    theme_minimal() + 
+    theme(legend.position = "right"))
+
 (site_location = 
     ggplot() + 
     geom_point(data = sets, aes(x, y)) +  
+    geom_text_repel(data = sets, aes(x, y, label = id), max.overlaps = Inf) + 
     geom_raster(data = cells, aes(x, y, fill = factor(strat)), alpha = 0.5) + 
     coord_fixed() +
     ylab("Northings (km)") + xlab("Eastings (km)") +
@@ -101,16 +118,12 @@ sets
     labs(
       title = "",
       subtitle = paste0(paste0("Number of strata = ", length(unique(cells$strat)), "\n", 
-                               "Survey effort = ", total_sample, " sites"))))
+                               "Initial survey effort = ", total_sample, " sites \n",
+                               "Total number of survey sites = ", sum(strat_det$strat_sets)))))
 
-(site_density = cells %>% 
-    ggplot(aes(x, y)) +
-    geom_raster(aes(fill = strat_sets)) + 
-    scale_fill_viridis_c("Site_allocation") + 
-    ylab("Northings (km)") + xlab("Eastings (km)") +
-    coord_fixed() +
-    theme_minimal() + 
-    theme(legend.position = "right"))
+pdf(paste0("outputs/site_location_", island, "_", total_sample, "_sites.pdf"), height = 12, width = 12)
+print(site_location)
+dev.off()
 
 (Area = cells %>% 
     group_by(strat) %>% 
