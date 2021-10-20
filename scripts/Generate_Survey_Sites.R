@@ -154,4 +154,3 @@ dev.off()
     xlab("Strat") + ylab("Site_allocation") + 
     coord_flip() + 
     theme_minimal())
-
