@@ -20,16 +20,12 @@ load("data/modeled_survey_variability.RData") #modeled at grid scale
 # options(scipen = 999, digits = 2)
 
 # pick an island ----------------------------------------------------------
-island = c("gua", "rot", "sai", "tin")[4]#[sample(1:4, 1)]
+island = c("gua", "rot", "sai", "tin")[1]#[sample(1:4, 1)]
 print(island)
 
 # pick survey design ------------------------------------------------------
-
-design = c("traditional", "downscaled", "downscaled_alt")[1]
-
-if (design == "traditional") load(paste0("data/survey_grid_w_sector_reef/survey_grid_", island, ".RData")) #survey domain with sector & reef & depth_bins
-# if (design == "downscaled") load(paste0("data/survey_grid_w_zones/fish/survey_grid_", island, ".RData")) #survey domain with tom's downscaled zones
-# if (design == "downscaled_alt") load(paste0("data/survey_grid_w_zones_alt/fish/survey_grid_", island, ".RData")) #survey domain with tom's downscaled zones
+# survey domain with sector & reef & hard_unknown & 3 depth bins
+load(paste0("data/survey_grid_w_sector_reef/survey_grid_", island, ".RData")) 
 
 # bring in sim$ as a place holder -----------------------------------------
 
@@ -49,19 +45,10 @@ I
 
 # pick target and response_scale (n or g/sq.m) ---------------------------
 
-## fish_count
-# list = list.files(path = "outputs/", pattern = "_count"); list
-
-# fish_or_trophic_biomass
+# trophic_biomass
 list = list.files(path = "outputs/", pattern = "biomass_100knots.RData"); list
 
-## coral_cover
-# list = list.files(path = "outputs/", pattern = "_cover"); list
-
-## adult or juvenile coral density
-# list = list.files(path = "outputs/", pattern = "_density"); list
-
-i = 4
+i = 1
 
 load(paste0("outputs/", list[i]))
 sp = strsplit(list[i], split = "_")[[1]][3]; sp
@@ -73,7 +60,7 @@ response_scale = strsplit(list[i], split = "_")[[1]][5]; response_scale
 sdm = sdm_output[,c("X", "Y", "year", "est" )]; rm(sdm_output)
 colnames(sdm)[1:2] = c("x", "y")
 sdm$est = exp(sdm$est); hist(sdm$est);summary(sdm$est)
-sdm$est = sdm$est*(res(survey_grid_ncrmp)[1] * res(survey_grid_ncrmp)[2]); hist(sdm$est); summary(sdm$est) # convert g/sq.m to g/ whatever given cell size
+sdm$est = sdm$est*(res(survey_grid_ncrmp)[1] * res(survey_grid_ncrmp)[2]*1000000); hist(sdm$est); summary(sdm$est) # convert g/sq.m to q/ whatever given cell size
 
 # replace sim$years and sim$ages
 sim$years = sort(unique(sdm$year))
@@ -91,7 +78,7 @@ sim_grid = sim_grid %>%
 
 sdm_grid = sdm %>%
   mutate(x = round(x, 1),
-  y = round(y, 1)) %>%
+         y = round(y, 1)) %>%
   group_by(x, y, year) %>%
   summarise(est = sum(est)) %>% 
   as.data.frame()
@@ -124,7 +111,7 @@ df %>%
   coord_fixed()
 
 N = df %>% group_by(year) %>% summarise(age = sum(est)); N
-N = matrix(N$age, nrow = 1, ncol = 9); N
+N = matrix(N$age, nrow = 1, ncol = dim(N)[1]); N
 rownames(N) <- "1"
 colnames(N) = sort(unique(sdm$year))
 names(dimnames(N)) = c("age", "year")
@@ -141,34 +128,13 @@ I
 
 # simulate stratified random surveys --------------------------------------
 
-load("data/survey_effort_MHI_2014-2019.RData")
-
-effort = c("high", "median", "low")[2]
-
-t_sample = survey_effort_MHI %>%
-  subset(ISLAND == island) %>%
-  dplyr::select(effort) %>%
-  as.character() %>%
-  as.numeric() %>%
-  round(0)
-
-n_sims = 100 # number of simulations
-total_sample = t_sample # total sample efforts you want to deploy
-min_sets = 0 # minimum number of sets per strat
-# set_den = 5 # number of sets per [grid unit = km] squared)
+n_sims = 3 # number of simulations
+total_sample = 50 # total sample efforts you want to deploy
+min_sets = 1 # minimum number of sets per strat
 trawl_dim = c(0.01, 0.0353) # 0.000353 sq.km (353 sq.m) from two 15-m diameter survey cylinders
 resample_cells = F
 
-n <- id <- division <- strat <- N <- NULL
-
-# sets <- sim_sets(sim,
-#                  resample_cells = resample_cells,
-#                  n_sims = n_sims,
-#                  trawl_dim = trawl_dim,
-#                  set_den = set_den,
-#                  min_sets = min_sets)
-
-strat_sets <- cell_sets <- NULL
+n <- id <- division <- strat <- N <- strat_sets <- cell_sets <- NULL
 
 cells <- data.table(rasterToPoints(sim$grid))
 
@@ -194,19 +160,6 @@ strat_det$strat_sets = round((total_sample * strat_det$weight) / sum(strat_det$w
 # make sure minimum number of sets per strat is not 0 or 1
 strat_det$strat_sets[strat_det$strat_sets < min_sets] <- min_sets; strat_det
 strat_table = strat_det %>% dplyr::select(strat, strat_sets); strat_table
-
-if (design == "downscaled_alt") {
-  
-  # randomly drop some of tom's zones then allocate sampling units by area
-  strat_det$drop = rbinom(length(unique(strat_det$strat)), 1, prob = 2/3); strat_det
-  # strat_det$drop = rbinom(length(unique(strat_det$strat)), 1, prob = strat_det$weight); strat_det
-  strat_det$weight = strat_det$strat_area * strat_det$sd * strat_det$drop; strat_det
-  strat_det$weight = (strat_det$weight - min(strat_det$weight)) / (max(strat_det$weight)-min(strat_det$weight)); strat_det
-  strat_det$strat_sets = round((total_sample * strat_det$weight) / sum(strat_det$weight), 0); strat_det
-  # strat_det$weight = ifelse(strat_det$drop == 0, 0, strat_det$weight); strat_det
-  strat_table = strat_det %>% dplyr::select(strat, strat_sets); strat_table
-  
-}
 
 # add "strat" "strat_cells" "tow_area" ...
 strat_det = strat_det[,c("strat", "strat_cells", "tow_area", "cell_area", "strat_area", "strat_sets" )]
@@ -255,10 +208,10 @@ setdet <- merge(sets, sp_I, by = c("sim", "year", "cell"))
 setdet$n <- stats::rbinom(rep(1, nrow(setdet)),
                           size = round(setdet$N/setdet$cell_sets),
                           # size = round(setdet$N/1),
-                          prob = (setdet$tow_area/setdet$cell_area)*0.5)
+                          prob = (setdet$tow_area/setdet$cell_area))
 
 # setdet$n <- round((setdet$N/setdet$cell_sets) * (setdet$tow_area/setdet$cell_area)*
-                                                 
+
 # detection probability = 1:sucess, 0:fail
 setdet$detection = 0
 setdet$detection = ifelse(setdet$N == 0 & setdet$n == 0, 1, 0)
@@ -384,12 +337,6 @@ rmse = formatC(sim$total_strat_error_stats[4], digits = 3)
 
 label = paste0("ME = ", me, "\n", "MAE = ", mae, "\n", "MSE = ", mse, "\n", "RMSE = ", rmse)
 
-ggplot(df1, aes(x = x, y = y)) +
-  geom_tile(aes(fill = value)) + 
-  scale_fill_gradient2(low = "gray", high = "red", mid = "#e3e3e3", midpoint = 0) +
-  geom_point(data = df2, aes(color = value), shape = 19, size = 3) +
-  scale_color_gradient(low = "gray", high = "blue")
-
 strata = sim$grid_xy %>%
   mutate(x = round(x/0.5, digits = 0),
          y = round(y/0.5, digits = 0)) %>%
@@ -400,63 +347,54 @@ strata = sim$grid_xy %>%
 strata = merge(strata, strat_table)
 
 sim_results = list(strata, df)
-save(sim_results, file = paste0('outputs/sim_results_', island, "_", design, "_", effort, "_", sp, "_", n_sims, "_", response_scale, ".RData"))
+# save(sim_results, file = paste0('outputs/sim_results_', island, "_", design, "_", effort, "_", sp, "_", n_sims, "_", response_scale, ".RData"))
 
-strata = strata %>% 
-  ggplot(aes(x, y)) +
-  # coord_fixed() + 
-  geom_raster(aes(fill = strat_sets)) + 
-  theme_minimal() + 
-  ylab("Northing (km)") + xlab("Easting (km)") + 
-  theme(legend.position = "right") + 
-  scale_fill_gradient(low = "gray", high = "red") + 
-  labs(
-    title = "",
-    subtitle = paste0(paste0("Island = ", island, "\n", 
-                             "Number of strata = ", length(unique(sim$grid_xy$strat)), "\n", 
-                             "Survey design = ", design, "\n", 
-                             "Survey effort = ", effort, " effort w/ ", t_sample, " sites")))
+(strata = strata %>% 
+    ggplot(aes(x, y)) +
+    # coord_fixed() + 
+    geom_raster(aes(fill = strat_sets)) + 
+    theme_minimal() + 
+    ylab("Northing (km)") + xlab("Easting (km)") + 
+    theme(legend.position = "right") + 
+    scale_fill_gradient(low = "gray", high = "red") + 
+    labs(
+      title = "",
+      subtitle = paste0(paste0("Island = ", island, "\n", 
+                               "Number of strata = ", length(unique(sim$grid_xy$strat)), "\n", 
+                               "Survey effort = ", total_sample, " sites"))))
 
 if (response_scale == "biomass") ylab_scale = "biomass (g)"
 if (response_scale == "count") ylab_scale = "abundance (n)"
 
-sim_output = df %>% 
-  ggplot() + 
-  geom_line(aes(year, I_hat, color = factor(sim), alpha = 0.2), show.legend = F) +
-  geom_line(aes(year, I), size = 2, color = "red") + 
-  theme_minimal() + 
-  ylab(ylab_scale) +
-  xlab("") + 
-  labs(
-    title = "",
-    subtitle = paste0("Target = ", sp, "\n",
-                      "Mininum sets per strat = ", min_sets, "\n",
-                      "Total number of surveyed sites = ", sum(strat_det$strat_sets), "\n",
-                      "Number of simulations = ", n_sims)) +
-  annotate(label = label,
-           geom = "text",
-           x = Inf,
-           y = Inf, 
-           size = 4, 
-           hjust = 1,
-           vjust = 1) 
+(sim_output = df %>% 
+    ggplot() + 
+    geom_line(aes(year, I_hat, color = factor(sim), alpha = 0.2), show.legend = F) +
+    geom_line(aes(year, I), size = 2, color = "red") + 
+    theme_minimal() + 
+    ylab(ylab_scale) +
+    xlab("") + 
+    labs(
+      title = "",
+      subtitle = paste0("Target = ", sp, "\n",
+                        "Mininum sets per strat = ", min_sets, "\n",
+                        "Total number of surveyed sites = ", sum(strat_det$strat_sets), "\n",
+                        "Number of simulations = ", n_sims)) +
+    annotate(label = label,
+             geom = "text",
+             x = Inf,
+             y = Inf, 
+             size = 4, 
+             hjust = 1,
+             vjust = 1) )
 
-error = df %>% 
-  ggplot(aes(year, error, group = year)) + 
-  geom_boxplot(outlier.colour = NULL) +
-  xlab("") + 
-  theme_minimal()
-
-detection = setdet %>% 
-  group_by(year, sim) %>% 
-  summarise(detection = mean(detection)) %>% 
-  ggplot(aes(year, detection, group = year)) + 
-  ylab("detection prob (%)") + 
-  xlab("") + 
-  geom_boxplot(outlier.colour = NULL) +
-  theme_minimal()
+(error = df %>% 
+    ggplot(aes(year, error, group = year)) + 
+    geom_boxplot(outlier.colour = NULL) +
+    xlab("") + 
+    theme_minimal())
 
 # png(paste0("outputs/", sp, "_", island, ".png"), res = 100, units = "in", height = 4, width = 8)
 # strata + (sim_output / (error + detection))
 strata + (sim_output / error)
 # dev.off()
+
