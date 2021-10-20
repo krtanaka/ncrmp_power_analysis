@@ -15,9 +15,6 @@ rm(list = ls())
 
 load("data/modeled_survey_variability.RData") #modeled at grid scale
 
-# set.seed(42)
-# options(scipen = 999, digits = 2)
-
 # pick an island
 island = c("gua", "rot", "sai", "tin")[sample(1:4, 1)]; print(island)
 
@@ -92,14 +89,15 @@ sets
     theme_minimal() + 
     theme(legend.position = "right"))
 
-(site_location = sets %>% 
-    ggplot(aes(x, y, color = factor(strat))) + 
-    geom_point() +   
+(site_location = 
+    ggplot() + 
+    geom_point(data = sets, aes(x, y)) +  
+    geom_raster(data = cells, aes(x, y, fill = factor(strat)), alpha = 0.5) + 
     coord_fixed() +
     ylab("Northings (km)") + xlab("Eastings (km)") +
-    scale_colour_viridis_d("Strata") + 
+    scale_fill_viridis_d("Strata") + 
     theme_minimal() + 
-    theme(legend.position = "right")+ 
+    theme(legend.position = "right") + 
     labs(
       title = "",
       subtitle = paste0(paste0("Number of strata = ", length(unique(cells$strat)), "\n", 
@@ -107,9 +105,40 @@ sets
 
 (site_density = cells %>% 
     ggplot(aes(x, y)) +
-    coord_fixed() +
-    geom_raster(aes(fill = factor(strat_sets))) + 
+    geom_raster(aes(fill = strat_sets)) + 
+    scale_fill_viridis_c("Site_allocation") + 
     ylab("Northings (km)") + xlab("Eastings (km)") +
-    # scale_fill_viridis_c("Site_allocation"))
+    coord_fixed() +
     theme_minimal() + 
     theme(legend.position = "right"))
+
+(Area = cells %>% 
+    group_by(strat) %>% 
+    summarise(strat_area = mean(strat_area))%>% 
+    ggplot(aes(x = factor(strat), y = as.numeric(as.character(strat_area)), fill = strat_area)) +
+    geom_bar(stat = "identity", position = position_dodge(), show.legend = F) + 
+    xlab("Strat") + ylab("Strat_Area (sq.km)") + 
+    scale_fill_viridis_c() + 
+    coord_flip() + 
+    theme_minimal())
+
+(SD = cells %>% 
+    group_by(strat) %>% 
+    summarise(sd = mean(sd))%>% 
+    ggplot(aes(x = factor(strat), y = as.numeric(as.character(sd)), fill = sd)) +
+    geom_bar(stat = "identity", position = position_dodge(), show.legend = F) + 
+    scale_fill_viridis_c() + 
+    xlab("Strat") + ylab("S.D.") + 
+    coord_flip() + 
+    theme_minimal())
+
+(Site_allocation = cells %>% 
+    group_by(strat) %>% 
+    summarise(strat_sets  = mean(strat_sets ))%>% 
+    ggplot(aes(x = factor(strat), y = as.numeric(as.character(strat_sets )), fill = factor(strat_sets))) +
+    geom_bar(stat = "identity", position = position_dodge(), show.legend = F) + 
+    scale_fill_viridis_d() + 
+    xlab("Strat") + ylab("Site_allocation") + 
+    coord_flip() + 
+    theme_minimal())
+
