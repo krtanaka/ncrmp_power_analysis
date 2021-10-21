@@ -121,22 +121,22 @@ for (r in 1:length(response_variables)) {
   m_p <- predict(density_model); m_p = m_p[,c("response", "est")]
   m_p$back_abs_res = abs(df$residuals)
   
-  p1 = ggplot(df, aes_string("X", "Y", color = "residuals")) +
-    geom_point(alpha = 0.8, size = round(abs(df$residuals), digits = 0)) + 
-    xlab("Eastings") +
-    ylab("Northings") + 
-    scale_color_gradient2() + 
-    theme_classic()
+  (p1 = ggplot(df, aes_string("X", "Y", color = "residuals")) +
+      geom_point(alpha = 0.8, size = round(abs(df$residuals), digits = 0)) + 
+      xlab("Eastings") +
+      ylab("Northings") + 
+      scale_color_gradient2() + 
+      theme_classic())
   
-  p2 = m_p  %>% 
-    ggplot(aes(response, exp(est))) + 
-    geom_point(alpha = 0.2, aes(size = back_abs_res)) + 
-    coord_fixed(ratio = 1) +
-    ylab("prediction") + 
-    xlab("observation") + 
-    geom_abline(intercept = 0, slope = 1) +
-    geom_smooth(method = "lm", se = T) + 
-    theme_classic()
+  (p2 = m_p  %>% 
+      ggplot(aes(response, exp(est))) + 
+      geom_point(alpha = 0.2, aes(size = back_abs_res)) + 
+      coord_fixed(ratio = 1) +
+      ylab("prediction") + 
+      xlab("observation") + 
+      geom_abline(intercept = 0, slope = 1) +
+      geom_smooth(method = "lm", se = T) + 
+      theme_classic())
   
   png(paste0('outputs/residuals_', response, '_', knots, '_knots.png'), height = 5, width = 5, units = "in", res = 100)
   print(p1 / p2)
