@@ -128,8 +128,8 @@ I
 
 # simulate stratified random surveys --------------------------------------
 
-n_sims = 3 # number of simulations
-total_sample = 50 # total sample efforts you want to deploy
+n_sims = 100 # number of simulations
+total_sample = 500 # total sample efforts you want to deploy
 min_sets = 1 # minimum number of sets per strat
 trawl_dim = c(0.01, 0.0353) # 0.000353 sq.km (353 sq.m) from two 15-m diameter survey cylinders
 resample_cells = F
