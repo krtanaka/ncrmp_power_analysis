@@ -45,17 +45,17 @@ for (isl in 1:length(islands)) {
     load("data/gis_reef/raster/gua.RData"); reef = raster_and_table[[1]]; reef_name = raster_and_table[[2]]
     load("data/gis_hardsoft/raster/gua.RData"); hardsoft = raster_and_table[[1]]; hardsoft_name = raster_and_table[[2]]
   }
-  if (isl == 2) { # using reef raster as a placeholder bc there is no sector for this island
+  if (isl == 2) { # using reef raster as a placeholder bc there are no sectors for this island
     load("data/gis_reef/raster/rot.RData"); sector = raster_and_table[[1]] ; sector_name = raster_and_table[[2]] 
     load("data/gis_reef/raster/rot.RData"); reef = raster_and_table[[1]]; reef_name = raster_and_table[[2]]
     load("data/gis_hardsoft/raster/rot.RData"); hardsoft = raster_and_table[[1]]; hardsoft_name = raster_and_table[[2]]
   }
-  if (isl == 3) { # using reef raster as a placeholder bc there is no sector for this island
+  if (isl == 3) { # using reef raster as a placeholder bc there are no sectors for this island
     load("data/gis_reef/raster/sai.RData"); sector = raster_and_table[[1]] ; sector_name = raster_and_table[[2]] 
     load("data/gis_reef/raster/sai.RData"); reef = raster_and_table[[1]]; reef_name = raster_and_table[[2]]
     load("data/gis_hardsoft/raster/sai.RData"); hardsoft = raster_and_table[[1]]; hardsoft_name = raster_and_table[[2]]
   }
-  if (isl == 4) { # using reef raster as a placeholder bc there is no sector for this island
+  if (isl == 4) { # using reef raster as a placeholder bc there are no sectors for this island
     load("data/gis_reef/raster/tin.RData"); sector = raster_and_table[[1]] ; sector_name = raster_and_table[[2]] 
     load("data/gis_reef/raster/tin.RData"); reef = raster_and_table[[1]]; reef_name = raster_and_table[[2]]
     load("data/gis_hardsoft/raster/tin.RData"); hardsoft = raster_and_table[[1]]; hardsoft_name = raster_and_table[[2]]
