@@ -25,6 +25,12 @@ cores = 64 # number of cores to use
 shp_path = "/mnt/ldrive/ktanaka/GIS/" # Onaga
 # shp_path = "N:/GIS/Projects/CommonMaps/01_Preprocess/MARI/GUA/"
 
+
+####################################################################
+### DO NOT "SUBSET" raster components as it'll mess up the table ###
+####################################################################
+
+
 ##################################
 ### Hard/Soft Bottom Substrate ###
 ##################################
@@ -42,7 +48,7 @@ for (shp_i in 1:length(shp_list)) {
   
   table(df$HardSoft)
   
-  df <- df[df$HardSoft %in% c("Hard", "hard", "Unknown", "unknown"),]
+  # df <- df[df$HardSoft %in% c("Hard", "hard", "Unknown", "unknown"),]
   
   plot(df, pch = ".")
   
@@ -129,7 +135,7 @@ for (shp_i in 1:length(shp_list)) {
   
   table(df$ZONE_CODE)
   
-  df <- df[df$ZONE_CODE %in% c("Backreef", "Forereef", "Lagoon", "BRF", "FRF", "LAG"),]
+  # df <- df[df$ZONE_CODE %in% c("Backreef", "Forereef", "Lagoon", "BRF", "FRF", "LAG"),]
 
   plot(df, pch = ".")
   
@@ -292,8 +298,8 @@ for (shp_i in 1:length(shp_list)) {
   
   # Import shapefile
   df <- readOGR(shp_list[shp_i])
-  df <- df[df$Sector != "Land",]
-  df <- df[df$Sector != "Other",]
+  # df <- df[df$Sector != "Land",]
+  # df <- df[df$Sector != "Other",]
 
   df@data
   table = data.frame(df@data, i = 0:(length(df)-1)); table
