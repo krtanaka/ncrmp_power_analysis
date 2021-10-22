@@ -225,9 +225,9 @@ for (shp_i in 1:length(shp_list)) {
   df@data
   table = data.frame(df@data, i = 0:(length(df)-1)); table
   
-  table = table %>% 
-    group_by(SEC_NAME) %>%
-    summarise(i = paste0(i, collapse = ",")) 
+  # table = table %>% 
+  #   group_by(SEC_NAME) %>%
+  #   summarise(i = paste0(i, collapse = ",")) 
   
   # Raster template 
   r <- raster(extent(df))
