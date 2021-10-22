@@ -36,6 +36,7 @@ shp_path = "/mnt/ldrive/ktanaka/GIS/" # Onaga
 ##################################
 shp_list = list.files(path = paste0(shp_path, "/hardsoft/"), pattern = "\\.shp$", full.names = T); shp_list
 shp_list = shp_list[c(2, 12:14)]; shp_list
+shp_list = shp_list[1]; shp_list
 
 for (shp_i in 1:length(shp_list)) {
   
@@ -121,6 +122,7 @@ for (shp_i in 1:length(shp_list)) {
 #################
 shp_list = list.files(path = paste0(shp_path, "/reefzone/"), pattern = "\\.shp$", full.names = T); shp_list
 shp_list = shp_list[c(1, 9:11)]; shp_list
+shp_list = shp_list[1]; shp_list
 
 for (shp_i in 1:length(shp_list)) {
   
@@ -207,6 +209,7 @@ for (shp_i in 1:length(shp_list)) {
 ### Regional Sub-Island Sector ###
 ##################################
 shp_list = list.files(path = paste0(shp_path, "/sector/"), pattern = "\\.shp$", full.names = T); shp_list
+shp_list = shp_list[1]; shp_list
 
 for (shp_i in 1:length(shp_list)) {
   
