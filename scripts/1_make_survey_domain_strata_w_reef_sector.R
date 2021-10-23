@@ -41,9 +41,9 @@ for (isl in 1:length(islands)) {
   ###########################################################
   
   if (isl == 1) {
-    load("data/gis_sector/raster/gua.RData"); sector = raster_and_table[[1]]; sector_name = raster_and_table[[2]]
-    load("data/gis_reef/raster/gua.RData"); reef = raster_and_table[[1]]; reef_name = raster_and_table[[2]]
-    load("data/gis_hardsoft/raster/gua.RData"); hardsoft = raster_and_table[[1]]; hardsoft_name = raster_and_table[[2]]
+    load("data/gis_sector/raster_alt/gua.RData"); sector = raster_and_table[[1]]; sector_name = raster_and_table[[2]]
+    load("data/gis_reef/raster_alt/gua.RData"); reef = raster_and_table[[1]]; reef_name = raster_and_table[[2]]
+    load("data/gis_hardsoft/raster_alt/gua.RData"); hardsoft = raster_and_table[[1]]; hardsoft_name = raster_and_table[[2]]
   }
   if (isl == 2) { # using reef raster as a placeholder bc there are no sectors for this island
     load("data/gis_reef/raster/rot.RData"); sector = raster_and_table[[1]] ; sector_name = raster_and_table[[2]] 

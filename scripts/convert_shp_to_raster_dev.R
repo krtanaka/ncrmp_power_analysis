@@ -12,9 +12,8 @@ spatial_resolution = 100 # spatial resolution in m
 
 shp_path = "L:/ktanaka/GIS" # pc
 
-##################################
-### Hard/Soft Bottom Substrate ###
-##################################
+# Hard/Soft Bottom Substrate ----------------------------------------------
+
 shp_list = list.files(path = paste0(shp_path, "/hardsoft/"), pattern = "\\.shp$", full.names = T); shp_list
 shp_list = shp_list[c(2, 12:14)]; shp_list
 
@@ -72,7 +71,7 @@ for (shp_i in 1:length(shp_list)) {
   
   raster_and_table = list(raster, table)
   
-  save(raster_and_table, file = paste0("data/gis_hardsoft/raster_alt/", island_name, "_", spatial_resolution, ".RData"))
+  save(raster_and_table, file = paste0("data/gis_hardsoft/raster_alt/", island_name, ".RData"))
   
   end = Sys.time()
   
@@ -82,9 +81,8 @@ for (shp_i in 1:length(shp_list)) {
   
 }
 
-#################
-### Reef Zone ###
-#################
+# Reef Zones --------------------------------------------------------------
+
 shp_list = list.files(path = paste0(shp_path, "/reefzone/"), pattern = "\\.shp$", full.names = T); shp_list
 shp_list = shp_list[c(1, 9:11)]; shp_list
 
@@ -138,7 +136,7 @@ for (shp_i in 1:length(shp_list)) {
   
   # rasterVis::levelplot(r)
   
-  island_name = tolower(substr(shp_list[shp_i], 25, nchar(shp_list[shp_i])-20))
+  island_name = tolower(substr(shp_list[shp_i], 25, nchar(shp_list[shp_i])-21))
 
   raster = readAll(r)
   
@@ -146,7 +144,7 @@ for (shp_i in 1:length(shp_list)) {
   
   raster_and_table = list(raster, table)
 
-  save(raster_and_table, file = paste0("data/gis_reef/raster_alt/", island_name, "_", spatial_resolution, ".RData"))
+  save(raster_and_table, file = paste0("data/gis_reef/raster_alt/", island_name, ".RData"))
   
   end = Sys.time()
   
@@ -156,9 +154,8 @@ for (shp_i in 1:length(shp_list)) {
   
 }
 
-##################################
-### Regional Sub-Island Sector ###
-##################################
+# Sub-Island Sector -------------------------------------------------------
+
 shp_list = list.files(path = paste0(shp_path, "/sector/"), pattern = "\\.shp$", full.names = T); shp_list
 shp_list = shp_list[1]; shp_list
 
@@ -217,7 +214,7 @@ for (shp_i in 1:length(shp_list)) {
   
   raster_and_table = list(raster, table)
   
-  save(raster_and_table, file = paste0("data/gis_reef/raster_alt/", island_name, "_", spatial_resolution, ".RData"))
+  save(raster_and_table, file = paste0("data/gis_sector/raster_alt/", island_name, ".RData"))
   
   end = Sys.time()
   
@@ -227,4 +224,3 @@ for (shp_i in 1:length(shp_list)) {
   
 
 }
-
