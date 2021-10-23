@@ -27,10 +27,6 @@ for (isl in 1:length(islands)) {
   df$longitude = df$x
   df$latitude = df$y
   
-  df = df %>% 
-    group_by(longitude, latitude) %>% 
-    summarise(depth = mean(depth))
-  
   df$cell = 1:dim(df)[1]; df$cell = as.numeric(df$cell)
   df$division = as.numeric(1)
   
@@ -63,9 +59,9 @@ for (isl in 1:length(islands)) {
   
   rm(raster_and_table)
   
+  hardsoft = rasterToPoints(hardsoft) %>% as.data.frame(); colnames(hardsoft) = c("x", "y", "z")
   sector = rasterToPoints(sector) %>% as.data.frame(); colnames(sector) = c("x", "y", "z")
   reef = rasterToPoints(reef) %>% as.data.frame(); colnames(reef) = c("x", "y", "z")
-  hardsoft = rasterToPoints(hardsoft) %>% as.data.frame(); colnames(hardsoft) = c("x", "y", "z")
   
   if (isl %in% c(2:4)) {
     
@@ -86,7 +82,7 @@ for (isl in 1:length(islands)) {
   crm_res = rasterFromXYZ(df[,c("longitude", "latitude", "cell")])
   dim(crm_res); crm_res
   
-  res = 10  # rasterize it, but be careful with resolutions, lower = better but more missing points
+  res = 5  # rasterize it, but be careful with resolutions, lower = better but more missing points
   r <- raster(e, ncol = round((dim(crm_res)[2]/res), digits = 0), nrow = round(dim(crm_res)[1]/res, digits = 0))
   hardsoft <- rasterize(hardsoft[, 1:2], r, hardsoft[,3], fun = mean)
   dim(hardsoft)
@@ -101,37 +97,27 @@ for (isl in 1:length(islands)) {
   hardsoft = as.data.frame(rasterToPoints(hardsoft))
   
   hardsoft = left_join(crm_res, hardsoft)
-  colnames(hardsoft) = c("longitude", "latitude", "cell", "hardsoft")
+  colnames(hardsoft) = c("longitude", "latitude", "cell", "ID")
   summary(hardsoft)
   
-  bottom_hard = hardsoft_name[1,2]
-  bottom_hard = unlist(strsplit(bottom_hard$i, ","))
-  bottom_unknown = hardsoft_name[2,2]
-  bottom_unknown = unlist(strsplit(bottom_unknown$i, ","))
+  if (class(hardsoft$ID) == "numeric") hardsoft$ID = as.character(round(hardsoft$ID, 0))
   
-  hardsoft$hardsoft = as.character(round(hardsoft$hardsoft, 0))
+  colnames(hardsoft_name)[2] = "Bottom_Substrate"
   
-  # #separate hard and unknown bottom type
-  # hardsoft$hardsoft = ifelse(hardsoft$hardsoft %in% bottom_hard, "hard", hardsoft$hardsoft)
-  # hardsoft$hardsoft = ifelse(hardsoft$hardsoft %in% bottom_unknown, "unknown", hardsoft$hardsoft)
-  
-  #merge hard and unknown bottom type
-  hardsoft$hardsoft = ifelse(hardsoft$hardsoft %in% bottom_hard, "hard_or_unknown", hardsoft$hardsoft)
-  hardsoft$hardsoft = ifelse(hardsoft$hardsoft %in% bottom_unknown, "hard_or_unknown", hardsoft$hardsoft)
+  hardsoft = merge(hardsoft, hardsoft_name)
   
   hardsoft %>% 
-    ggplot(aes(longitude, latitude, fill = hardsoft)) + 
+    ggplot(aes(longitude, latitude, fill = Bottom_Substrate)) + 
     geom_tile() + 
     coord_fixed() + 
-    scale_fill_discrete("hardsoft") + 
+    scale_fill_viridis_d() + 
     ggdark::dark_theme_minimal()
   
   df = merge(df, hardsoft, by = c("cell"))
   
-  df = df[!is.na(df$hardsoft), ]
+  df = df[!is.na(df$Bottom_Substrate), ]
   
   colnames(df)[2:3] = c("longitude", "latitude")
-  
   
   # merge sectors -----------------------------------------------------------
   
@@ -145,7 +131,7 @@ for (isl in 1:length(islands)) {
   crm_res = rasterFromXYZ(df[,c("longitude", "latitude", "cell")])
   dim(crm_res); crm_res
   
-  res = 10  # rasterize it, but be careful with resolutions, lower = better but more missing points
+  res = 5  # rasterize it, but be careful with resolutions, lower = better but more missing points
   r <- raster(e, ncol = round((dim(crm_res)[2]/res), digits = 0), nrow = round(dim(crm_res)[1]/res, digits = 0))
   sector <- rasterize(sector[, 1:2], r, sector[,3], fun = mean)
   dim(sector)
@@ -160,27 +146,24 @@ for (isl in 1:length(islands)) {
   sector = as.data.frame(rasterToPoints(sector))
   
   sector = left_join(crm_res, sector)
-  colnames(sector) = c("longitude", "latitude", "cell", "sector")
+  colnames(sector) = c("longitude", "latitude", "cell", "ID")
   summary(sector)
   
-  sector$sector = as.character(round(sector$sector, 0))
+  if (class(sector$ID) == "numeric") sector$ID = as.character(round(sector$ID, 0))
   
-  sector_name = as.data.frame(sector_name)
-  sector_name$SEC_NAME = tolower(sector_name$SEC_NAME)
-  colnames(sector_name) = c("sector_name", "sector")
+  colnames(sector_name)[2] = "Sector"
   
   sector = merge(sector, sector_name, all = T)
-  sector$sector_name = ifelse(is.na(sector$sector_name), "Unnamed", sector$sector_name)
-  
+
   sector %>% 
-    ggplot(aes(longitude, latitude, fill = sector_name)) + 
+    ggplot(aes(longitude, latitude, fill = Sector)) + 
     geom_tile() + 
     coord_fixed() + 
     ggdark::dark_theme_minimal()
   
   df = merge(df, sector, by = c("cell"))
   
-  df = df[!is.na(df$sector), ]
+  df = df[!is.na(df$Sector), ]
   
   colnames(df)[2:3] = c("longitude", "latitude")
   
@@ -196,7 +179,7 @@ for (isl in 1:length(islands)) {
   crm_res = rasterFromXYZ(df[,c("longitude", "latitude", "cell")])
   dim(crm_res); crm_res
   
-  res = 10  # rasterize it, but be careful with resolutions, lower = better but more missing points
+  res = 5  # rasterize it, but be careful with resolutions, lower = better but more missing points
   r <- raster(e, ncol = round((dim(crm_res)[2]/res), digits = 0), nrow = round(dim(crm_res)[1]/res, digits = 0))
   reef <- rasterize(reef[, 1:2], r, reef[,3], fun = mean)
   dim(reef)
@@ -211,40 +194,27 @@ for (isl in 1:length(islands)) {
   reef = as.data.frame(rasterToPoints(reef))
   
   reef = left_join(crm_res, reef)
-  colnames(reef) = c("longitude", "latitude", "cell", "reef")
+  colnames(reef) = c("longitude", "latitude", "cell", "ID")
   summary(reef)
   
-  reef_name = as.data.frame(reef_name)
+  if (class(reef$ID) == "numeric") reef$ID = as.character(round(reef$ID, 0))
   
-  reef_name_clean = NULL
+  colnames(reef_name)[2] = "Reef_Type"
   
-  for (i in 1:dim(reef_name)[1]) {
-    
-    # i = 1
-    
-    reefname_sub =   data.frame(reef_name = as.character(reef_name[i,1]),
-                                reef = unlist(strsplit(as.character(reef_name[i,2]), ",")))
-    
-    reef_name_clean = rbind(reef_name_clean, reefname_sub)
-    
-  }
-  
-  reef$reef = as.character(round(reef$reef, 0))
-  
-  reef = merge(reef, reef_name_clean)
+  reef = merge(reef, reef_name)
   
   reef %>% 
-    ggplot(aes(longitude, latitude, fill = reef_name)) + 
+    ggplot(aes(longitude, latitude, fill = Reef_Type)) + 
     geom_tile() + 
     coord_fixed() + 
-    scale_fill_discrete("reef_zones") + 
+    scale_fill_discrete() + 
     ggdark::dark_theme_minimal()
   
   df = merge(df, reef, by = "cell")
   
-  df = df[!is.na(df$reef), ]
+  df = df[!is.na(df$Reef_Type), ]
   
-  df = df[ , -which(names(df) %in% c("longitude.y", "latitude.y", "longitude.y", "latitude.y"))]
+  df = df[ , -which(names(df) %in% c("longitude.y", "latitude.y", "longitude.x.1", "latitude.x.1", "ID", "ID.x", "ID.y"))]
   
   # make strata by depth * sector * reef type -------------------------------
   
@@ -253,8 +223,8 @@ for (isl in 1:length(islands)) {
   df$depth_bin = ifelse(df$depth < -6  & df$depth >= -18, 2L, df$depth_bin) 
   df$depth_bin = ifelse(df$depth < -18, 3L, df$depth_bin) 
   
-  df$sector = as.character(df$sector_name)
-  df$reef = as.character(df$reef_name)
+  df$sector = as.character(df$Sector)
+  df$reef = as.character(df$Reef_Type)
   
   df$strat = paste(df$depth_bin, 
                    df$sector,
