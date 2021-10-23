@@ -18,7 +18,7 @@ islands = c("gua", "rot", "sai", "tin")
 
 for (isl in 1:length(islands)) {
   
-  # isl = 1
+  isl = 1
   
   load(paste0("data/gis_bathymetry/raster/", islands[isl], ".RData"))
   
