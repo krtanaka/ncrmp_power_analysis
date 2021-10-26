@@ -406,14 +406,20 @@ strata_num = merge(strata_num, reduced_strata)
 isl_power$design = ifelse(isl_power$design == "downscaled", "zone-based", isl_power$design)
 isl_power$design = ifelse(isl_power$design == "downscaled_alt", "zone-triaged", isl_power$design)
 
+isl_power = isl_power %>% 
+  group_by(sp, isl) %>% 
+  mutate(RMSE = as.numeric(RMSE),
+         zscore = (RMSE - mean(RMSE))/sd(RMSE))
+
 (isl_power %>%
     # subset(isl == "Oahu") %>%
     mutate(RMSE = as.numeric(RMSE)) %>% 
     ggplot() + 
-    geom_smooth(aes(N, RMSE, color = design), show.legend = T, se = T) +
+    geom_smooth(aes(N, zscore, color = design), show.legend = T, se = T) +
     scale_color_viridis_d("") + 
     ggnewscale::new_scale_color() +
-    facet_wrap(isl ~ sp, scales = "free_y", ncol = 7) +
+    # facet_wrap(isl ~ sp, scales = "free_y", ncol = 7) +
+    facet_grid(sp ~ isl) +
     scale_x_log10(breaks = trans_breaks('log10', function(x) 10^x),
                   labels = trans_format('log10', math_format(10^.x)), "Sampling Efforts") +
     # scale_y_log10(breaks = trans_breaks('log10', function(x) 10^x),
@@ -426,6 +432,7 @@ isl_power$design = ifelse(isl_power$design == "downscaled_alt", "zone-triaged", 
     # scale_y_log10() +
     # scale_x_log10() +
     xlab("Sampling Efforts") + 
+    ylab("Standadized RMSE") + 
     theme_minimal())
 
 (isl_power %>%
@@ -433,29 +440,30 @@ isl_power$design = ifelse(isl_power$design == "downscaled_alt", "zone-triaged", 
     # subset(sp == "PISCIVORE") %>% 
     mutate(RMSE = as.numeric(RMSE)) %>% 
     ggplot() + 
-    geom_smooth(aes(N, RMSE, color = design), show.legend = T, se = T) +
+    geom_smooth(aes(N, zscore, color = design), show.legend = T, se = T) +
     # geom_point(aes(N, RMSE, color = design), alpha = 0.2) +
     # geom_hex(aes(N, RMSE, color = design, fill = design), alpha = 0.2, bins = 50) +
     # geom_vline(aes(xintercept = N, color = Year), data = survey_effort_MHI_year) +
-    annotate("segment", 
-             x = 498, xend = 498, y = 250000000, yend = 100000000,
-             colour = "gray", 
-             arrow = arrow()) + 
-    annotate("segment",
-             x = 400, xend = 400, y = 150000000, yend = 100000000,
-             colour = "gray",
-             arrow = arrow()) + 
-    annotate("segment", 
-             x = 487, xend = 487, y = 200000000, yend = 100000000,
-             colour = "gray", 
-             arrow = arrow()) + 
-    annotate("text", 
-             x = c(400, 487, 498),
-             y = c(160000000, 210000000, 260000000), 
-             label = c("2016", "2019", "2013")) + 
+    # annotate("segment", 
+    #          x = 498, xend = 498, y = 250000000, yend = 100000000,
+    #          colour = "gray", 
+    #          arrow = arrow()) + 
+    # annotate("segment",
+    #          x = 400, xend = 400, y = 150000000, yend = 100000000,
+    #          colour = "gray",
+    #          arrow = arrow()) + 
+    # annotate("segment", 
+    #          x = 487, xend = 487, y = 200000000, yend = 100000000,
+    #          colour = "gray", 
+    #          arrow = arrow()) + 
+    # annotate("text", 
+    #          x = c(400, 487, 498),
+    #          y = c(160000000, 210000000, 260000000), 
+    #          label = c("2016", "2019", "2013")) + 
     # scale_color_discrete("") +
     scale_color_viridis_d("") + 
     xlab("Sampling Efforts") + 
+    ylab("Standadized RMSE") + 
     # scale_y_log10() + 
     # # scale_x_log10() + 
     scale_x_log10(breaks = trans_breaks('log10', function(x) 10^x),
