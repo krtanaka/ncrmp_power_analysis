@@ -20,7 +20,7 @@ load("data/modeled_survey_variability.RData") #modeled at grid scale
 # options(scipen = 999, digits = 2)
 
 # pick an island ----------------------------------------------------------
-island = c("Hawaii", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[sample(1:7, 1)]
+island = c("Hawaii", "Kauai", "Lanai", "Maui", "Molokai", "Niihau", "Oahu" )[4]#[sample(1:7, 1)]
 print(island)
 
 # pick survey design ------------------------------------------------------

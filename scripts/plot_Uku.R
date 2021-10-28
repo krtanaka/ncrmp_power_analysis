@@ -32,55 +32,55 @@ df = df %>%
   summarise(biomass = sum(biomass, na.rm = T),
             count = sum(count, na.rm = T))  
 
-p1a = df %>% 
-  ggplot(aes(biomass)) +
-  geom_histogram() + 
-  xlab("g/sq.m") + 
-  ylab("") + 
-  theme_minimal()  + 
-  annotate("text", 
-           y = Inf,
-           x = Inf,
-           label = "biomass",
-           vjust = 2, 
-           hjust = 2) 
+(p1a = df %>% 
+    ggplot(aes(biomass)) +
+    geom_histogram() + 
+    xlab("g/sq.m") + 
+    ylab("") + 
+    theme_pubr()  + 
+    annotate("text", 
+             y = Inf,
+             x = Inf,
+             label = "biomass",
+             vjust = 2, 
+             hjust = 2) )
 
-p1b = df %>% 
-  ggplot(aes(count)) +
-  geom_histogram() + 
-  xlab("n/353 sq.m") + 
-  ylab("") + 
-  theme_minimal() + 
-  annotate("text", 
-           y = Inf,
-           x = Inf,
-           label = "abundance",
-           vjust = 2, 
-           hjust = 2) 
+(p1b = df %>% 
+    ggplot(aes(count)) +
+    geom_histogram() + 
+    xlab("n/sq.m") + 
+    ylab("") + 
+    theme_pubr() + 
+    annotate("text", 
+             y = Inf,
+             x = Inf,
+             label = "abundance",
+             vjust = 2, 
+             hjust = 2) )
 
 p1 = p1a + p1b
 
-p2a = df %>% 
-  group_by(OBS_YEAR) %>% 
-  summarise(n = mean(biomass)) %>% 
-  ggplot(aes(OBS_YEAR, n)) +
-  geom_line() + 
-  geom_point() +
-  xlab("") + 
-  ylab("mean biomass g/sq.m") + 
-  scale_x_continuous(breaks = c(min(df$OBS_YEAR), max(df$OBS_YEAR))) +  
-  theme_pubr()
+(p2a = df %>% 
+    group_by(OBS_YEAR) %>% 
+    summarise(n = mean(biomass)) %>% 
+    ggplot(aes(OBS_YEAR, n)) +
+    geom_line() + 
+    geom_point(size = 2) + 
+    xlab("") + 
+    ylab("mean biomass g/sq.m") + 
+    scale_x_continuous(breaks = c(2006, 2010, 2015, 2019)) +  
+    theme_pubr())
 
-p2b = df %>% 
-  group_by(OBS_YEAR) %>% 
-  summarise(n = mean(count)) %>% 
-  ggplot(aes(OBS_YEAR, n)) +
-  geom_line() + 
-  geom_point() +
-  xlab("") + 
-  ylab("mean abundance n/ 353 sq.m") + 
-  scale_x_continuous(breaks = c(min(df$OBS_YEAR), max(df$OBS_YEAR))) +  
-  theme_pubr()
+(p2b = df %>% 
+    group_by(OBS_YEAR) %>% 
+    summarise(n = mean(count)) %>% 
+    ggplot(aes(OBS_YEAR, n)) +
+    geom_line() + 
+    geom_point(size = 2) + 
+    xlab("") + 
+    ylab("mean abundance n/ sq.m") + 
+    scale_x_continuous(breaks = c(2006, 2010, 2015, 2019)) +  
+    theme_pubr())
 
 p2 = p2a + p2b
 
@@ -96,18 +96,18 @@ abundance = df %>%
   mutate(n = scale(n, center = T),
          gp = "abundance")
 
-p3 = rbind(abundance, biomass) %>% 
-  ggplot(aes(OBS_YEAR, n, color = gp)) + 
-  geom_point() + 
-  geom_line() + 
-  facet_wrap(.~ISLAND, scales = "free_y") + 
-  scale_color_discrete("") + 
-  xlab("") + 
-  ylab("z-score") + 
-  scale_x_continuous(breaks = c(min(df$OBS_YEAR), max(df$OBS_YEAR))) +  
-  theme_minimal() + 
-  theme(legend.position = c(0.9,0.1))
+(p3 = rbind(abundance, biomass) %>% 
+    ggplot(aes(OBS_YEAR, n, color = gp)) + 
+    geom_point(size = 2) + 
+    geom_line() + 
+    facet_wrap(.~ISLAND, scales = "free_y") + 
+    scale_color_discrete("") + 
+    xlab("") + 
+    ylab("z-score") + 
+    scale_x_continuous(breaks = c(2010, 2019)) +  
+    theme_pubr() + 
+    theme(legend.position = c(0.9,0.1)))
 
-png("/Users/Kisei/Desktop/Uku_MHI_2005_2019.png", height = 5, width = 12, units = "in", res = 100)
+png("/Users/Kisei.Tanaka/Desktop/Uku_MHI_2005_2019.png", height = 5, width = 12, units = "in", res = 300)
 (p1/p2) | p3
 dev.off()

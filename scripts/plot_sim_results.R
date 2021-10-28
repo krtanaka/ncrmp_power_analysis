@@ -12,9 +12,9 @@ for (i in 1:3) {
   
   # i = 1
   
-  if (i == 1) load('outputs/sim_results_Oahu_traditional_median_PLANKTIVORE_100_biomass.RData')
-  if (i == 2) load('outputs/sim_results_Oahu_downscaled_median_PLANKTIVORE_100_biomass.RData')
-  if (i == 3) load('outputs/sim_results_Oahu_downscaled_alt_median_PLANKTIVORE_100_biomass.RData')
+  if (i == 1) load('outputs/sim_results_Maui_traditional_median_PLANKTIVORE_100_biomass.RData')
+  if (i == 2) load('outputs/sim_results_Maui_downscaled_median_PLANKTIVORE_100_biomass.RData')
+  if (i == 3) load('outputs/sim_results_Maui_downscaled_alt_median_PLANKTIVORE_100_biomass.RData')
   
   area = sim_results[[1]]
   sim = sim_results[[2]]
@@ -53,7 +53,7 @@ for (i in 1:3) {
   theme(legend.position = "right") + 
   facet_grid(~ strategy) + 
   # scale_fill_gradient(low = "gray", high = "red", "# of sites")) + 
-  scale_fill_viridis_c("# of sites") + 
+  scale_fill_viridis_c("Log(# of sites)", trans = "log") + 
     ggtitle("(a)"))
   # scale_fill_gradientn(colours = topo.colors(100)))
 

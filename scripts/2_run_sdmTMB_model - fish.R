@@ -9,15 +9,11 @@ library(sf)
 
 rm(list = ls())
 
-# 4 functional groups
-# live coral cover
-# adult juvenile density
-
 # for Uku: 
 # Total numerical density estimates (individuals per 100 m2) were obtained by dividing fish counts in each survey by the survey area (353 m2 from two 15-m diameter survey cylinders) and multiplying by 100. - Nadon et al. 2020
 
 region = "MHI"
-uku_or_not = F
+uku_or_not = T
 
 ## top 5 taxa by abundance or biomass
 # load("data/rea/ALL_REA_FISH_RAW.rdata")
@@ -49,6 +45,7 @@ response_variable = "trophic_biomass"; sp = c("PISCIVORE", "PLANKTIVORE", "PRIMA
 if (response_variable == "fish_count") {
   
   load("data/rea/ALL_REA_FISH_RAW_SST.RData")
+  df[df == -9991] <- NA
   
   df = df %>% 
     subset(REGION == region & ISLAND %in% islands) %>% 
@@ -56,10 +53,23 @@ if (response_variable == "fish_count") {
     mutate(response = ifelse(TAXONNAME == sp, COUNT, 0)) %>%
     group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR) %>% 
     summarise(response = sum(response, na.rm = T),
-              depth = mean(DEPTH, na.rm = T))
+              # temp = mean(mean_SST_CRW_Daily_DY01, na.rm = T),
+              depth = mean(DEPTH, na.rm = T)) %>% 
+    subset(response < quantile(response, prob = 0.999))
   
   df %>% ggplot(aes(response)) + geom_histogram() + 
     df %>% group_by(OBS_YEAR) %>% summarise(n = mean(response)) %>% ggplot(aes(OBS_YEAR, n)) + geom_line()
+  
+  (survey_trend = df %>% 
+      group_by(OBS_YEAR) %>% 
+      summarise(n = mean(response)) %>% 
+      ggplot(aes(OBS_YEAR, n)) + 
+      geom_point(size = 2) + 
+      ylab("Mean abundance (n) per sq.m") + 
+      xlab("Year") + 
+      geom_line() + 
+      ggpubr::theme_pubr() + 
+      ggtitle("Survey_based trend"))
   
 }
 
@@ -73,7 +83,8 @@ if (response_variable == "fish_biomass") {
     # mutate(response = ifelse(TAXONNAME == sp, BIOMASS_G_M2*0.001, 0)) %>%  
     group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR) %>% 
     summarise(response = sum(response, na.rm = T),
-              depth = mean(DEPTH, na.rm = T))
+              depth = mean(DEPTH, na.rm = T)) %>% 
+    subset(response < quantile(response, prob = 0.999))
   
   df %>% ggplot(aes(response)) + geom_histogram() + 
     df %>% group_by(OBS_YEAR) %>% summarise(n = mean(response)) %>% ggplot(aes(OBS_YEAR, n)) + geom_line()
@@ -110,7 +121,7 @@ if (response_variable == "trophic_biomass") {
   
   df %>% ggplot(aes(response)) + geom_histogram() + 
     df %>% group_by(OBS_YEAR) %>% summarise(n = median(response)) %>% ggplot(aes(OBS_YEAR, n)) + geom_line()
-  
+
 }
 
 # north-south gradient
@@ -132,25 +143,25 @@ ISL_this = ISL_bounds[which(ISL_bounds$ISLAND %in% toupper(islands)),]
 ISL_this_utm = spTransform(ISL_this,CRS(paste0("+proj=utm +units=km +zone=",zone)))
 ISL_this_sf = st_transform(st_as_sf(ISL_this), crs = paste0("+proj=utm +units=km +zone=",zone))
 
-n_knots = 300
-n_knots = 100 # a coarse mesh for speed
+n_knots = 500
+n_knots = 150 # a coarse mesh for speed
 rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search") # search
 # rea_spde <- make_mesh(df, c("X", "Y"), cutoff  = n_knots, type = "cutoff") # predefined
 
 #build barrier to mesh
 rea_spde_coast = add_barrier_mesh(rea_spde , ISL_this_sf)
 
-# pdf(paste0("outputs/SPDE_mesh_field_", n_knots, ".pdf"), height = 8, width = 8)
+# png(paste0("outputs/SPDE_mesh_field_", n_knots, ".png"), units = "in", height = 8, width = 8, res = 500)
 # par(mfrow = c(1,2), pty = 's')
 # plot(xy_utm, pch = ".", bty = 'n')
-plot(rea_spde_coast$mesh, asp = 1, pch = "."); axis(1); axis(2)
+plot(rea_spde_coast$mesh, asp = 1, pch = ".", main = ""); axis(1); axis(2)
 plot(ISL_this_utm, add = TRUE)
 points(rea_spde_coast$loc_xy,col = "green", pch = ".", cex = 5)
 bar_i = rea_spde_coast$barrier_triangles
 norm_i = rea_spde_coast$normal_triangles
 points(rea_spde_coast$spde$mesh$loc[,1], rea_spde_coast$spde$mesh$loc[,2], pch = ".", col = "black")
-points(rea_spde_coast$mesh_sf$V1[bar_i], rea_spde_coast$mesh_sf$V2[bar_i], col = "red", pch = 20, cex = 2)
-points(rea_spde_coast$mesh_sf$V1[norm_i], rea_spde_coast$mesh_sf$V2[norm_i], col = "blue", pch = 20, cex = 2)
+points(rea_spde_coast$mesh_sf$V1[bar_i], rea_spde_coast$mesh_sf$V2[bar_i], col = "red", pch = 4)
+points(rea_spde_coast$mesh_sf$V1[norm_i], rea_spde_coast$mesh_sf$V2[norm_i], col = "blue", pch = 4)
 # dev.off()
 
 df$year = df$OBS_YEAR
@@ -181,10 +192,10 @@ density_model <- sdmTMB(
   time = "year", 
   spde = rea_spde, 
   anisotropy = T,
-  # family = tweedie(link = "log"),
+  family = tweedie(link = "log"),
   # family = poisson(link = "log"),
   # family = binomial(link = "logit"), weights = n,
-  family = nbinom2(link = "log"),
+  # family = nbinom2(link = "log"),
   # family = Beta(link = "logit"),
   
   control = sdmTMBcontrol(step.min = 0.01, step.max = 1)
@@ -198,32 +209,39 @@ max(density_model$gradients)
 
 df$residuals <- residuals(density_model)
 par(pty = "s")
-png(paste0('outputs/qq_', sp, '.png'), width = 4, height = 4.5, units = "in", res = 100)
+png(paste0('outputs/qq_', sp, '.png'), width = 5, height = 5.5, units = "in", res = 500)
 qqnorm(df$residuals, ylim = c(-5, 5), xlim = c(-5, 5), bty = "n", pch = 20, main = sp); abline(a = 0, b = 1)
 dev.off()
 
 m_p <- predict(density_model); m_p = m_p[,c("response", "est")]
 m_p$back_abs_res = abs(df$residuals)
 
-p1 = ggplot(df, aes_string("X", "Y", color = "residuals")) +
-  geom_point(alpha = 0.8, size = round(abs(df$residuals), digits = 0)) + 
-  # facet_wrap(.~ISLAND, scales = "free") +
-  xlab("Eastings") +
-  ylab("Northings") + 
-  scale_color_gradient2() + 
-  theme_minimal()
+(p1 = ggplot(df, aes_string("X", "Y", color = "residuals")) +
+    geom_point(alpha = 0.8, size = round(abs(df$residuals), digits = 0)) + 
+    # facet_wrap(.~ISLAND, scales = "free", ncol = 3) +
+    xlab("Eastings (km)") +
+    ylab("Northings (km)") + 
+    coord_fixed() +
+    scale_color_gradient2() + 
+    theme_minimal())
 
-p2 = m_p  %>% 
-  ggplot(aes(response, exp(est))) + 
-  geom_point(alpha = 0.2, aes(size = back_abs_res)) + 
-  coord_fixed(ratio = 1) +
-  ylab("prediction") + 
-  xlab("observation") + 
-  geom_abline(intercept = 0, slope = 1) +
-  geom_smooth(method = "lm", se = T) + 
-  theme_minimal()
+(p2 = m_p  %>% 
+    ggplot(aes(response, exp(est))) + 
+    geom_point(alpha = 0.2, aes(size = back_abs_res), show.legend = F) + 
+    coord_fixed(ratio = 1) +
+    ylab("Prediction") + 
+    xlab("Observation") + 
+    geom_abline(intercept = 0, slope = 1) +
+    geom_smooth(method = "lm", se = T) + 
+    ggpubr::theme_pubr())
 
-p1 / p2
+png(paste0('outputs/residuals_', sp, '.png'), width = 8, height = 8, units = "in", res = 500)
+print(p1)
+dev.off()
+
+png(paste0('outputs/pred_obs_', sp, '.png'), width = 5, height = 5, units = "in", res = 500)
+print(p2)
+dev.off()
 
 #  extract some parameter estimates
 sd <- as.data.frame(summary(TMB::sdreport(density_model$tmb_obj)))
@@ -293,18 +311,18 @@ years = sort(as.vector(unique(df$year)))
 # }
 
 # # aggregating SST at each month-year time step, e.g., 03/1985 - 03/2021
-# for (t in 1:435) { 
-#   
+# for (t in 1:435) {
+# 
 #   # t = 1
-#   
+# 
 #   grid_t = grid[,c(442, 443, t+3)]
 #   grid_t$time = colnames(grid_t)[3]
 #   colnames(grid_t)[3] = "temp"
-#   
-#   
+# 
+# 
 #   grid_year = rbind(grid_year, grid_t)
 #   print(t/435)
-#   
+# 
 # }
 # 
 # grid_year$year = substr(grid_year$time, 1, 4)
@@ -349,7 +367,8 @@ p <- predict(density_model,
 p$data$sp = sp
 sdm_output = p$data
 
-# save(sdm_output, file = paste0("outputs/density_results_", sp, "_", response_variable, "_", n_knots, "_", region, ".RData"))
+save(sdm_output, file = paste0("outputs/density_results_", sp, "_", response_variable, "_", n_knots, "_", region, ".RData"))
+save(paste0("outputs/density_results_", sp, "_", response_variable, "_", n_knots, "_", region, ".RData"))
 
 plot_map_raster <- function(dat, column = "est") {
   
@@ -377,7 +396,7 @@ plot_map_raster(p$data, "est_rf") + scale_fill_gradient2()
 
 (trend = plot_map_raster(filter(p$data, year == unique(p$data$year)[1]), "zeta_s") + ggtitle("Linear trend"))
 
-(density_map = p$data %>% 
+(density_map_year = p$data %>% 
     # group_by(X, Y) %>% 
     # summarise(est = mean(est)) %>% 
     ggplot(aes_string("X", "Y", fill = "exp(est)")) +
@@ -388,15 +407,72 @@ plot_map_raster(p$data, "est_rf") + scale_fill_gradient2()
     xlab("Eastings (km)") +
     ylab("Northings (km)") + 
     # scale_fill_gradientn(colours = matlab.like(100), "g / m^2") +
-    scale_fill_gradientn(colours = matlab.like(100), "kg/sq.m") +
+    scale_fill_gradientn(colours = matlab.like(100), "n/sq.m") +
     # scale_color_gradientn(colours = matlab.like(100), "# per 353 m^2") +
     ggtitle(paste0(sp, " predicted density 2015-2019")) + 
     ggdark::dark_theme_minimal() +
     theme(legend.position = "right"))
 
+png(paste0('outputs/', sp, '_density_year.png'), width = 8, height = 8, units = "in", res = 500)
+print(density_map_year)
+dev.off()
+
+(density_map_trend = p$data %>% 
+    group_by(X, Y) %>%
+    summarise(zeta_s = mean(zeta_s)) %>%
+    ggplot(aes_string("X", "Y", fill = "zeta_s")) +
+    geom_tile(aes(height = 1, width = 1)) +
+    coord_fixed() +
+    xlab("Eastings (km)") +
+    ylab("Northings (km)") + 
+    scale_fill_gradientn(colours = matlab.like(100), "linear trend") +
+    # scale_color_gradientn(colours = matlab.like(100), "# per 353 m^2") +
+    ggtitle(paste0(sp, " localized trend 2015-2019")) + 
+    ggdark::dark_theme_minimal() +
+    theme(legend.position = c(0.1, 0.2)))
+
+png(paste0('outputs/', sp, '_density_trend.png'), width = 8, height = 5.2, units = "in", res = 500)
+print(density_map_trend)
+dev.off()
+
+(density_map_mean = p$data %>%
+    group_by(X, Y) %>%
+    summarise(est = mean(est)) %>%
+    ggplot(aes_string("X", "Y", fill = "exp(est)")) +
+    geom_tile(aes(height = 1, width = 1)) +
+    # geom_point(alpha = 0.5) +
+    # facet_wrap(~year) +
+    coord_fixed() +
+    xlab("Eastings (km)") +
+    ylab("Northings (km)") + 
+    # scale_fill_gradientn(colours = matlab.like(100), "g / m^2") +
+    scale_fill_gradientn(colours = matlab.like(100), "n/sq.m") +
+    # scale_color_gradientn(colours = matlab.like(100), "# per 353 m^2") +
+    ggtitle(paste0(sp, " mean predicted density 2015-2019")) + 
+    ggdark::dark_theme_minimal() +
+    theme(legend.position = c(0.1, 0.2)))
+
+png(paste0('outputs/', sp, '_density_mean.png'), width = 8, height = 5.2, units = "in", res = 500)
+print(density_map_mean)
+dev.off()
+
 index <- get_index(p, bias_correct = F)
 
 ggdark::invert_geom_defaults()
+
+load("data/rea/ALL_REA_FISH_RAW_SST.RData")
+df[df == -9991] <- NA
+
+(survey_trend = df %>% 
+    group_by(OBS_YEAR) %>% 
+    summarise(n = mean(response)) %>% 
+    ggplot(aes(OBS_YEAR, n)) + 
+    geom_point(size = 2) + 
+    ylab("Mean abundance (n) per sq.m") + 
+    xlab("Year") + 
+    geom_line() + 
+    ggpubr::theme_pubr() + 
+    ggtitle("Survey_based trend"))
 
 (relative_biomass = index %>%
     ggplot(aes(year, est)) + 
@@ -405,12 +481,18 @@ ggdark::invert_geom_defaults()
     geom_ribbon(aes(ymin = lwr, ymax = upr), alpha = 0.2, colour = NA) +
     xlab('Year') + 
     # ylab('biomass') +
-    ylab('metric tonnes') +
-    # ylab('total count (n)') + 
-    ggtitle("Biomass estimate") +
-    # ggtitle("Abundance estimate") + 
-    ggdark::dark_theme_minimal())
-# theme_pubr()
+    # ylab('metric tonnes') +
+    ylab('Total count (n)') +
+    # ggtitle("Biomass estimate") +
+    ggtitle("Abundance_estimate") +
+    # ggdark::dark_theme_minimal())
+    ggpubr::theme_pubr())
+
+survey_trend + relative_biomass
+
+png(paste0('outputs/', sp, '_density_mean.png'), width = 10, height = 5, units = "in", res = 500)
+print(survey_trend + relative_biomass)
+dev.off()
 
 index %>% 
   mutate(cv = sqrt(exp(se^2) - 1)) %>% 
