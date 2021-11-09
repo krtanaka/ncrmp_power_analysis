@@ -48,7 +48,8 @@ if (response_variable == "fish_count") {
   df[df == -9991] <- NA
   
   df = df %>% 
-    subset(REGION == region & ISLAND %in% islands) %>% 
+    subset(REGION == region & ISLAND %in% islands) %>%
+    subset(TRAINING_YN == 0) %>% 
     # mutate(response = ifelse(TAXONNAME == sp, COUNT*100, 0)) %>%
     mutate(response = ifelse(TAXONNAME == sp, COUNT, 0)) %>%
     group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR) %>% 
