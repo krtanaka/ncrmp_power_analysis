@@ -526,6 +526,7 @@ df$Effort_level = factor(df$Effort_level, levels = c('High (110-150 sites)',
     ggplot(aes(x = Island, y = RMSE, fill = Survey_design)) +
     geom_boxplot(outlier.shape = NA) +
     facet_grid(Effort_level~ Trophic_group, scale = "free") +
+    # facet_grid(~ Effort_level, scale = "free") +
     scale_y_log10() +
     scale_fill_viridis_d("") + 
     xlab("") + 
