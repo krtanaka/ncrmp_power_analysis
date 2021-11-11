@@ -452,16 +452,16 @@ isl_power = isl_power %>%
     #          x = 400, xend = 400, y = 150000000, yend = 100000000,
     #          colour = "gray",
     #          arrow = arrow()) + 
-    # annotate("segment", 
-    #          x = 487, xend = 487, y = 200000000, yend = 100000000,
-    #          colour = "gray", 
-    #          arrow = arrow()) + 
-    # annotate("text", 
-    #          x = c(400, 487, 498),
-    #          y = c(160000000, 210000000, 260000000), 
-    #          label = c("2016", "2019", "2013")) + 
-    # scale_color_discrete("") +
-    scale_color_viridis_d("") + 
+  # annotate("segment", 
+  #          x = 487, xend = 487, y = 200000000, yend = 100000000,
+  #          colour = "gray", 
+  #          arrow = arrow()) + 
+  # annotate("text", 
+  #          x = c(400, 487, 498),
+  #          y = c(160000000, 210000000, 260000000), 
+  #          label = c("2016", "2019", "2013")) + 
+  # scale_color_discrete("") +
+  scale_color_viridis_d("") + 
     xlab("Sampling Efforts") + 
     ylab("Standadized RMSE") + 
     # scale_y_log10() + 
@@ -494,7 +494,7 @@ df$Trophic_group = gsub("(^[[:alpha:]])", "\\U\\1", df$Trophic_group, perl = T)
 png('outputs/')
 
 (df %>% 
-  ggplot(aes(x = Island, y = RMSE, fill = Survey_design)) +
+    ggplot(aes(x = Island, y = RMSE, fill = Survey_design)) +
     # ggplot(aes(x = Trophic_group, y = RMSE, fill = Survey_design)) + 
     geom_boxplot(outlier.shape = NA) +
     facet_wrap(~ Trophic_group, scale = "free_y", nrow = 1) +
@@ -507,6 +507,30 @@ png('outputs/')
     # coord_flip() + 
     # theme_pubr() + 
     theme_minimal() + 
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)))
+
+df$Effort_level = ""
+df$Effort_level = ifelse(df$Survey_efforts %in% c(10:50), "Low (10-50 sites)", df$Effort_level)
+df$Effort_level = ifelse(df$Survey_efforts %in% c(100:150), "Normal (100-150 sites)", df$Effort_level)
+# df$Effort_level = ifelse(df$Survey_efforts %in% c(60:100), "Mid (60-100 sites)", df$Effort_level)
+# df$Effort_level = ifelse(df$Survey_efforts %in% c(110:150), "High (110-150 sites)", df$Effort_level)
+
+df$Effort_level = factor(df$Effort_level, levels = c('High (110-150 sites)', 
+                                                     'Mid (60-100 sites)',
+                                                     'Normal (110-150 sites)',
+                                                     'Low (10-50 sites)'))
+
+(df %>% 
+    # subset(Effort_level %in% c("Low (10-50 sites)", "Mid (60-100 sites)", "High (110-150 sites)")) %>% 
+    subset(Effort_level %in% c("Low (10-50 sites)", "Normal (100-150 sites)")) %>% 
+    ggplot(aes(x = Island, y = RMSE, fill = Survey_design)) +
+    geom_boxplot(outlier.shape = NA) +
+    facet_grid(Effort_level~ Trophic_group, scale = "free") +
+    scale_y_log10() +
+    scale_fill_viridis_d("") + 
+    xlab("") + 
+    # theme_pubr() +
+    theme_minimal() +
     theme(axis.text.x = element_text(angle = 45, hjust = 1)))
 
 df = isl_power %>% 
