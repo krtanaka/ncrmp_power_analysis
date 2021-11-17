@@ -111,6 +111,8 @@ if (response_variable == "trophic_biomass") {
     
     df = df %>% 
       subset(REGION == region & ISLAND %in% islands) %>% 
+      subset(OBS_YEAR >= 2010) %>% 
+      subset(TRAINING_YN == 0) %>% 
       mutate(response = ifelse(TROPHIC_MONREP == sp, BIOMASS_G_M2, 0)) %>%  
       group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR) %>% 
       summarise(response = sum(response, na.rm = T), 
@@ -145,7 +147,9 @@ ISL_this_utm = spTransform(ISL_this,CRS(paste0("+proj=utm +units=km +zone=",zone
 ISL_this_sf = st_transform(st_as_sf(ISL_this), crs = paste0("+proj=utm +units=km +zone=",zone))
 
 n_knots = 500
+n_knots = 300
 n_knots = 150 # a coarse mesh for speed
+
 rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search") # search
 # rea_spde <- make_mesh(df, c("X", "Y"), cutoff  = n_knots, type = "cutoff") # predefined
 

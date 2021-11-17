@@ -349,7 +349,9 @@ for (isl in 1:length(islands)){
 }
 
 save(isl_power, file = paste0('outputs/rmse_power_results_', Sys.Date(), '.RData'))
+
 load(paste0('outputs/rmse_power_results_2021-09-10.RData'))
+load(paste0('outputs/rmse_power_results_2021-11-16.RData'))
 
 load("data/survey_effort_MHI_2014-2019.RData")
 

@@ -40,24 +40,26 @@ for (i in 1:3) {
 }
 
 (rmse = sims %>% 
-  group_by(strategy) %>% 
-  summarise(rmse = sqrt(mean(error^2))) %>% 
-  mutate(rmse = formatC(rmse, digits = 2)))
+    subset(year >= 2010) %>% 
+    group_by(strategy) %>% 
+    summarise(rmse = sqrt(mean(error^2))) %>% 
+    mutate(rmse = formatC(rmse, digits = 2)))
 
 (p1 = areas %>% 
-  ggplot(aes(x, y)) +
-  # coord_fixed() + 
-  geom_raster(aes(fill = strat_sets)) + 
-  theme_minimal() + 
-  ylab("Northing (km)") + xlab("Easting (km)") + 
-  theme(legend.position = "right") + 
-  facet_grid(~ strategy) + 
-  # scale_fill_gradient(low = "gray", high = "red", "# of sites")) + 
-  scale_fill_viridis_c("Log(# of sites)", trans = "log") + 
+    ggplot(aes(x, y)) +
+    # coord_fixed() + 
+    geom_raster(aes(fill = strat_sets)) + 
+    theme_minimal() + 
+    ylab("Northing (km)") + xlab("Easting (km)") + 
+    theme(legend.position = "right") + 
+    facet_grid(~ strategy) + 
+    # scale_fill_gradient(low = "gray", high = "red", "# of sites")) + 
+    scale_fill_viridis_c("Log(# of sites)", trans = "log") + 
     ggtitle("(a)"))
-  # scale_fill_gradientn(colours = topo.colors(100)))
+# scale_fill_gradientn(colours = topo.colors(100)))
 
 (p2 = sims %>% 
+    subset(year >= 2010) %>% 
     ggplot() + 
     geom_line(aes(year, I_hat, group = sim, color = sim), alpha = 0.5, show.legend = T) +
     scale_color_viridis_c("Simulation") + 
