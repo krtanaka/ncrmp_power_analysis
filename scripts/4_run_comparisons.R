@@ -31,7 +31,7 @@ for (isl in 1:length(islands)){
   
   print(island)
   
-  design = c("traditional", "downscaled", "downscaled_alt")[1:2]
+  design = c("traditional", "downscaled", "downscaled_alt")#[1:2]
   
   power = NULL
   
@@ -68,6 +68,7 @@ for (isl in 1:length(islands)){
       sdm = sdm_output[,c("X", "Y", "longitude", "latitude", "year", "est" )]; rm(sdm_output)
       colnames(sdm)[1:2] = c("x", "y")
       sdm$est = exp(sdm$est)*prod(res(survey_grid_kt))*1000^2
+      sdm = sdm %>% subset(year >= 2010)
       
       sim$years = sort(unique(sdm$year))
       sim$ages = 1
@@ -95,7 +96,7 @@ for (isl in 1:length(islands)){
       df = merge(sim_grid, sdm_grid)
       
       N = df %>% group_by(year) %>% summarise(age = sum(est)) 
-      N = matrix(N$age, nrow = 1, ncol = 9)
+      N = matrix(N$age, nrow = 1, ncol = length(unique(sdm$year)))
       rownames(N) <- "1"
       colnames(N) = sort(unique(sdm$year))
       names(dimnames(N)) = c("age", "year")
