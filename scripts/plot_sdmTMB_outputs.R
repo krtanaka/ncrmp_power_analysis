@@ -27,8 +27,10 @@ for (i in 3:6) {
 
 options(digits = 1)
 
+trophic = trophic %>% subset(year >= 2010)
+
 (c1 = trophic %>% 
-    subset(year == 2006) %>% 
+    subset(year == 2010) %>% 
     subset(sp == "PISCIVORE") %>% 
     group_by(x, y, sp) %>% 
     summarise(est = mean(zeta_s)) %>%  
@@ -48,7 +50,7 @@ options(digits = 1)
     theme(legend.position = c(0.15, 0.35)))
 
 (c2 = trophic %>% 
-    subset(year == 2006) %>% 
+    subset(year == 2010) %>% 
     subset(sp == "PLANKTIVORE") %>% 
     group_by(x, y, sp) %>% 
     summarise(est = mean(zeta_s)) %>%  
@@ -68,7 +70,7 @@ options(digits = 1)
     theme(legend.position = c(0.15, 0.35)))
 
 (c3 = trophic %>% 
-    subset(year == 2006) %>% 
+    subset(year == 2010) %>% 
     subset(sp == "PRIMARY") %>% 
     group_by(x, y, sp) %>% 
     summarise(est = mean(zeta_s)) %>%  
@@ -88,7 +90,7 @@ options(digits = 1)
     theme(legend.position = c(0.15, 0.35)))
 
 (c4 = trophic %>% 
-    subset(year == 2006) %>% 
+    subset(year == 2010) %>% 
     subset(sp == "SECONDARY") %>% 
     group_by(x, y, sp) %>% 
     summarise(est = mean(zeta_s)) %>%  
