@@ -25,7 +25,7 @@ print(island)
 
 # pick survey design ------------------------------------------------------
 
-design = c("traditional", "downscaled", "downscaled_alt")[3]
+design = c("traditional", "downscaled", "downscaled_alt")[1]
 
 if (design == "traditional") load(paste0("data/survey_grid_w_sector_reef/survey_grid_", island, ".RData")) #survey domain with sector & reef & depth_bins
 if (design == "downscaled") load(paste0("data/survey_grid_w_zones/fish/survey_grid_", island, ".RData")) #survey domain with tom's downscaled zones
@@ -56,7 +56,7 @@ list = list.files(path = "outputs/", pattern = "_biomass"); list
 ## adult or juvenile coral density
 # list = list.files(path = "outputs/", pattern = "_density"); list
 
-i = 4
+i = 2
 
 load(paste0("outputs/", list[i]))
 sp = strsplit(list[i], split = "_")[[1]][3]; sp
@@ -119,7 +119,7 @@ df %>%
   coord_fixed()
 
 N = df %>% group_by(year) %>% summarise(age = sum(est)); N
-N = matrix(N$age, nrow = 1, ncol = 9); N
+N = matrix(N$age, nrow = 1, ncol = length(unique(sdm$year))); N
 rownames(N) <- "1"
 colnames(N) = sort(unique(sdm$year))
 names(dimnames(N)) = c("age", "year")
