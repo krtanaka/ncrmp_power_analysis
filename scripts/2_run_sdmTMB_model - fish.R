@@ -15,6 +15,9 @@ rm(list = ls())
 region = "MHI"
 uku_or_not = T
 
+years = c(2010:2019)
+# years = c(2005:2019)
+
 ## top 5 taxa by abundance or biomass
 # load("data/rea/ALL_REA_FISH_RAW.rdata")
 # df %>%
@@ -40,7 +43,7 @@ islands = c("Kauai", #1
 
 response_variable = "fish_count";      sp = ifelse(uku_or_not == T, "Aprion virescens", "Chromis vanderbilti")
 response_variable = "fish_biomass";    sp = ifelse(uku_or_not == T, "Aprion virescens", "Acanthurus olivaceus")
-response_variable = "trophic_biomass"; sp = c("PISCIVORE", "PLANKTIVORE", "PRIMARY", "SECONDARY", "TOTAL")[2]
+response_variable = "trophic_biomass"; sp = c("PISCIVORE", "PLANKTIVORE", "PRIMARY", "SECONDARY", "TOTAL")[4]
 
 if (response_variable == "fish_count") {
   
@@ -111,14 +114,15 @@ if (response_variable == "trophic_biomass") {
     
     df = df %>% 
       subset(REGION == region & ISLAND %in% islands) %>% 
-      subset(OBS_YEAR >= 2010) %>% 
-      subset(TRAINING_YN == 0) %>% 
+      subset(OBS_YEAR %in% years) %>% 
+      # subset(TRAINING_YN == 0) %>% 
       mutate(response = ifelse(TROPHIC_MONREP == sp, BIOMASS_G_M2, 0)) %>%  
       group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR) %>% 
       summarise(response = sum(response, na.rm = T), 
                 depth = mean(DEPTH, na.rm = T),
                 temp = mean(mean_SST_CRW_Daily_DY01, na.rm = T))  %>% 
-      na.omit()
+      na.omit() %>% subset(response < quantile(response, prob = 0.999))
+
     
   }
   
@@ -146,9 +150,9 @@ ISL_this = ISL_bounds[which(ISL_bounds$ISLAND %in% toupper(islands)),]
 ISL_this_utm = spTransform(ISL_this,CRS(paste0("+proj=utm +units=km +zone=",zone)))
 ISL_this_sf = st_transform(st_as_sf(ISL_this), crs = paste0("+proj=utm +units=km +zone=",zone))
 
-n_knots = 500
+# n_knots = 500
 n_knots = 300
-n_knots = 150 # a coarse mesh for speed
+# n_knots = 150 # a coarse mesh for speed
 
 rea_spde <- make_mesh(df, c("X", "Y"), n_knots = n_knots, type = "cutoff_search") # search
 # rea_spde <- make_mesh(df, c("X", "Y"), cutoff  = n_knots, type = "cutoff") # predefined
@@ -185,8 +189,8 @@ density_model <- sdmTMB(
   
   data = df, 
   
-  # formula = response ~ as.factor(year) + depth_scaled + depth_scaled2,
-  formula = response ~ as.factor(year) + s(depth, k = 5),
+  formula = response ~ 0 + as.factor(year) + depth_scaled + depth_scaled2,
+  # formula = response ~ as.factor(year) + s(depth, k = 5),
   # formula = response ~ as.factor(year) + s(depth, k=5) + s(temp, k=5),
   # formula = response ~ as.factor(year) + s(temp, k=5) + s(depth, k=5) + depth_scaled + depth_scaled2,
   
@@ -207,7 +211,7 @@ density_model <- sdmTMB(
   
 ); beepr::beep(2)
 
-density_model <- run_extra_optimization(density_model); beepr::beep(2)
+# density_model <- run_extra_optimization(density_model); beepr::beep(2)
 
 # look at gradients
 max(density_model$gradients)
@@ -248,14 +252,14 @@ png(paste0('outputs/pred_obs_', sp, '.png'), width = 5, height = 5, units = "in"
 print(p2)
 dev.off()
 
-#  extract some parameter estimates
-sd <- as.data.frame(summary(TMB::sdreport(density_model$tmb_obj)))
-r <- density_model$tmb_obj$report()
-r
+# #  extract some parameter estimates
+# sd <- as.data.frame(summary(TMB::sdreport(density_model$tmb_obj)))
+# r <- density_model$tmb_obj$report()
+# r
 
 # prediction onto new data grid
 load("data/crm/Topography_NOAA_CRM_vol10.RData") # bathymetry 
-load("data/crm/Topography_NOAA_CRM_vol10_SST_CRW_Monthly.RData") # bathymetry with monthly SST
+# load("data/crm/Topography_NOAA_CRM_vol10_SST_CRW_Monthly.RData") # bathymetry with monthly SST
 # topo$x = ifelse(topo$x > 180, topo$x - 360, topo$x)
 
 grid = topo
@@ -373,7 +377,7 @@ p$data$sp = sp
 sdm_output = p$data
 
 save(sdm_output, file = paste0("outputs/density_results_", sp, "_", response_variable, "_", n_knots, "_", region, ".RData"))
-save(paste0("outputs/density_results_", sp, "_", response_variable, "_", n_knots, "_", region, ".RData"))
+load(paste0("outputs/density_results_", sp, "_", response_variable, "_", n_knots, "_", region, ".RData"))
 
 plot_map_raster <- function(dat, column = "est") {
   
