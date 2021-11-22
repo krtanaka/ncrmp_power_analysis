@@ -6,18 +6,18 @@ library(gridExtra)
 
 rm(list = ls())
 
-list = list.files(path = "outputs/", pattern = "_biomass"); list
+list = list.files(path = "outputs/", pattern = "MHI_2010-2019"); list
 
 trophic = NULL
 
-for (i in 3:6) {
+for (i in 1:4) {
   
-  # i = 4
+  # i = 1
   
   load(paste0("outputs/", list[i]))
   sp = strsplit(list[i], split = "_")[[1]][3]; sp
   response_scale = strsplit(list[i], split = "_")[[1]][4]; response_scale
-  sdm = sdm_output[,c("X", "Y", "longitude", "latitude", "year", "est", "zeta_s")]; rm(sdm_output)
+  sdm = sdm_output[,c("X", "Y", "year", "est", "zeta_s")]; rm(sdm_output)
   colnames(sdm)[1:2] = c("x", "y")
   sdm$est = exp(sdm$est); hist(sdm$est);summary(sdm$est)
   sdm$sp = sp
