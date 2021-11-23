@@ -65,7 +65,7 @@ response_scale = strsplit(list[i], split = "_")[[1]][4]; response_scale
 # replace sim$ with sdmTMB outputs  -----------------------------------------
 
 # Need to match sim and sdm
-sdm = sdm_output[,c("X", "Y", "longitude", "latitude", "year", "est" )]; rm(sdm_output)
+sdm = sdm_output[,c("X", "Y", "year", "est" )]; rm(sdm_output)
 colnames(sdm)[1:2] = c("x", "y")
 sdm$est = exp(sdm$est); hist(sdm$est);summary(sdm$est)
 sdm$est = sdm$est*(res(survey_grid_kt)[1] * res(survey_grid_kt)[2]*1000000); hist(sdm$est); summary(sdm$est) # convert g/sq.m to q/ whatever given cell size
