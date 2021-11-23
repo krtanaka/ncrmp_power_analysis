@@ -10,11 +10,17 @@ sims = NULL
 
 for (i in 1:3) {
   
-  # i = 1
+  # i = 2
   
-  if (i == 1) load('outputs/sim_results_Maui_traditional_median_PLANKTIVORE_100_biomass.RData')
-  if (i == 2) load('outputs/sim_results_Maui_downscaled_median_PLANKTIVORE_100_biomass.RData')
-  if (i == 3) load('outputs/sim_results_Maui_downscaled_alt_median_PLANKTIVORE_100_biomass.RData')
+  # # 2005-2019
+  # if (i == 1) load('outputs/sim_results_Maui_traditional_median_PLANKTIVORE_100_biomass.RData')
+  # if (i == 2) load('outputs/sim_results_Maui_downscaled_median_PLANKTIVORE_100_biomass.RData')
+  # if (i == 3) load('outputs/sim_results_Maui_downscaled_alt_median_PLANKTIVORE_100_biomass.RData')
+  
+  # 2010-2019
+  if (i == 1) load('outputs/sim_results_Maui_traditional_median_PISCIVORE_100_biomass.RData')
+  if (i == 2) load('outputs/sim_results_Maui_downscaled_median_PISCIVORE_100_biomass.RData')
+  if (i == 3) load('outputs/sim_results_Maui_downscaled_alt_median_PISCIVORE_100_biomass.RData')
   
   area = sim_results[[1]]
   sim = sim_results[[2]]
