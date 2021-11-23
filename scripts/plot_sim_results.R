@@ -12,15 +12,15 @@ for (i in 1:3) {
   
   # i = 2
   
-  # # 2005-2019
-  # if (i == 1) load('outputs/sim_results_Maui_traditional_median_PLANKTIVORE_100_biomass.RData')
-  # if (i == 2) load('outputs/sim_results_Maui_downscaled_median_PLANKTIVORE_100_biomass.RData')
-  # if (i == 3) load('outputs/sim_results_Maui_downscaled_alt_median_PLANKTIVORE_100_biomass.RData')
+  # 2005-2019
+  if (i == 1) load('outputs/sim_results_Maui_traditional_median_PLANKTIVORE_100_biomass.RData')
+  if (i == 2) load('outputs/sim_results_Maui_downscaled_median_PLANKTIVORE_100_biomass.RData')
+  if (i == 3) load('outputs/sim_results_Maui_downscaled_alt_median_PLANKTIVORE_100_biomass.RData')
   
-  # 2010-2019
-  if (i == 1) load('outputs/sim_results_Maui_traditional_median_PISCIVORE_100_biomass.RData')
-  if (i == 2) load('outputs/sim_results_Maui_downscaled_median_PISCIVORE_100_biomass.RData')
-  if (i == 3) load('outputs/sim_results_Maui_downscaled_alt_median_PISCIVORE_100_biomass.RData')
+  # # 2010-2019
+  # if (i == 1) load('outputs/sim_results_Maui_traditional_median_PISCIVORE_100_biomass.RData')
+  # if (i == 2) load('outputs/sim_results_Maui_downscaled_median_PISCIVORE_100_biomass.RData')
+  # if (i == 3) load('outputs/sim_results_Maui_downscaled_alt_median_PISCIVORE_100_biomass.RData')
   
   area = sim_results[[1]]
   sim = sim_results[[2]]
@@ -46,7 +46,7 @@ for (i in 1:3) {
 }
 
 (rmse = sims %>% 
-    subset(year >= 2010) %>% 
+    # subset(year >= 2010) %>% 
     group_by(strategy) %>% 
     summarise(rmse = sqrt(mean(error^2))) %>% 
     mutate(rmse = formatC(rmse, digits = 2)))
@@ -65,7 +65,7 @@ for (i in 1:3) {
 # scale_fill_gradientn(colours = topo.colors(100)))
 
 (p2 = sims %>% 
-    subset(year >= 2010) %>% 
+    # subset(year >= 2010) %>% 
     ggplot() + 
     geom_line(aes(year, I_hat, group = sim, color = sim), alpha = 0.5, show.legend = T) +
     scale_color_viridis_c("Simulation") + 

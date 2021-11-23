@@ -350,8 +350,8 @@ for (isl in 1:length(islands)){
 
 save(isl_power, file = paste0('outputs/rmse_power_results_', Sys.Date(), '.RData'))
 
-load(paste0('outputs/rmse_power_results_2021-09-10.RData'))
-load(paste0('outputs/rmse_power_results_2021-11-16.RData'))
+load(paste0('outputs/rmse_power_results_2021-09-10.RData')) # 2005-2019
+load(paste0('outputs/rmse_power_results_2021-11-16.RData')) # 2010-2019
 
 load("data/survey_effort_MHI_2014-2019.RData")
 
@@ -520,7 +520,7 @@ df$Effort_level = ifelse(df$Survey_efforts %in% c(100:150), "Normal (100-150 sit
 
 df$Effort_level = factor(df$Effort_level, levels = c('High (110-150 sites)', 
                                                      'Mid (60-100 sites)',
-                                                     'Normal (110-150 sites)',
+                                                     'Normal (100-150 sites)',
                                                      'Low (10-50 sites)'))
 
 (df %>% 
