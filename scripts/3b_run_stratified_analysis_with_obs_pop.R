@@ -398,3 +398,10 @@ if (response_scale == "count") ylab_scale = "abundance (n)"
 strata + (sim_output / error)
 # dev.off()
 
+# list how many sites are in which strata
+a<-sim_results[[1]] 
+# strip depth and lat/long
+b<-a %>% select(strat,strat_sets)
+# select unique records
+b<-b %>% filter(!duplicated(b))
+b
