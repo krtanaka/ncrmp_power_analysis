@@ -216,6 +216,10 @@ for (isl in 1:length(islands)) {
   
   df = df[ , -which(names(df) %in% c("longitude.y", "latitude.y", "longitude.x.1", "latitude.x.1", "ID", "ID.x", "ID.y"))]
   
+  # filter here for reef type and sector
+  df<-df %>% filter(Reef_Type == "Forereef") %>% 
+    filter(Sector == "East"|Sector=="West"|Sector=="Piti Bomb Holes"|Sector == "Achang Reef Flat")
+  
   # make strata by depth * sector * reef type -------------------------------
   
   df$depth_bin = ""
