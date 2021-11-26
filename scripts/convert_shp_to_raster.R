@@ -1,113 +1,83 @@
-library(raster)
+library(raster) # need to be version 3.4-13, not the latest version
 library(rgdal)
 library(rgeos)
-library(pbapply)
-library(jubilee)
-library(future.apply)
 library(dplyr)
+library(readr)
+library(colorRamps)
+library(ggplot2)
 
 rm(list = ls())
 
-### Instruction ###
-# 1. Get on pifsc.onaga.gov
-# 2. Use multicore and run this script
-# 3. Get on Pifsc64, pull & push
-
-# jubilee.mcsapply() = works in Linux and MAC, faster
-# future_lapply)() = for Windows, needs plan(multisession) 
-
-# plan(multisession) # Uncomment if you are running this on Windows OS
-
 spatial_resolution = 100 # spatial resolution in m
-cores = 64 # number of cores to use
 
-# shp_path = "L:/ktanaka/GIS" # pc
-shp_path = "/mnt/ldrive/ktanaka/GIS/" # Onaga
-# shp_path = "N:/GIS/Projects/CommonMaps/01_Preprocess/MARI/GUA/"
+shp_path = "L:/ktanaka/GIS" # pc
 
+utm = read_csv('data/misc/ncrmp_utm_zones.csv')
 
-####################################################################
-### DO NOT "SUBSET" raster components as it'll mess up the table ###
-####################################################################
+# Hard/Soft Bottom Substrate ----------------------------------------------
 
-
-##################################
-### Hard/Soft Bottom Substrate ###
-##################################
 shp_list = list.files(path = paste0(shp_path, "/hardsoft/"), pattern = "\\.shp$", full.names = T); shp_list
-shp_list = shp_list[c(2, 12:14)]; shp_list
-shp_list = shp_list[1]; shp_list
+# shp_list = shp_list[c(1:7, 12:14)]; shp_list
 
 for (shp_i in 1:length(shp_list)) {
   
   start = Sys.time()
-
-  # shp_i = 1
-
-  # Import shapefile
-  df <- readOGR(shp_list[shp_i])
   
-  table(df$HardSoft)
+  # shp_i = 27
   
-  # df <- df[df$HardSoft %in% c("Hard", "hard", "Unknown", "unknown"),]
+  island_name = tolower(substr(shp_list[shp_i], 25, 27)); island_name
   
-  plot(df, pch = ".")
+  utm_i = utm %>% subset(Island_Code == island_name)
   
-  df@data
-  table = data.frame(df@data, i = 0:(length(df)-1)); table
+  dat <- shapefile(shp_list[shp_i], verbose = T)
   
-  # table = table %>% 
-  #   group_by(HardSoft) %>% 
-  #   summarise(i = paste0(i, collapse = ",")) 
+  dat <- spTransform(dat, CRS(paste0('+proj=utm +zone=', utm_i$UTM_Zone, ' +datum=WGS84 +units=m +no_defs')))
+  # dat <- spTransform(dat, CRS('+proj=longlat +datum=WGS84'))
   
-  # Raster template 
-  r <- raster(extent(df))
-  projection(r) <- proj4string(df)
-  res(r) <- spatial_resolution # spatial resolution in m
+  dat = dat[c(names(dat) %in% c("HardSoft"))]
   
-  # Per pixel, identify ID covering largest area, try jubilee.mcsapply() or pbsapply(), or future_lapply()
-  # r_val <-  simplify2array(future_lapply(1:ncell(r), function(i) {
-  r_val <-  jubilee.mcsapply(1:ncell(r), mc.cores = cores, function(i) {
-    
-    r_dupl <- r
-    r_dupl[i] <- 1
-    p <- rasterToPolygons(r_dupl) # Current cell -> polygon
-    sp_df_crp <- crop(df, p)   # Crop initial polygons by current cell extent
-    
-    # Case 1: no polygon intersecting current cell
-    if (is.null(sp_df_crp)) {                   
-      
-      return(NA)
-      
-      # Case 2: one polygon intersecting current cell  
-    } else if (nrow(sp_df_crp@data) < 2) {     
-      
-      return(rownames(sp_df_crp@data)) 
-      
-      # Case 3: multiple polygons intersecting current cell
-    } else {                                 
-      
-      areas <- gArea(sp_df_crp, byid = TRUE)
-      index <- which.max(areas)
-      
-      return(rownames(sp_df_crp@data)[index])
-      
-    }
-  })
+  # dat <- dat[dat$HardSoft %in% c("Hard", "hard", "Unknown", "unknown"),]
   
-  # Write ID values covering the largest area per pixel into raster template
-  r[] <- as.numeric(r_val)
-  plot(r, col = rainbow(length(unique(r_val))))
-  plot(df, border = "grey45", add = TRUE)
+  # get names
+  nam <- unique(dat$HardSoft); nam
   
-  # island_name = tolower(substr(shp_list[shp_i], 25, nchar(shp_list[shp_i])-19))
-  island_name = tolower(substr(shp_list[shp_i], 36, nchar(shp_list[shp_i])))
+  # create a data.frame
+  nam_df <- data.frame(ID = 1:length(nam), nam = nam); nam_df
   
-  r = readAll(r)
+  # Place IDs
+  dat$ID <- nam_df$ID[match(dat$HardSoft,nam_df$nam)]
   
-  raster_and_table = list(r, table)
+  # Define RasterLayer object
+  r.raster <- raster()
   
-  save(raster_and_table, file = paste0("/mnt/ldrive/ktanaka/ncrmp_power_analysis/data/gis_hardsoft/raster/", island_name, "_", spatial_resolution, ".RData"))
+  # Define raster extent
+  extent(r.raster) <- extent(dat)
+  
+  # Define pixel size
+  res(r.raster) <- spatial_resolution
+  
+  # rasterize
+  ras <- rasterize(x = dat, y = r.raster, field = "ID")
+  
+  # ratify raster
+  r <- ratify(ras)
+  
+  # Create levels
+  rat <- levels(r)[[1]]
+  rat$names <- nam_df$nam
+  rat$IDs <- nam_df$ID
+  levels(r) <- rat
+  
+  # rasterVis::levelplot(r)
+  plot(r, col = matlab.like(length(unique(r))))
+  
+  raster = readAll(r)
+  
+  table = nam_df
+  
+  raster_and_table = list(raster, table)
+  
+  save(raster_and_table, file = paste0("data/gis_hardsoft/", island_name, ".RData"))
   
   end = Sys.time()
   
@@ -117,85 +87,74 @@ for (shp_i in 1:length(shp_list)) {
   
 }
 
-#################
-### Reef Zone ###
-#################
+# Reef Zones --------------------------------------------------------------
+
 shp_list = list.files(path = paste0(shp_path, "/reefzone/"), pattern = "\\.shp$", full.names = T); shp_list
-shp_list = shp_list[c(1, 9:11)]; shp_list
-shp_list = shp_list[1]; shp_list
+# shp_list = shp_list[c(1, 9:11)]; shp_list
 
 for (shp_i in 1:length(shp_list)) {
   
   start = Sys.time()
   
-  # shp_i = 1
+  shp_i = 16
   
-  # Import shapefile
-  df <- readOGR(shp_list[shp_i])
+  island_name = tolower(substr(shp_list[shp_i], 25, 27)); island_name
   
-  names(df)[2] = "ZONE_CODE"
+  utm_i = utm %>% subset(Island_Code == island_name)
   
-  table(df$ZONE_CODE)
+  dat <- shapefile(shp_list[shp_i], verbose = T)
   
-  # df <- df[df$ZONE_CODE %in% c("Backreef", "Forereef", "Lagoon", "BRF", "FRF", "LAG"),]
-
-  plot(df, pch = ".")
+  dat <- spTransform(dat, CRS(paste0('+proj=utm +zone=', utm_i$UTM_Zone, ' +datum=WGS84 +units=m +no_defs')))
+  # dat <- spTransform(dat, CRS('+proj=longlat +datum=WGS84'))
   
-  df@data
-  table = data.frame(df@data, i = 0:(length(df)-1)); table
+  dat = dat[c(names(dat) %in% c("Zone", "REEF_ZONE"))]
   
-  # table = table %>% 
-  #   group_by(ZONE_CODE) %>% 
-  #   summarise(i = paste0(i, collapse = ",")) 
+  names(dat) = "Reef"
   
-  # Raster template 
-  r <- raster(extent(df))
-  projection(r) <- proj4string(df)
-  res(r) <- spatial_resolution # spatial resolution in m
+  table(dat$Reef)
   
-  # Per pixel, identify ID covering largest area, try jubilee.mcsapply() or pbsapply(), or future_lapply()
-  # r_val <-  simplify2array(future_lapply(1:ncell(r), function(i) {
-  r_val <-  jubilee.mcsapply(1:ncell(r), mc.cores = cores, function(i) {
-    
-    r_dupl <- r
-    r_dupl[i] <- 1
-    p <- rasterToPolygons(r_dupl) # Current cell -> polygon
-    sp_df_crp <- crop(df, p)   # Crop initial polygons by current cell extent
-    
-    # Case 1: no polygon intersecting current cell
-    if (is.null(sp_df_crp)) {                   
-      
-      return(NA)
-      
-      # Case 2: one polygon intersecting current cell  
-    } else if (nrow(sp_df_crp@data) < 2) {     
-      
-      return(rownames(sp_df_crp@data)) 
-      
-      # Case 3: multiple polygons intersecting current cell
-    } else {                                 
-      
-      areas <- gArea(sp_df_crp, byid = TRUE)
-      index <- which.max(areas)
-      
-      return(rownames(sp_df_crp@data)[index])
-      
-    }
-  })
+  # dat <- dat[dat$Reef %in% c("Backreef", "Forereef", "Lagoon", "BRF", "FRF", "LAG"),]
   
-  # Write ID values covering the largest area per pixel into raster template
-  r[] <- as.numeric(r_val)
-  plot(r, col = rainbow(length(unique(r_val))))
-  plot(df, border = "grey45", add = TRUE)
+  # get names
+  nam <- unique(dat$Reef)
   
-  # island_name = tolower(substr(shp_list[shp_i], 25, nchar(shp_list[shp_i])-19))
-  island_name = tolower(substr(shp_list[shp_i], 36, nchar(shp_list[shp_i])))
+  # create a data.frame
+  nam_df <- data.frame(ID = 1:length(nam), nam = nam)
   
-  r = readAll(r)
+  # Place IDs
+  dat$ID <- nam_df$ID[match(dat$Reef,nam_df$nam)]
   
-  raster_and_table = list(r, table)
+  # Define RasterLayer object
+  r.raster <- raster()
   
-  save(raster_and_table, file = paste0("/mnt/ldrive/ktanaka/ncrmp_power_analysis/data/gis_reef/", island_name, "_", spatial_resolution, ".RData"))
+  # Define raster extent
+  extent(r.raster) <- extent(dat)
+  
+  # Define pixel size
+  res(r.raster) <- spatial_resolution
+  
+  # rasterize
+  ras <- rasterize(x = dat, y = r.raster, field = "ID")
+  
+  # ratify raster
+  r <- ratify(ras)
+  
+  # Create levels
+  rat <- levels(r)[[1]]
+  rat$names <- nam_df$nam
+  rat$IDs <- nam_df$ID
+  levels(r) <- rat
+  
+  # rasterVis::levelplot(r)
+  plot(r, col = matlab.like(length(unique(r))))
+  
+  raster = readAll(r)
+  
+  table = nam_df
+  
+  raster_and_table = list(raster, table)
+  
+  save(raster_and_table, file = paste0("data/gis_reef/", island_name, ".RData"))
   
   end = Sys.time()
   
@@ -205,11 +164,10 @@ for (shp_i in 1:length(shp_list)) {
   
 }
 
-##################################
-### Regional Sub-Island Sector ###
-##################################
+# Sub-Island Sector -------------------------------------------------------
+
 shp_list = list.files(path = paste0(shp_path, "/sector/"), pattern = "\\.shp$", full.names = T); shp_list
-shp_list = shp_list[1]; shp_list
+shp_list = shp_list[c(1:9, 11:12)]; shp_list # process NMSAS_PY separately for now
 
 for (shp_i in 1:length(shp_list)) {
   
@@ -217,148 +175,67 @@ for (shp_i in 1:length(shp_list)) {
   
   # shp_i = 1
   
-  # Import shapefile
-  df <- readOGR(shp_list[shp_i])
-  # df <- df[df$Sector != c("Land"),]
-  # df <- df[df$Sector != c("Harbor"),]
+  island_name = tolower(substr(shp_list[shp_i], 23, 25)); island_name
   
-  df@data
-  table = data.frame(df@data, i = 0:(length(df)-1)); table
+  utm_i = utm %>% subset(Island_Code == island_name)
   
-  # table = table %>% 
-  #   group_by(SEC_NAME) %>%
-  #   summarise(i = paste0(i, collapse = ",")) 
+  dat <- shapefile(shp_list[shp_i], verbose = T)
   
-  # Raster template 
-  r <- raster(extent(df))
-  projection(r) <- proj4string(df)
-  res(r) <- spatial_resolution # spatial resolution in m
+  dat <- spTransform(dat, CRS(paste0('+proj=utm +zone=', utm_i$UTM_Zone, ' +datum=WGS84 +units=m +no_defs')))
+  # dat <- spTransform(dat, CRS('+proj=longlat +datum=WGS84'))
   
-  # Per pixel, identify ID covering largest area, try jubilee.mcsapply() or pbsapply(), or future_lapply()
-  # r_val <-  simplify2array(future_lapply(1:ncell(r), function(i) {
-  r_val <-  jubilee.mcsapply(1:ncell(r), mc.cores = cores, function(i) {
-    
-    r_dupl <- r
-    r_dupl[i] <- 1
-    p <- rasterToPolygons(r_dupl) # Current cell -> polygon
-    sp_df_crp <- crop(df, p)   # Crop initial polygons by current cell extent
-    
-    # Case 1: no polygon intersecting current cell
-    if (is.null(sp_df_crp)) {                   
-      
-      return(NA)
-      
-      
-      # Case 2: one polygon intersecting current cell  
-    } else if (nrow(sp_df_crp@data) < 2) {     
-      
-      return(rownames(sp_df_crp@data)) 
-      
-      
-      # Case 3: multiple polygons intersecting current cell
-    } else {                                 
-      
-      areas <- gArea(sp_df_crp, byid = TRUE)
-      index <- which.max(areas)
-      
-      return(rownames(sp_df_crp@data)[index])
-      
-    }
-  })
+  dat = dat[c(names(dat) %in% c("SEC_NAME", "Sanctuary"))]
   
-  # Write ID values covering the largest area per pixel into raster template
-  r[] <- as.numeric(r_val)
-  plot(r, col = topo.colors(length(unique(r))))
-  plot(df, border = "grey45", add = TRUE)
+  names(dat) = "Sector"
   
-  # island_name = tolower(substr(shp_list[shp_i], 25, nchar(shp_list[shp_i])-19))
-  island_name = tolower(substr(shp_list[shp_i], 34, nchar(shp_list[shp_i])))
+  # get names
+  nam <- unique(dat$Sector)
   
-  r = readAll(r)
+  # create a data.frame
+  nam_df <- data.frame(ID = 1:length(nam), nam = nam)
   
-  raster_and_table = list(r, table)
+  # Place IDs
+  dat$ID <- nam_df$ID[match(dat$Sector, nam_df$nam)]
   
-  save(raster_and_table, file = paste0("/mnt/ldrive/ktanaka/ncrmp_power_analysis/data/gis_sector/raster/", island_name, "_", spatial_resolution, ".RData"))
+  # Define RasterLayer object
+  r.raster <- raster()
   
-  end = Sys.time()
+  # Define raster extent
+  extent(r.raster) <- extent(dat)
   
-  time = end - start
+  # Define pixel size
+  res(r.raster) <- spatial_resolution
   
-  print(paste0(island_name, "...done...took ", time, "..."))
+  # rasterize
+  ras <- rasterize(x = dat, y = r.raster, field = "ID")
   
-}
-
-######################
-### Marine Reserve ###
-######################
-shp_list = list.files(path = paste0(shp_path, "/reserve"), pattern = "\\.shp$", full.names = T); shp_list
-
-for (shp_i in 1:length(shp_list)) {
+  # ratify raster
+  r <- ratify(ras)
   
-  start = Sys.time()
+  # Create levels
+  rat <- levels(r)[[1]]
+  rat$names <- nam_df$nam
+  rat$IDs <- nam_df$ID
+  levels(r) <- rat
   
-  shp_i = 1
+  raster = readAll(r)
   
-  # Import shapefile
-  df <- readOGR(shp_list[shp_i])
-  # df <- df[df$Sector != "Land",]
-  # df <- df[df$Sector != "Other",]
-
-  df@data
-  table = data.frame(df@data, i = 0:(length(df)-1)); table
+  table = nam_df
   
-  table = table %>% 
-    group_by(Sector) %>% 
-    summarise(i = paste0(i, collapse = ",")) 
+  r_df <- as.data.frame(rasterToPoints(r))
+  colnames(r_df) <- c("x", "y", "ID")
+  r_df = merge(r_df, table)
+  r_df_label = r_df %>% group_by(nam) %>% summarise(x = median(x), y = median(y))
   
-  # Raster template 
-  r <- raster(extent(df))
-  projection(r) <- proj4string(df)
-  res(r) <- spatial_resolution # spatial resolution in m
+  ggplot() +  
+    geom_raster(data = r_df, aes(x, y, fill = nam), show.legend = F) + 
+    geom_text_repel(data = r_df_label, aes(x, y, label = nam)) + 
+    coord_equal() + 
+    theme_void()
   
-  # Per pixel, identify ID covering largest area, try jubilee.mcsapply() or pbsapply(), or future_lapply()
-  # r_val <-  simplify2array(future_lapply(1:ncell(r), function(i) {
-  r_val <-  jubilee.mcsapply(1:ncell(r), mc.cores = cores, function(i) {
-    
-    r_dupl <- r
-    r_dupl[i] <- 1
-    p <- rasterToPolygons(r_dupl) # Current cell -> polygon
-    sp_df_crp <- crop(df, p)   # Crop initial polygons by current cell extent
-    
-    # Case 1: no polygon intersecting current cell
-    if (is.null(sp_df_crp)) {                   
-      
-      return(NA)
-      
-      # Case 2: one polygon intersecting current cell  
-    } else if (nrow(sp_df_crp@data) < 2) {     
-      
-      return(rownames(sp_df_crp@data)) 
-      
-      # Case 3: multiple polygons intersecting current cell
-    } else {                                 
-      
-      areas <- gArea(sp_df_crp, byid = TRUE)
-      index <- which.max(areas)
-      
-      return(rownames(sp_df_crp@data)[index])
-      
-    }
-  })
+  raster_and_table = list(raster, table)
   
-  # Write ID values covering the largest area per pixel into raster template
-  r[] <- as.numeric(r_val)
-  plot(r, col = topo.colors(length(unique(r))))
-  plot(df, border = "grey45", add = TRUE)
-  
-  # island_name = tolower(substr(shp_list[shp_i], 25, nchar(shp_list[shp_i])-19))
-  island_name = tolower(substr(shp_list[shp_i], 34, nchar(shp_list[shp_i])))
-  
-  r = readAll(r)
-  
-  raster_and_table = list(r, table)
-  
-  save(raster_and_table, file = paste0("/mnt/ldrive/ktanaka/ncrmp_power_analysis/data/gis_reserve/raster/", island_name, "_", spatial_resolution, ".RData"))
+  save(raster_and_table, file = paste0("data/gis_sector/", island_name, ".RData"))
   
   end = Sys.time()
   
