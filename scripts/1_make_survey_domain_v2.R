@@ -102,42 +102,42 @@ for (isl in 1:length(islands)) {
   
   df = as.data.frame(df)
   
-  sector_name
-  reef_name
-  hardsoft_name
+  colnames(sector_name) = c("sector", "sector_id")
+  colnames(reef_name) = c("reef", "reef_id")
+  colnames(hardsoft_name) = c("hardsoft", "hardsoft_id")
   
-  df = df %>% 
-    subset(sector != "1") %>% # filter sector
-    subset(reef %in% c("1", "2", "3")) %>% # filter land and Reef Crest/Reef Flat
-    subset(hardsoft %in% c("1", "5")) # filter hardsoft
+  df = merge(df, sector_name)
+  df = merge(df, reef_name)
+  df = merge(df, hardsoft_name)
   
   (depth = df %>% 
       ggplot( aes(longitude, latitude, fill = depth_bin)) + 
       geom_raster() + 
       scale_fill_discrete( "depth_bins") +
-      coord_fixed() +
-      ggdark::dark_theme_minimal() +
-      theme(axis.title = element_blank(),
-            legend.position = "right"))
+      ggdark::dark_theme_minimal())
   
   (sector = df %>% 
-      ggplot( aes(longitude, latitude, fill = factor(sector))) + 
+      ggplot( aes(longitude, latitude, fill = sector_id)) + 
       geom_raster() +
       scale_fill_discrete("sector") +
-      coord_fixed() +
-      ggdark::dark_theme_minimal() +
-      theme(axis.title = element_blank(),
-            legend.position = "right"))
+      ggdark::dark_theme_minimal())
   
   (reef = df %>% 
-      ggplot( aes(longitude, latitude, fill = as.factor(reef))) + 
+      ggplot( aes(longitude, latitude, fill = reef_id)) + 
       geom_raster() +
       scale_fill_discrete("reef") +
-      coord_fixed() +
-      theme_minimal() + 
-      ggdark::dark_theme_minimal() +
-      theme(axis.title = element_blank(),
-            legend.position = "right"))
+      ggdark::dark_theme_minimal())
+  
+  (hardsoft = df %>% 
+      ggplot( aes(longitude, latitude, fill = hardsoft_id)) + 
+      geom_raster() +
+      scale_fill_discrete("hardsoft") +
+      ggdark::dark_theme_minimal())
+  
+  df = df %>%
+    subset(sector_id != "GUA_LAND") %>% # filter sector
+    subset(reef_id %in% c("Backreef", "Forereef", "Lagoon")) %>% # filter land and Reef Crest/Reef Flat
+    subset(hardsoft_id %in% c("Hard", "Unknown")) # filter hardsoft
   
   df$strat = paste(df$depth_bin, 
                    df$sector,
@@ -150,10 +150,7 @@ for (isl in 1:length(islands)) {
       ggplot( aes(longitude, latitude, fill = factor(strat))) + 
       geom_raster() +
       scale_fill_discrete("Strata") +
-      coord_fixed() +
-      ggdark::dark_theme_minimal() +
-      theme(axis.title = element_blank(),
-            legend.position = "right"))
+      ggdark::dark_theme_minimal())
   
   cell = rasterFromXYZ(df[,c("longitude", "latitude", "cell")]); plot(cell)
   division = rasterFromXYZ(df[,c("longitude", "latitude", "division")]); plot(division)
@@ -180,14 +177,13 @@ for (isl in 1:length(islands)) {
   sp::spplot(survey_grid_ncrmp$depth)
   
   p <- raster::rasterToPolygons(survey_grid$strat, dissolve = TRUE)
-  sp::plot(p)
+  sp::plot(p); axis(1); axis(2)
   
   p <- raster::rasterToPolygons(survey_grid_ncrmp$strat, dissolve = TRUE)
-  sp::plot(p)
+  sp::plot(p); axis(1); axis(2)
   
   survey_grid_ncrmp = readAll(survey_grid_ncrmp)
   
   save(survey_grid_ncrmp, file = paste0("data/survey_grid_w_sector_reef/survey_grid_", islands[isl], ".RData"))
-  
-  
+
 }
