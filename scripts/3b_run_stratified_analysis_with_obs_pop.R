@@ -34,9 +34,7 @@ load(paste0("data/survey_grid_w_sector_reef/survey_grid_", island, ".RData"))
 #                     R = sim_R(log_mean = log(50), log_sd = 0.8),
 #                     Z = sim_Z(log_mean = log(0.2))) %>%
 #   sim_distribution(grid = survey_grid_ncrmp)
-
 # save(sim, file = paste0('outputs/sim_abundance_distribution_', island, '.Rdata'))
-
 load(paste0('outputs/sim_abundance_distribution_', island, '.Rdata'))
 
 #population variable that we will replace...
