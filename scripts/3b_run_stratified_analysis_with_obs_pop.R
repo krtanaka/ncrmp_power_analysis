@@ -29,12 +29,12 @@ load(paste0("data/survey_grid_w_sector_reef/survey_grid_", island, ".RData"))
 
 # bring in sim$ as a place holder -----------------------------------------
 
-# sim = sim_abundance(years = 2000:2020,
-#                     ages = 1:2,
-#                     R = sim_R(log_mean = log(50), log_sd = 0.8),
-#                     Z = sim_Z(log_mean = log(0.2))) %>%
-#   sim_distribution(grid = survey_grid_ncrmp)
-# save(sim, file = paste0('outputs/sim_abundance_distribution_', island, '.Rdata'))
+sim = sim_abundance(years = 2000:2020,
+                    ages = 1:2,
+                    R = sim_R(log_mean = log(50), log_sd = 0.8),
+                    Z = sim_Z(log_mean = log(0.2))) %>%
+  sim_distribution(grid = survey_grid_ncrmp)
+save(sim, file = paste0('outputs/sim_abundance_distribution_', island, '.Rdata'))
 load(paste0('outputs/sim_abundance_distribution_', island, '.Rdata'))
 
 #population variable that we will replace...
@@ -345,7 +345,7 @@ strata = sim$grid_xy %>%
 strata = merge(strata, strat_table)
 
 sim_results = list(strata, df)
-# save(sim_results, file = paste0('outputs/sim_results_', island, "_", design, "_", effort, "_", sp, "_", n_sims, "_", response_scale, ".RData"))
+save(sim_results, file = paste0('outputs/sim_results_', island,  sp, "_", n_sims, "_", response_scale, ".RData"))
 
 (strata = strata %>% 
     ggplot(aes(x, y)) +
@@ -396,10 +396,3 @@ if (response_scale == "count") ylab_scale = "abundance (n)"
 strata + (sim_output / error)
 # dev.off()
 
-# list how many sites are in which strata
-a<-sim_results[[1]] 
-# strip depth and lat/long
-b<-a %>% select(strat,strat_sets)
-# select unique records
-b<-b %>% filter(!duplicated(b))
-b

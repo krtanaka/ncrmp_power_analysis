@@ -136,8 +136,9 @@ for (isl in 1:length(islands)) {
   
   df = df %>%
     subset(sector_id != "GUA_LAND") %>% # filter sector
-    subset(reef_id %in% c("Backreef", "Forereef", "Lagoon")) %>% # filter land and Reef Crest/Reef Flat
-    subset(hardsoft_id %in% c("Hard", "Unknown")) # filter hardsoft
+    subset(reef_id %in% c( "Forereef")) %>% # filter land and Reef Crest/Reef Flat
+    subset(hardsoft_id %in% c("Hard", "Unknown")) %>%  # filter hardsoft
+    subset(sector_id %in% c("GUA_PATI_PT", "GUA_TUMON_BAY","GUA_PITI_BOMB","GUA_ACHANG")) # filter for sector
   
   df$strat = paste(df$depth_bin, 
                    df$sector,
@@ -145,6 +146,20 @@ for (isl in 1:length(islands)) {
                    sep = "_")
   
   df$strat = as.numeric(as.factor(df$strat))
+  
+  ######
+  # create table to match strata to numbers for output table
+  tab<-df 
+  tab$depth_bin_value = ""
+  tab$depth_bin_value = ifelse(tab$depth_bin == 1, "SHAL", tab$depth_bin_value) 
+  tab$depth_bin_value = ifelse(tab$depth_bin == 2, "MIDD", tab$depth_bin_value) 
+  tab$depth_bin_value = ifelse(tab$depth_bin == 3, "DEEP", tab$depth_bin_value) 
+  
+  tab<-tab %>% dplyr::select(sector_id,reef_id,strat,depth_bin_value)
+  tab<-tab %>% filter(!duplicated(tab))
+  
+  save(tab,file=paste0("outputs/sector_key_", islands[isl], ".RData"))
+  ########
   
   (strata = df %>% 
       ggplot( aes(longitude, latitude, fill = factor(strat))) + 
