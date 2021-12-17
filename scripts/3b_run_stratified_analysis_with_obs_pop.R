@@ -127,7 +127,7 @@ I
 # simulate stratified random surveys --------------------------------------
 
 n_sims = 100 # number of simulations
-total_sample = 30 # total sample efforts you want to deploy
+total_sample = 15 # total sample efforts you want to deploy
 min_sets = 1 # minimum number of sets per strat
 trawl_dim = c(0.01, 0.0353) # 0.000353 sq.km (353 sq.m) from two 15-m diameter survey cylinders
 resample_cells = F
@@ -382,6 +382,7 @@ ggdark::invert_geom_defaults
                         "Number of simulations = ", n_sims)) +
     annotate(label = label,
              geom = "text",
+             color = 'black',
              x = Inf,
              y = Inf, 
              size = 4, 
