@@ -365,6 +365,7 @@ if (response_scale == "biomass") ylab_scale = "biomass (g)"
 
 if (response_scale == "count") ylab_scale = "abundance (n)"
 
+ggdark::invert_geom_defaults
 
 (sim_output = df %>% 
     ggplot() + 
