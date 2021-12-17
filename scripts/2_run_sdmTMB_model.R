@@ -18,7 +18,7 @@ unit = c("biomass", "abundance")[1]
 if (unit == "biomass") response_variables = c("PISCIVORE_BIO", "PLANKTIVORE_BIO", "PRIMARY_BIO", "SECONDARY_BIO", "TotFishBio")
 if (unit == "abundance") response_variables = c("PISCIVORE_ABUN", "PLANKTIVORE_ABUN", "PRIMARY_ABUN", "SECONDARY_ABUN", "TotFishAbund")
 
-knots = c(100, 300, 500, 1000)[1]
+knots = c(100, 300, 500, 1000)[2]
 
 for (r in 1:length(response_variables)) {
   
@@ -94,16 +94,16 @@ for (r in 1:length(response_variables)) {
     time = "year", 
     spde = rea_spde, 
     anisotropy = T,
-    # family = tweedie(link = "log"),
+    family = tweedie(link = "log"),
     # family = poisson(link = "log"),
-    family = nbinom2(link = "log"),
+    # family = nbinom2(link = "log"),
     # family = Beta(link = "logit"),
     
     control = sdmTMBcontrol(step.min = 0.01, step.max = 1)
     
   ); beepr::beep(2)
   
-  density_model <- run_extra_optimization(density_model); beepr::beep(2)
+  density_model <- run_extra_optimization(density_model, newton_loops = 0); beepr::beep(2)
   
   # look at gradients
   max(density_model$gradients)
@@ -148,7 +148,7 @@ for (r in 1:length(response_variables)) {
   # r
   
   # prediction onto new data grid
-  load(paste0("data/gis_bathymetry/raster/", substr(tolower(islands), 1, 3), ".RData")) # bathymetry 
+  load(paste0("data/gis_bathymetry/", substr(tolower(islands), 1, 3), ".RData")) # bathymetry 
   
   utmcoor <- SpatialPoints(cbind(topo$x, topo$y), proj4string = CRS("+proj=utm +units=m +zone=55"))
   longlatcoor <- spTransform(utmcoor,CRS("+proj=longlat"))
