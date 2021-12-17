@@ -68,15 +68,15 @@ sim$ages = 1
 sim_grid = sim$grid_xy
 
 sim_grid = sim_grid %>%
-  mutate(x = round(x, 1),
-         y = round(y, 1)) %>%
+  mutate(x = round(x, 4),
+         y = round(y, 4)) %>%
   group_by(x, y) %>%
   summarise(cell = round(median(cell), 0)) %>% 
   as.data.frame()
 
 sdm_grid = sdm %>%
-  mutate(x = round(x, 1),
-         y = round(y, 1)) %>%
+  mutate(x = round(x, 4),
+         y = round(y, 4)) %>%
   group_by(x, y, year) %>%
   summarise(est = sum(est)) %>% 
   as.data.frame()
@@ -98,8 +98,8 @@ df = merge(sim_grid, sdm_grid)
 
 df %>%
   as.data.frame() %>% 
-  mutate(x = round(x, 0),
-         y = round(y, 0)) %>%
+  # mutate(x = round(x, 0),
+  #        y = round(y, 0)) %>%
   group_by(x, y, year) %>%
   summarise(est = sum(est)) %>%
   ggplot(aes(x, y, fill = est)) +
@@ -127,7 +127,7 @@ I
 # simulate stratified random surveys --------------------------------------
 
 n_sims = 100 # number of simulations
-total_sample = 30 # total sample efforts you want to deploy
+total_sample = 15 # total sample efforts you want to deploy
 min_sets = 1 # minimum number of sets per strat
 trawl_dim = c(0.01, 0.0353) # 0.000353 sq.km (353 sq.m) from two 15-m diameter survey cylinders
 resample_cells = F
@@ -336,8 +336,8 @@ rmse = formatC(sim$total_strat_error_stats[4], digits = 3)
 label = paste0("ME = ", me, "\n", "MAE = ", mae, "\n", "MSE = ", mse, "\n", "RMSE = ", rmse)
 
 strata = sim$grid_xy %>%
-  mutate(x = round(x/0.5, digits = 0),
-         y = round(y/0.5, digits = 0)) %>%
+  # mutate(x = round(x/0.5, digits = 0),
+         # y = round(y/0.5, digits = 0)) %>%
   group_by(x, y) %>% 
   summarise(strat = round(mean(strat), digits = 0),
             depth = mean(depth)) 
