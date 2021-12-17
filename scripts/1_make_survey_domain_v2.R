@@ -68,10 +68,10 @@ for (isl in 1:length(islands)) {
   crm_res = rasterFromXYZ(df[,c("x", "y", "cell")])
   dim(crm_res); crm_res  
   
-  hardsoft = resample(hardsoft, crm_res, method = "bilinear") 
-  sector = resample(sector, crm_res, method = "bilinear") 
-  reef = resample(reef, crm_res, method = "bilinear") 
-  bathymetry = resample(bathymetry, crm_res, method = "bilinear") 
+  hardsoft = resample(hardsoft, crm_res, method = "ngb") 
+  sector = resample(sector, crm_res, method = "ngb") 
+  reef = resample(reef, crm_res, method = "ngb") 
+  bathymetry = resample(bathymetry, crm_res, method = "ngb") 
   
   df = stack(hardsoft, sector, reef, bathymetry)
   df = as.data.frame(rasterToPoints(df))
