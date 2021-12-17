@@ -25,4 +25,4 @@ names(tab)
 # match strata
 c<-merge(b,tab,by="strat", all.y=T,all.x=T)
 # save file
-write.csv(c,file="outputs/sector_allocation_gua.csv")
+write.csv(c,file="outputs/sector_allocation_gua.csv", row.names = F)

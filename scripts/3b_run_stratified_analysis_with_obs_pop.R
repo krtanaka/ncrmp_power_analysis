@@ -127,7 +127,7 @@ I
 # simulate stratified random surveys --------------------------------------
 
 n_sims = 100 # number of simulations
-total_sample = 50 # total sample efforts you want to deploy
+total_sample = 30 # total sample efforts you want to deploy
 min_sets = 1 # minimum number of sets per strat
 trawl_dim = c(0.01, 0.0353) # 0.000353 sq.km (353 sq.m) from two 15-m diameter survey cylinders
 resample_cells = F
@@ -362,7 +362,9 @@ save(sim_results, file = paste0('outputs/sim_results_', island,  sp, "_", n_sims
                                "Survey effort = ", total_sample, " sites"))))
 
 if (response_scale == "biomass") ylab_scale = "biomass (g)"
+
 if (response_scale == "count") ylab_scale = "abundance (n)"
+
 
 (sim_output = df %>% 
     ggplot() + 

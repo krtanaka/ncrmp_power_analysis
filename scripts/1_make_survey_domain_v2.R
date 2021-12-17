@@ -138,7 +138,7 @@ for (isl in 1:length(islands)) {
     subset(sector_id != "GUA_LAND") %>% # filter sector
     subset(reef_id %in% c( "Forereef")) %>% # filter land and Reef Crest/Reef Flat
     subset(hardsoft_id %in% c("Hard", "Unknown")) %>%  # filter hardsoft
-    subset(sector_id %in% c("GUA_PATI_PT", "GUA_TUMON_BAY","GUA_PITI_BOMB","GUA_ACHANG")) # filter for sector
+    subset(sector_id %in% c("GUA_PITI_BOMB")) # filter for sector
   
   df$strat = paste(df$depth_bin, 
                    df$sector,
