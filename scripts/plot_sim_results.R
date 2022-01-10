@@ -12,15 +12,20 @@ for (i in 1:3) {
   
   # i = 2
   
-  # 2005-2019
-  if (i == 1) load('outputs/sim_results_Maui_traditional_median_PLANKTIVORE_100_biomass.RData')
-  if (i == 2) load('outputs/sim_results_Maui_downscaled_median_PLANKTIVORE_100_biomass.RData')
-  if (i == 3) load('outputs/sim_results_Maui_downscaled_alt_median_PLANKTIVORE_100_biomass.RData')
+  # # 2005-2019
+  # if (i == 1) load('outputs/sim_results_Maui_traditional_median_PLANKTIVORE_100_biomass.RData')
+  # if (i == 2) load('outputs/sim_results_Maui_downscaled_median_PLANKTIVORE_100_biomass.RData')
+  # if (i == 3) load('outputs/sim_results_Maui_downscaled_alt_median_PLANKTIVORE_100_biomass.RData')
   
   # # 2010-2019
   # if (i == 1) load('outputs/sim_results_Maui_traditional_median_PISCIVORE_100_biomass.RData')
   # if (i == 2) load('outputs/sim_results_Maui_downscaled_median_PISCIVORE_100_biomass.RData')
   # if (i == 3) load('outputs/sim_results_Maui_downscaled_alt_median_PISCIVORE_100_biomass.RData')
+  
+  # 2005-2019
+  if (i == 1) load('outputs/sim_results_Oahu_traditional_median_PLANKTIVORE_100_biomass.RData')
+  if (i == 2) load('outputs/sim_results_Oahu_downscaled_median_PLANKTIVORE_100_biomass.RData')
+  if (i == 3) load('outputs/sim_results_Oahu_downscaled_alt_median_PLANKTIVORE_100_biomass.RData')
   
   area = sim_results[[1]]
   sim = sim_results[[2]]
@@ -77,6 +82,8 @@ for (i in 1:3) {
     # scale_x_log10() + 
     ylab("biomass (g)") +
     xlab("") + 
+    xlim(2010,2019) + 
+    ylim(0, 500000000) + 
     facet_grid(~ strategy) + 
     geom_text(
       data    = rmse,
