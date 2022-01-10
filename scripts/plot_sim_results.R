@@ -65,12 +65,12 @@ for (i in 1:3) {
     theme(legend.position = "right") + 
     facet_grid(~ strategy) + 
     # scale_fill_gradient(low = "gray", high = "red", "# of sites")) + 
-    scale_fill_viridis_c("Log(# of sites)", trans = "log") + 
+    scale_fill_viridis_c("Log(# of sites)") + 
     ggtitle("(a)"))
 # scale_fill_gradientn(colours = topo.colors(100)))
 
 (p2 = sims %>% 
-    # subset(year >= 2010) %>% 
+    subset(year >= 2010) %>%
     ggplot() + 
     geom_line(aes(year, I_hat, group = sim, color = sim), alpha = 0.5, show.legend = T) +
     scale_color_viridis_c("Simulation") + 
@@ -80,10 +80,10 @@ for (i in 1:3) {
     theme_minimal() + 
     # scale_y_log10() + 
     # scale_x_log10() + 
+    scale_x_continuous(breaks = c(2010, 2013, 2016),
+                     labels = c(2010, 2013, 2016)) + 
     ylab("biomass (g)") +
     xlab("") + 
-    xlim(2010,2019) + 
-    ylim(0, 500000000) + 
     facet_grid(~ strategy) + 
     geom_text(
       data    = rmse,
