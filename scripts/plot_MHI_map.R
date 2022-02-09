@@ -1,3 +1,28 @@
+
+library(ggOceanMaps)
+library(metR)
+
+basemap(limits = c(-161, -154, 18, 23), 
+        land.col = "gray20", 
+        # bathy.style = "poly_greys",
+        bathy.size = 0.5,
+        land.border.col = NA, 
+        bathymetry = TRUE) + 
+  geom_label_repel(data = label, 
+                  aes(x = lon, y = lat, label = ISLAND), 
+                  fontface = "bold",   
+                  nudge_x = c(0.5, 0.5, 0.5, 0.5, 0.5),
+                  nudge_y = c(0.5, 0.5, 0.5, 0.5, 0.5),
+                  label.size = NA,  
+                  label.padding=.1, 
+                  na.rm=TRUE,
+                  fill = alpha(c("white"),0.8))
+  # scale_color_discrete("") + 
+  # scale_x_longitude() +
+  # scale_y_latitude() 
+  # labs(x = "", y = "") +
+  # theme_minimal(I(20))
+
 library(sf)
 library(ggplot2)
 library(rnaturalearth)
