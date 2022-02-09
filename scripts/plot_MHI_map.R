@@ -2,7 +2,7 @@
 library(ggOceanMaps)
 library(metR)
 
-basemap(limits = c(-161, -154, 18, 23), 
+map = basemap(limits = c(-161, -154, 18, 23), 
         land.col = "gray20", 
         # bathy.style = "poly_greys",
         bathy.size = 0.5,
@@ -16,12 +16,13 @@ basemap(limits = c(-161, -154, 18, 23),
                   label.size = NA,  
                   label.padding=.1, 
                   na.rm=TRUE,
-                  fill = alpha(c("white"),0.8))
-  # scale_color_discrete("") + 
+                  fill = alpha(c("white"),0.8)) + 
+  scale_fill_viridis_d("Depth(m)", direction = -1) +
   # scale_x_longitude() +
-  # scale_y_latitude() 
-  # labs(x = "", y = "") +
-  # theme_minimal(I(20))
+  # scale_y_latitude() + 
+  labs(x = "", y = "") + 
+  theme_pubr(I(20)) + 
+  theme(legend.position = "right")
 
 library(sf)
 library(ggplot2)
@@ -86,7 +87,7 @@ map <- ggplot(data = world) +
   geom_contour(data = b,
                aes(x = x, y = y, z = z),
                breaks = seq(-8000, 0, by = 500),
-               size = c(0.05),
+               size = c(0.1),
                alpha = 0.8,
                colour = grey.colors(17003, rev = T)) +
   scale_fill_discrete("") + 
@@ -96,13 +97,13 @@ map <- ggplot(data = world) +
                   fontface = "bold",   
                   nudge_x = c(0.5, 0.5, 0.5, 0.5, 0.5),
                   nudge_y = c(0.5, 0.5, 0.5, 0.5, 0.5)) +
-  theme_minimal() + 
+  theme_pubr() + 
   theme(
     # axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
     axis.title = element_blank())
     # legend.position = c(0.1, 0.3))
 
 # pdf('/Users/Kisei.Tanaka/Desktop/MHI_200m_Bathy_Countour.pdf', height = 5, width = 7)
-png('/Users/Kisei.Tanaka/Desktop/MHI_200m_Bathy_Countour.png', height = 5, width = 7, res = 100, units = "in")
+png('/Users/kisei/Desktop/MHI_200m_Bathy_Countour.png', height = 5, width = 7, res = 500, units = "in")
 print(map)
 dev.off()
