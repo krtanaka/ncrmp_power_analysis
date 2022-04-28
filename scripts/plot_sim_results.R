@@ -59,15 +59,15 @@ for (i in 1:3) {
 (p1 = areas %>% 
     ggplot(aes(x, y)) +
     # coord_fixed() + 
-    geom_raster(aes(fill = strat_sets)) + 
-    theme_minimal() + 
+    geom_raster(aes(fill = log(strat_sets))) + 
+    theme_half_open() + 
     ylab("Northing (km)") + xlab("Easting (km)") + 
     theme(legend.position = "right") + 
     facet_grid(~ strategy) + 
-    # scale_fill_gradient(low = "gray", high = "red", "# of sites")) + 
-    scale_fill_viridis_c("Log(# of sites)") + 
+    # scale_fill_gradient(low = "gray", high = "red", "# of sites") +
+    scale_fill_gradientn(colours = matlab.like(100), "log(# of sites)") +
+    # scale_fill_viridis_c("Log(# of sites)") +
     ggtitle("(a)"))
-# scale_fill_gradientn(colours = topo.colors(100)))
 
 (p2 = sims %>% 
     subset(year >= 2010) %>%
@@ -77,7 +77,7 @@ for (i in 1:3) {
     ggnewscale::new_scale_color() +
     geom_line(aes(year, I, color = "True biomass"), size = 2) + 
     scale_color_viridis_d("") + 
-    theme_minimal() + 
+    theme_half_open() + 
     # scale_y_log10() + 
     # scale_x_log10() + 
     scale_x_continuous(breaks = c(2010, 2013, 2016),

@@ -46,8 +46,9 @@ trophic = trophic %>% subset(year >= 2010)
     scale_fill_viridis_c("Linear trend") + 
     scale_color_viridis_c("Linear trend") + 
     # ggdark::dark_theme_minimal() +
-    theme_minimal() + 
-    theme(legend.position = c(0.15, 0.35)))
+    theme_half_open() +
+    theme(legend.position = c(0.15, 0.35))+ 
+    ggtitle("(a)"))
 
 (c2 = trophic %>% 
     subset(year == 2010) %>% 
@@ -66,8 +67,9 @@ trophic = trophic %>% subset(year >= 2010)
     scale_fill_viridis_c("Linear trend") + 
     scale_color_viridis_c("Linear trend") + 
     # ggdark::dark_theme_minimal() +
-    theme_minimal() + 
-    theme(legend.position = c(0.15, 0.35)))
+    theme_half_open() +
+    theme(legend.position = c(0.15, 0.35))+ 
+    ggtitle(""))
 
 (c3 = trophic %>% 
     subset(year == 2010) %>% 
@@ -86,8 +88,9 @@ trophic = trophic %>% subset(year >= 2010)
     scale_fill_viridis_c("Linear trend") + 
     scale_color_viridis_c("Linear trend") + 
     # ggdark::dark_theme_minimal() +
-    theme_minimal() + 
-    theme(legend.position = c(0.15, 0.35)))
+    theme_half_open() +
+    theme(legend.position = c(0.15, 0.35))+ 
+    ggtitle(""))
 
 (c4 = trophic %>% 
     subset(year == 2010) %>% 
@@ -106,8 +109,9 @@ trophic = trophic %>% subset(year >= 2010)
     scale_fill_viridis_c("Linear trend") + 
     scale_color_viridis_c("Linear trend") + 
     # ggdark::dark_theme_minimal() +
-    theme_minimal() + 
-    theme(legend.position = c(0.15, 0.35)))
+    theme_half_open() +
+    theme(legend.position = c(0.15, 0.35))+ 
+    ggtitle(""))
 
 png(paste0('/Users/', Sys.info()[7], '/Desktop/change.png'), height = 3, width = 18, units = "in", res = 100)
 grid.arrange(c1, c2, c3, c4, nrow = 1)
