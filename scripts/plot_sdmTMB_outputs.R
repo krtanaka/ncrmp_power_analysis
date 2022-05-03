@@ -30,25 +30,6 @@ options(digits = 1)
 trophic = trophic %>% subset(year >= 2010)
 
 (c1 = trophic %>% 
-    # subset(year == 2010) %>% 
-    # subset(sp == "PISCIVORE") %>% 
-    group_by(x, y, sp) %>% 
-    summarise(est = mean(zeta_s)*10) %>%  
-    ggplot(aes(x, y, fill = est)) + 
-    geom_tile(height = 0.8, width = 0.8) +
-    coord_fixed() + 
-    facet_grid(~ sp) +
-    ylab("Northings (km)") + 
-    xlab("Eastings (km)") + 
-    # scale_fill_gradient2("Linear trend") +
-    scale_fill_viridis_c("Linear trend") +
-    theme_half_open() + 
-    theme(panel.background = element_rect(fill = "gray10", colour = "gray10"),
-          panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray20"), 
-          panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20")) +
-    ggtitle("(a)"))
-
-(c1 = trophic %>% 
     subset(year == 2010) %>% 
     subset(sp == "PISCIVORE") %>% 
     group_by(x, y, sp) %>% 
