@@ -33,63 +33,75 @@ trophic = trophic %>% subset(year >= 2010)
     # subset(year == 2010) %>% 
     # subset(sp == "PISCIVORE") %>% 
     group_by(x, y, sp) %>% 
-    summarise(est = mean(zeta_s)) %>%  
-    ggplot(aes(x, y, fill = est, color = est)) + 
+    summarise(est = mean(zeta_s)*10) %>%  
+    ggplot(aes(x, y, fill = est)) + 
     geom_tile(height = 0.8, width = 0.8) +
     coord_fixed() + 
     facet_grid(~ sp) +
     ylab("Northings (km)") + 
     xlab("Eastings (km)") + 
-    scale_fill_gradient2("Linear trend") +
-    scale_color_gradient2("Linear trend") +
-    # scale_fill_viridis_c("Linear trend") + 
-    # scale_color_viridis_c("Linear trend") + 
-    # ggdark::dark_theme_minimal() +
-    theme_half_open() +
+    # scale_fill_gradient2("Linear trend") +
+    scale_fill_viridis_c("Linear trend") +
+    theme_half_open() + 
+    theme(panel.background = element_rect(fill = "gray10", colour = "gray10"),
+          panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray20"), 
+          panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20")) +
     ggtitle("(a)"))
 
 (c1 = trophic %>% 
     subset(year == 2010) %>% 
     subset(sp == "PISCIVORE") %>% 
     group_by(x, y, sp) %>% 
-    summarise(est = mean(zeta_s)) %>%  
-    ggplot(aes(x, y, fill = est, color = est)) + 
+    summarise(est = mean(zeta_s)*10) %>%  
+    ggplot(aes(x, y, fill = est)) + 
     geom_tile(height = 0.8, width = 0.8) +
-    # geom_point(alpha = 0.5, size = 0.5) +
     coord_fixed() + 
     facet_grid(~ sp) +
     ylab("Northings (km)") + 
     xlab("Eastings (km)") + 
-    # scale_fill_gradient2("Linear trend") +
-    # scale_color_gradient2("Linear trend") +
-    scale_fill_viridis_c("Linear trend") + 
-    scale_color_viridis_c("Linear trend") + 
-    # ggdark::dark_theme_minimal() +
+    # scale_fill_gradient2("") +
+    scale_fill_viridis_c("") +
     theme_half_open() +
     theme(legend.position = c(0, 0), 
-          legend.justification = c(-0.1, -0.1))+ 
+          legend.justification = c(-0.1, -0.1),
+          legend.key = element_rect(colour = NA, fill = NA),
+          legend.text = element_text(color = "white", size = 12),
+          legend.key.size = unit(0.5, "cm"),
+          axis.line = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          axis.title = element_blank(),
+          panel.background = element_rect(fill = "gray10", colour = "gray10"),
+          panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray20"), 
+          panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20"))+ 
     ggtitle("(a)"))
 
 (c2 = trophic %>% 
     subset(year == 2010) %>% 
     subset(sp == "PLANKTIVORE") %>% 
     group_by(x, y, sp) %>% 
-    summarise(est = mean(zeta_s)) %>%  
-    ggplot(aes(x, y, fill = est, color = est)) + 
+    summarise(est = mean(zeta_s)*10) %>%  
+    ggplot(aes(x, y, fill = est)) + 
     geom_tile(height = 0.8, width = 0.8) +
-    # geom_point(alpha = 0.5, size = 0.5) +
     coord_fixed() + 
     facet_grid(~ sp) + 
     ylab("Northings (km)") + 
     xlab("Eastings (km)") + 
-    # scale_fill_gradient2("Linear trend") +
-    # scale_color_gradient2("Linear trend") +
-    scale_fill_viridis_c("Linear trend") + 
-    scale_color_viridis_c("Linear trend") + 
-    # ggdark::dark_theme_minimal() +
+    scale_fill_gradient2("") +
+    scale_fill_viridis_c("") +
     theme_half_open() +
     theme(legend.position = c(0, 0), 
-          legend.justification = c(-0.1, -0.1))+ 
+          legend.justification = c(-0.1, -0.1),
+          legend.key = element_rect(colour = NA, fill = NA),
+          legend.text = element_text(color = "white", size = 12),
+          legend.key.size = unit(0.5, "cm"),
+          axis.line = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          axis.title = element_blank(),
+          panel.background = element_rect(fill = "gray10", colour = "gray10"),
+          panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray20"), 
+          panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20"))+ 
     ggtitle(""))
 
 (c3 = trophic %>% 
@@ -97,21 +109,27 @@ trophic = trophic %>% subset(year >= 2010)
     subset(sp == "PRIMARY") %>% 
     group_by(x, y, sp) %>% 
     summarise(est = mean(zeta_s)) %>%  
-    ggplot(aes(x, y, fill = est, color = est)) + 
+    ggplot(aes(x, y, fill = est)) + 
     geom_tile(height = 0.8, width = 0.8) +
-    # geom_point(alpha = 0.5, size = 0.5) +
     coord_fixed() + 
     facet_grid(~ sp) + 
     ylab("Northings (km)") + 
     xlab("Eastings (km)") + 
-    # scale_fill_gradient2("Linear trend") +
-    # scale_color_gradient2("Linear trend") +
-    scale_fill_viridis_c("Linear trend") + 
-    scale_color_viridis_c("Linear trend") + 
-    # ggdark::dark_theme_minimal() +
+    # scale_fill_gradient2("") +
+    scale_fill_viridis_c("") +
     theme_half_open() +
     theme(legend.position = c(0, 0), 
-          legend.justification = c(-0.1, -0.1))+ 
+          legend.justification = c(-0.1, -0.1),
+          legend.key = element_rect(colour = NA, fill = NA),
+          legend.text = element_text(color = "white", size = 12),
+          legend.key.size = unit(0.5, "cm"),
+          axis.line = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          axis.title = element_blank(),
+          panel.background = element_rect(fill = "gray10", colour = "gray10"),
+          panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray20"), 
+          panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20"))+ 
     ggtitle(""))
 
 (c4 = trophic %>% 
@@ -119,21 +137,27 @@ trophic = trophic %>% subset(year >= 2010)
     subset(sp == "SECONDARY") %>% 
     group_by(x, y, sp) %>% 
     summarise(est = mean(zeta_s)) %>%  
-    ggplot(aes(x, y, fill = est, color = est)) + 
+    ggplot(aes(x, y, fill = est)) + 
     geom_tile(height = 0.8, width = 0.8) +
-    # geom_point(alpha = 0.5, size = 0.5) +
     coord_fixed() + 
     facet_grid(~ sp) + 
     ylab("Northings (km)") + 
     xlab("Eastings (km)") + 
-    # scale_fill_gradient2("Linear trend") +
-    # scale_color_gradient2("Linear trend") +
-    scale_fill_viridis_c("Linear trend") + 
-    scale_color_viridis_c("Linear trend") + 
-    # ggdark::dark_theme_minimal() +
+    scale_fill_gradient2("") +
+    scale_fill_viridis_c("") +
     theme_half_open() +
     theme(legend.position = c(0, 0), 
-          legend.justification = c(-0.1, -0.1))+ 
+          legend.justification = c(-0.1, -0.1),
+          legend.key = element_rect(colour = NA, fill = NA),
+          legend.text = element_text(color = "white", size = 12),
+          legend.key.size = unit(0.5, "cm"),
+          axis.line = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          axis.title = element_blank(),
+          panel.background = element_rect(fill = "gray10", colour = "gray10"),
+          panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray20"), 
+          panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20"))+ 
     ggtitle(""))
 
 png(paste0('/Users/', Sys.info()[7], '/Desktop/fig4a.png'), height = 3, width = 18, units = "in", res = 100)
@@ -144,84 +168,116 @@ dev.off()
     subset(sp == "PISCIVORE") %>% 
     group_by(x, y, sp) %>% 
     summarise(est = median(est)) %>%  
-    ggplot(aes(x, y, fill = est, color = est)) + 
+    ggplot(aes(x, y, fill = est)) + 
     geom_tile(height = 0.8, width = 0.8) +
-    # geom_point(alpha = 0.5, size = 0.5) +
     coord_fixed() + 
     facet_grid(~sp) +
     ylab("Northings (km)") + 
     xlab("Eastings (km)") + 
-    # scale_fill_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
-    # scale_color_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
-    scale_fill_viridis_c("g/353 sq.m") + 
-    scale_color_viridis_c("g/353 sq.m") + 
-    # ggdark::dark_theme_minimal() +
-    theme_minimal() + 
-    theme(legend.position = c(0.15, 0.35)))
+    scale_fill_gradient2("") +
+    scale_fill_viridis_c("") +
+    theme_half_open() +
+    theme(legend.position = c(0, 0), 
+          legend.justification = c(-0.1, -0.1),
+          legend.key = element_rect(colour = NA, fill = NA),
+          legend.text = element_text(color = "white", size = 12),
+          legend.key.size = unit(0.5, "cm"),
+          axis.line = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          axis.title = element_blank(),
+          panel.background = element_rect(fill = "gray10", colour = "gray10"),
+          panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray20"), 
+          panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20"))+ 
+    ggtitle("(a)"))
 
 (m2 = trophic %>% 
     subset(sp == "PLANKTIVORE") %>% 
     group_by(x, y, sp) %>% 
     summarise(est = median(est)) %>%  
-    ggplot(aes(x, y, fill = est, color = est)) + 
+    ggplot(aes(x, y, fill = est)) + 
     geom_tile(height = 0.8, width = 0.8) +
-    # geom_point(alpha = 0.5, size = 0.5) +
     coord_fixed() + 
     facet_grid(~sp) +
     ylab("Northings (km)") + 
     xlab("Eastings (km)") + 
-    # scale_fill_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
-    # scale_color_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
-    scale_fill_viridis_c("g/353 sq.m") + 
-    scale_color_viridis_c("g/353 sq.m") + 
-    # ggdark::dark_theme_minimal() +
-    theme_minimal() + 
-    theme(legend.position = c(0.15, 0.35)))
+    scale_fill_gradient2("") +
+    scale_fill_viridis_c("") +
+    theme_half_open() +
+    theme(legend.position = c(0, 0), 
+          legend.justification = c(-0.1, -0.1),
+          legend.key = element_rect(colour = NA, fill = NA),
+          legend.text = element_text(color = "white", size = 12),
+          legend.key.size = unit(0.5, "cm"),
+          axis.line = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          axis.title = element_blank(),
+          panel.background = element_rect(fill = "gray10", colour = "gray10"),
+          panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray20"), 
+          panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20"))+ 
+    ggtitle(""))
 
 (m3 = trophic %>% 
     subset(sp == "PRIMARY") %>% 
     group_by(x, y, sp) %>% 
     summarise(est = median(est)) %>%  
-    ggplot(aes(x, y, fill = est, color = est)) + 
+    ggplot(aes(x, y, fill = est)) + 
     geom_tile(height = 0.8, width = 0.8) +
-    # geom_point(alpha = 0.5, size = 0.5) +
     coord_fixed() + 
     facet_grid(~sp) +
     ylab("Northings (km)") + 
     xlab("Eastings (km)") + 
-    # scale_fill_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
-    # scale_color_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
-    scale_fill_viridis_c("g/353 sq.m") + 
-    scale_color_viridis_c("g/353 sq.m") + 
-    # ggdark::dark_theme_minimal() +
-    theme_minimal() + 
-    theme(legend.position = c(0.15, 0.35)))
+    scale_fill_gradient2("") +
+    scale_fill_viridis_c("") +
+    theme_half_open() +
+    theme(legend.position = c(0, 0), 
+          legend.justification = c(-0.1, -0.1),
+          legend.key = element_rect(colour = NA, fill = NA),
+          legend.text = element_text(color = "white", size = 12),
+          legend.key.size = unit(0.5, "cm"),
+          axis.line = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          axis.title = element_blank(),
+          panel.background = element_rect(fill = "gray10", colour = "gray10"),
+          panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray20"), 
+          panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20"))+ 
+    ggtitle(""))
 
 (m4 = trophic %>% 
     subset(sp == "SECONDARY") %>% 
     group_by(x, y, sp) %>% 
     summarise(est = median(est)) %>%  
-    ggplot(aes(x, y, fill = est, color = est)) + 
+    ggplot(aes(x, y, fill = est)) + 
     geom_tile(height = 0.8, width = 0.8) +
-    # geom_point(alpha = 0.5, size = 0.5) +
     coord_fixed() + 
     facet_grid(~sp) +
     ylab("Northings (km)") + 
     xlab("Eastings (km)") + 
-    # scale_fill_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
-    # scale_color_gradientn(colours = matlab.like(100), "g/353 sq.m") + 
-    scale_fill_viridis_c("g/353 sq.m") + 
-    scale_color_viridis_c("g/353 sq.m") + 
-    # ggdark::dark_theme_minimal() +
-    theme_minimal() + 
-    theme(legend.position = c(0.15, 0.35)))
+    scale_fill_gradient2("") +
+    scale_fill_viridis_c("") +
+    theme_half_open() +
+    theme(legend.position = c(0, 0), 
+          legend.justification = c(-0.1, -0.1),
+          legend.key = element_rect(colour = NA, fill = NA),
+          legend.text = element_text(color = "white", size = 12),
+          legend.key.size = unit(0.5, "cm"),
+          axis.line = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          axis.title = element_blank(),
+          panel.background = element_rect(fill = "gray10", colour = "gray10"),
+          panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray20"), 
+          panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20"))+ 
+    ggtitle(""))
 
 png(paste0('/Users/', Sys.info()[7], '/Desktop/biomass.png'), height = 3, width = 18, units = "in", res = 100)
 grid.arrange(m1, m2, m3, m4, nrow = 1)
 dev.off()
 
 (t1 = trophic %>% 
-    subset(sp == "PISCIVORE") %>% 
+    subset(sp == "PISCIVORE") %>%
     group_by(year, sp) %>% 
     summarise(mean_est = median(est),
               sd = sd(est, na.rm = T)) %>%
@@ -236,8 +292,7 @@ dev.off()
     ylab("g/353 sq.m") + 
     xlab("Year") + 
     facet_grid(~sp) + 
-    # ggdark::dark_theme_minimal() +
-    theme_minimal() + 
+    theme_half_open() + 
     theme(legend.position = "right"))
 
 (t2 = trophic %>% 
@@ -256,8 +311,7 @@ dev.off()
     ylab("g/353 sq.m") + 
     xlab("Year") + 
     facet_grid(~sp) + 
-    # ggdark::dark_theme_minimal() +
-    theme_minimal() + 
+    theme_half_open() + 
     theme(legend.position = "right"))
 
 (t3 = trophic %>% 
@@ -276,8 +330,7 @@ dev.off()
     ylab("g/353 sq.m") + 
     xlab("Year") + 
     facet_grid(~sp) + 
-    # ggdark::dark_theme_minimal() +
-    theme_minimal() + 
+    theme_half_open() + 
     theme(legend.position = "right"))
 
 (t4 = trophic %>% 
@@ -296,8 +349,7 @@ dev.off()
     ylab("g/353 sq.m") + 
     xlab("Year") + 
     facet_grid(~sp) + 
-    # ggdark::dark_theme_minimal() +
-    theme_minimal() + 
+    theme_half_open() + 
     theme(legend.position = "right"))
 
 png(paste0('/Users/', Sys.info()[7], '/Desktop/trend.png'), height = 3, width = 18, units = "in", res = 100)
