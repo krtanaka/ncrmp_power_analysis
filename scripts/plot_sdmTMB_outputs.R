@@ -30,6 +30,25 @@ options(digits = 1)
 trophic = trophic %>% subset(year >= 2010)
 
 (c1 = trophic %>% 
+    # subset(year == 2010) %>% 
+    # subset(sp == "PISCIVORE") %>% 
+    group_by(x, y, sp) %>% 
+    summarise(est = mean(zeta_s)) %>%  
+    ggplot(aes(x, y, fill = est, color = est)) + 
+    geom_tile(height = 0.8, width = 0.8) +
+    coord_fixed() + 
+    facet_grid(~ sp) +
+    ylab("Northings (km)") + 
+    xlab("Eastings (km)") + 
+    scale_fill_gradient2("Linear trend") +
+    scale_color_gradient2("Linear trend") +
+    # scale_fill_viridis_c("Linear trend") + 
+    # scale_color_viridis_c("Linear trend") + 
+    # ggdark::dark_theme_minimal() +
+    theme_half_open() +
+    ggtitle("(a)"))
+
+(c1 = trophic %>% 
     subset(year == 2010) %>% 
     subset(sp == "PISCIVORE") %>% 
     group_by(x, y, sp) %>% 
@@ -47,7 +66,8 @@ trophic = trophic %>% subset(year >= 2010)
     scale_color_viridis_c("Linear trend") + 
     # ggdark::dark_theme_minimal() +
     theme_half_open() +
-    theme(legend.position = c(0.15, 0.35))+ 
+    theme(legend.position = c(0, 0), 
+          legend.justification = c(-0.1, -0.1))+ 
     ggtitle("(a)"))
 
 (c2 = trophic %>% 
@@ -68,7 +88,8 @@ trophic = trophic %>% subset(year >= 2010)
     scale_color_viridis_c("Linear trend") + 
     # ggdark::dark_theme_minimal() +
     theme_half_open() +
-    theme(legend.position = c(0.15, 0.35))+ 
+    theme(legend.position = c(0, 0), 
+          legend.justification = c(-0.1, -0.1))+ 
     ggtitle(""))
 
 (c3 = trophic %>% 
@@ -89,7 +110,8 @@ trophic = trophic %>% subset(year >= 2010)
     scale_color_viridis_c("Linear trend") + 
     # ggdark::dark_theme_minimal() +
     theme_half_open() +
-    theme(legend.position = c(0.15, 0.35))+ 
+    theme(legend.position = c(0, 0), 
+          legend.justification = c(-0.1, -0.1))+ 
     ggtitle(""))
 
 (c4 = trophic %>% 
@@ -110,10 +132,11 @@ trophic = trophic %>% subset(year >= 2010)
     scale_color_viridis_c("Linear trend") + 
     # ggdark::dark_theme_minimal() +
     theme_half_open() +
-    theme(legend.position = c(0.15, 0.35))+ 
+    theme(legend.position = c(0, 0), 
+          legend.justification = c(-0.1, -0.1))+ 
     ggtitle(""))
 
-png(paste0('/Users/', Sys.info()[7], '/Desktop/change.png'), height = 3, width = 18, units = "in", res = 100)
+png(paste0('/Users/', Sys.info()[7], '/Desktop/fig4a.png'), height = 3, width = 18, units = "in", res = 100)
 grid.arrange(c1, c2, c3, c4, nrow = 1)
 dev.off()
 
