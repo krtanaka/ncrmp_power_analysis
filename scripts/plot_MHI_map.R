@@ -9,30 +9,6 @@ library(dplyr)
 library(ggOceanMaps)
 library(metR)
 
-map = basemap(limits = c(-161, -154, 18, 23), 
-        land.col = "gray20", 
-        # bathy.style = "poly_greys",
-        bathy.size = 0.5,
-        land.border.col = NA, 
-        bathymetry = TRUE) + 
-  geom_label_repel(data = label, 
-                  aes(x = lon, y = lat, label = ISLAND), 
-                  fontface = "bold",   
-                  nudge_x = c(0.5, 0.5, 0.5, 0.5, 0.5),
-                  nudge_y = c(0.5, 0.5, 0.5, 0.5, 0.5),
-                  label.size = NA,  
-                  label.padding=.1, 
-                  na.rm=TRUE,
-                  fill = alpha(c("white"),0.8)) + 
-  scale_fill_viridis_d("Depth(m)", direction = -1) +
-  # scale_x_longitude() +
-  # scale_y_latitude() + 
-  labs(x = "", y = "") + 
-  theme_pubr(I(20)) + 
-  theme(legend.position = "right")
-
-
-
 rm(list = ls())
 
 world <- ne_countries(scale = "large", returnclass = "sf")
@@ -75,33 +51,55 @@ label = df %>%
   summarise(lat = mean(LATITUDE),
             lon = mean(LONGITUDE))
 
-map <- ggplot(data = world) +
-  coord_sf(crs = st_crs(4135) # old hawaii projection code
-           # xlim = c(-160.5, -154.8),
-           # ylim = c(18.91, 22.25), expand = F
-           ) +
-  geom_sf() +
-  # scale_x_continuous(breaks = seq(-160.5, -154.8, by = 0.5)) +
-  # scale_y_continuous(breaks = seq(18.91, 22.25, by = 0.5)) +
-  # geom_point(data = df, aes(LONGITUDE, LATITUDE, color = factor(OBS_YEAR))) + 
-  geom_contour(data = b,
-               aes(x = x, y = y, z = z),
-               breaks = seq(-8000, 0, by = 500),
-               size = c(0.1),
-               alpha = 0.8,
-               colour = grey.colors(17003, rev = T)) +
-  scale_fill_discrete("") + 
-  scale_color_discrete("") + 
-  geom_text_repel(data = label, 
-                  aes(x = lon, y = lat, label = ISLAND), 
-                  fontface = "bold",   
-                  nudge_x = c(0.5, 0.5, 0.5, 0.5, 0.5),
-                  nudge_y = c(0.5, 0.5, 0.5, 0.5, 0.5)) +
-  theme_pubr() + 
-  theme(
-    # axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
-    axis.title = element_blank())
-    # legend.position = c(0.1, 0.3))
+(map = basemap(limits = c(-161, -154, 18, 23), 
+               land.col = "gray20", 
+               bathy.style = "poly_greys",
+               bathy.size = 0.5,
+               land.border.col = NA, 
+               bathymetry = TRUE) + 
+    geom_label_repel(data = label,
+                     aes(x = lon, y = lat, label = ISLAND),
+                     fontface = "bold",
+                     nudge_x = c(0.5, 0.5, 0.5, 0.5, 0.5),
+                     nudge_y = c(0.5, 0.5, 0.5, 0.5, 0.5),
+                     label.size = NA,
+                     label.padding=.1,
+                     na.rm=TRUE,
+                     fill = alpha(c("white"),0.8)) +
+    scale_fill_viridis_d("Depth(m)", direction = -1) +
+    scale_x_longitude() +
+    scale_y_latitude() +
+    labs(x = "", y = "") + 
+    theme_pubr(I(20)) + 
+    theme(legend.position = "right"))
+
+(map <- ggplot(data = world) +
+    coord_sf(crs = st_crs(4135) # old hawaii projection code
+             # xlim = c(-160.5, -154.8),
+             # ylim = c(18.91, 22.25), expand = F
+    ) +
+    geom_sf() +
+    # scale_x_continuous(breaks = seq(-160.5, -154.8, by = 0.5)) +
+    # scale_y_continuous(breaks = seq(18.91, 22.25, by = 0.5)) +
+    # geom_point(data = df, aes(LONGITUDE, LATITUDE, color = factor(OBS_YEAR))) + 
+    geom_contour(data = b,
+                 aes(x = x, y = y, z = z),
+                 breaks = seq(-8000, 0, by = 500),
+                 size = c(0.1),
+                 alpha = 0.8,
+                 colour = grey.colors(17003, rev = T)) +
+    scale_fill_discrete("") + 
+    scale_color_discrete("") + 
+    geom_text_repel(data = label, 
+                    aes(x = lon, y = lat, label = ISLAND), 
+                    fontface = "bold",   
+                    nudge_x = c(0.5, 0.5, 0.5, 0.5, 0.5),
+                    nudge_y = c(0.5, 0.5, 0.5, 0.5, 0.5)) +
+    theme_pubr() + 
+    theme(
+      # axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+      axis.title = element_blank()))
+# legend.position = c(0.1, 0.3))
 
 # pdf('/Users/Kisei.Tanaka/Desktop/MHI_200m_Bathy_Countour.pdf', height = 5, width = 7)
 png('/Users/kisei/Desktop/MHI_200m_Bathy_Countour.png', height = 5, width = 7, res = 500, units = "in")
