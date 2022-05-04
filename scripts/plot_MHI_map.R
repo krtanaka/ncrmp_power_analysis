@@ -1,4 +1,11 @@
-
+library(sf)
+library(ggplot2)
+library(rnaturalearth)
+library(marmap)
+library(raster)
+library(rmapshaper)
+library(ggrepel)
+library(dplyr)
 library(ggOceanMaps)
 library(metR)
 
@@ -24,14 +31,7 @@ map = basemap(limits = c(-161, -154, 18, 23),
   theme_pubr(I(20)) + 
   theme(legend.position = "right")
 
-library(sf)
-library(ggplot2)
-library(rnaturalearth)
-library(marmap)
-library(raster)
-library(rmapshaper)
-library(ggrepel)
-library(dplyr)
+
 
 rm(list = ls())
 

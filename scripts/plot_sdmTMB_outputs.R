@@ -40,9 +40,9 @@ trophic = trophic %>% subset(year >= 2010)
     facet_grid(~ sp) +
     ylab("Northings (km)") + 
     xlab("Eastings (km)") + 
-    # scale_fill_gradient2("") +
+    scale_fill_gradient2("") +
     scale_fill_viridis_c("") +
-    theme_half_open() +
+    theme_map() +
     theme(legend.position = c(0, 0), 
           legend.justification = c(-0.1, -0.1),
           legend.key = element_rect(colour = NA, fill = NA),
@@ -53,8 +53,8 @@ trophic = trophic %>% subset(year >= 2010)
           axis.ticks = element_blank(),
           axis.title = element_blank(),
           panel.background = element_rect(fill = "gray10", colour = "gray10"),
-          panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray20"), 
-          panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20"))+ 
+          panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray20"),
+          panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20"))+
     ggtitle("(a)"))
 
 (c2 = trophic %>% 
@@ -70,7 +70,7 @@ trophic = trophic %>% subset(year >= 2010)
     xlab("Eastings (km)") + 
     scale_fill_gradient2("") +
     scale_fill_viridis_c("") +
-    theme_half_open() +
+    theme_map() +
     theme(legend.position = c(0, 0), 
           legend.justification = c(-0.1, -0.1),
           legend.key = element_rect(colour = NA, fill = NA),
@@ -96,9 +96,9 @@ trophic = trophic %>% subset(year >= 2010)
     facet_grid(~ sp) + 
     ylab("Northings (km)") + 
     xlab("Eastings (km)") + 
-    # scale_fill_gradient2("") +
+    scale_fill_gradient2("") +
     scale_fill_viridis_c("") +
-    theme_half_open() +
+    theme_map() +
     theme(legend.position = c(0, 0), 
           legend.justification = c(-0.1, -0.1),
           legend.key = element_rect(colour = NA, fill = NA),
@@ -126,7 +126,7 @@ trophic = trophic %>% subset(year >= 2010)
     xlab("Eastings (km)") + 
     scale_fill_gradient2("") +
     scale_fill_viridis_c("") +
-    theme_half_open() +
+    theme_map() +
     theme(legend.position = c(0, 0), 
           legend.justification = c(-0.1, -0.1),
           legend.key = element_rect(colour = NA, fill = NA),
@@ -157,7 +157,7 @@ dev.off()
     xlab("Eastings (km)") + 
     scale_fill_gradient2("") +
     scale_fill_viridis_c("") +
-    theme_half_open() +
+    theme_map() +
     theme(legend.position = c(0, 0), 
           legend.justification = c(-0.1, -0.1),
           legend.key = element_rect(colour = NA, fill = NA),
@@ -184,7 +184,7 @@ dev.off()
     xlab("Eastings (km)") + 
     scale_fill_gradient2("") +
     scale_fill_viridis_c("") +
-    theme_half_open() +
+    theme_map() +
     theme(legend.position = c(0, 0), 
           legend.justification = c(-0.1, -0.1),
           legend.key = element_rect(colour = NA, fill = NA),
@@ -211,7 +211,7 @@ dev.off()
     xlab("Eastings (km)") + 
     scale_fill_gradient2("") +
     scale_fill_viridis_c("") +
-    theme_half_open() +
+    theme_map() +
     theme(legend.position = c(0, 0), 
           legend.justification = c(-0.1, -0.1),
           legend.key = element_rect(colour = NA, fill = NA),
@@ -238,7 +238,7 @@ dev.off()
     xlab("Eastings (km)") + 
     scale_fill_gradient2("") +
     scale_fill_viridis_c("") +
-    theme_half_open() +
+    theme_map() +
     theme(legend.position = c(0, 0), 
           legend.justification = c(-0.1, -0.1),
           legend.key = element_rect(colour = NA, fill = NA),
