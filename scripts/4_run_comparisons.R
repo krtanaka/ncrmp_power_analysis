@@ -414,15 +414,15 @@ isl_power = isl_power %>%
   mutate(RMSE = as.numeric(RMSE),
          zscore = (RMSE - mean(RMSE))/sd(RMSE))
 
-(isl_power %>%
+(fig7 = isl_power %>%
     # subset(isl == "Oahu") %>%
     mutate(RMSE = as.numeric(RMSE)) %>% 
     ggplot() + 
     geom_smooth(aes(N, zscore, color = design), show.legend = T, se = T) +
     scale_color_viridis_d("") + 
     ggnewscale::new_scale_color() +
-    # facet_wrap(isl ~ sp, scales = "free_y", ncol = 7) +
-    facet_grid(sp ~ isl) +
+    facet_wrap(isl ~ sp, scales = "free_y", ncol = 7) +
+    # facet_grid(sp ~ isl) +
     scale_x_log10(breaks = trans_breaks('log10', function(x) 10^x),
                   labels = trans_format('log10', math_format(10^.x)), "Sampling Efforts") +
     # scale_y_log10(breaks = trans_breaks('log10', function(x) 10^x),
@@ -436,9 +436,9 @@ isl_power = isl_power %>%
     # scale_x_log10() +
     xlab("Sampling Efforts") + 
     ylab("Standadized RMSE") + 
-    theme_minimal())
+    theme_cowplot())
 
-(isl_power %>%
+(fig6 = isl_power %>%
     # subset(isl == "Oahu") %>% 
     # subset(sp == "PISCIVORE") %>% 
     mutate(RMSE = as.numeric(RMSE)) %>% 
@@ -447,35 +447,40 @@ isl_power = isl_power %>%
     # geom_point(aes(N, RMSE, color = design), alpha = 0.2) +
     # geom_hex(aes(N, RMSE, color = design, fill = design), alpha = 0.2, bins = 50) +
     # geom_vline(aes(xintercept = N, color = Year), data = survey_effort_MHI_year) +
-    # annotate("segment", 
-    #          x = 498, xend = 498, y = 250000000, yend = 100000000,
-    #          colour = "gray", 
-    #          arrow = arrow()) + 
-    # annotate("segment",
-    #          x = 400, xend = 400, y = 150000000, yend = 100000000,
-    #          colour = "gray",
-    #          arrow = arrow()) + 
-  # annotate("segment", 
-  #          x = 487, xend = 487, y = 200000000, yend = 100000000,
-  #          colour = "gray", 
-  #          arrow = arrow()) + 
-  # annotate("text", 
-  #          x = c(400, 487, 498),
-  #          y = c(160000000, 210000000, 260000000), 
-  #          label = c("2016", "2019", "2013")) + 
-  # scale_color_discrete("") +
-  scale_color_viridis_d("") + 
+    annotate("segment",
+             x = 498, xend = 498, y = 4.5, yend = 0.1,
+             colour = "red",
+             arrow = arrow()) +
+    annotate("segment",
+             x = 400, xend = 400, y = 4, yend = 3,
+             colour = "blue",
+             arrow = arrow()) +
+    annotate("segment",
+             x = 487, xend = 487, y = 3, yend = 3,
+             colour = "orange",
+             arrow = arrow()) +
+    annotate("text",
+             x = c(400, 487, 498),
+             y = c(4.5, 4, 3),
+             label = c("2016", "2019", "2013")) +
+    # scale_color_discrete("") +
+    scale_color_viridis_d("") + 
     xlab("Sampling Efforts") + 
     ylab("Standadized RMSE") + 
-    # scale_y_log10() + 
-    # # scale_x_log10() + 
-    scale_x_log10(breaks = trans_breaks('log10', function(x) 10^x),
-                  labels = trans_format('log10', math_format(10^.x)), "Sampling Efforts") +
+    # scale_y_log10() +
+    scale_x_log10() +
+    # scale_x_log10(breaks = trans_breaks('log10', function(x) 10^x),
+    #               labels = trans_format('log10', math_format(10^.x)), "Sampling Efforts") +
     # scale_y_log10(breaks = trans_breaks('log10', function(x) 10^x),
     #               labels = trans_format('log10', math_format(10^.x)), "RMSE") +
-    theme_minimal() +
+    theme_half_open() +
     guides(color = guide_legend(override.aes = list(fill = NA))) + 
-    theme(legend.position = c(0.8, 0.9)))
+    theme(legend.position = c(0, 0),
+          legend.justification = c(-0.2, -0.2)))
+
+png("outputs/fig6.png", units = "in", height = 5, width = 5, res = 500)
+(fig6)
+dev.off()
 
 df = isl_power %>% 
   mutate(RMSE = as.numeric(RMSE)) %>% 
@@ -503,14 +508,16 @@ png('outputs/')
     facet_wrap(~ Trophic_group, scale = "free_y", nrow = 1) +
     # facet_grid(~ Trophic_group, scale = "free") +
     # facet_grid(~ Island, scale = "free") + 
-    scale_y_log10() +
+    # scale_y_log10() +
     # scale_y_continuous(limits = quantile(df$RMSE, c(0.2, 0.9))) + 
+    scale_y_log10(breaks = trans_breaks('log10', function(x) 10^x),
+                  labels = trans_format('log10', math_format(10^.x)), "RMSE") +
     scale_fill_viridis_d("") + 
     xlab("") + 
     # coord_flip() + 
     # theme_pubr() + 
-    theme_minimal() + 
-    theme(axis.text.x = element_text(angle = 45, hjust = 1)))
+    theme_half_open() + 
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)))
 
 df$Effort_level = ""
 df$Effort_level = ifelse(df$Survey_efforts %in% c(10:50), "Low (10-50 sites)", df$Effort_level)
@@ -530,12 +537,13 @@ df$Effort_level = factor(df$Effort_level, levels = c('High (110-150 sites)',
     geom_boxplot(outlier.shape = NA) +
     facet_grid(Effort_level~ Trophic_group, scale = "free") +
     # facet_grid(~ Effort_level, scale = "free") +
-    scale_y_log10() +
+    # scale_y_log10() +
+    scale_y_log10(breaks = trans_breaks('log10', function(x) 10^x),
+                  labels = trans_format('log10', math_format(10^.x)), "RMSE") +
     scale_fill_viridis_d("") + 
     xlab("") + 
-    # theme_pubr() +
-    theme_minimal() +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1)))
+    theme_half_open() +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)))
 
 df = isl_power %>% 
   mutate(RMSE = as.numeric(RMSE)) %>% 

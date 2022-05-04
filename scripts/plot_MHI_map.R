@@ -95,7 +95,7 @@ label = df %>%
                     fontface = "bold",   
                     nudge_x = c(0.5, 0.5, 0.5, 0.5, 0.5),
                     nudge_y = c(0.5, 0.5, 0.5, 0.5, 0.5)) +
-    theme_pubr() + 
+    # theme_pubr() + 
     theme(
       # axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
       axis.title = element_blank()))
