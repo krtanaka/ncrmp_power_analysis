@@ -115,8 +115,8 @@ df = df %>%
                        labels = c(2010, 2012, 2013, 2015, 2016, 2019)) +
     theme(legend.position = c(0,1),
           legend.justification = c(-0.1, 0.9),
-          panel.background = element_rect(fill = alpha('white', 0.5)), # bg of the panel
-          plot.background = element_rect(fill = alpha('white', 0.5)), # bg of the plot
+          panel.background = element_rect(fill = alpha('white', 0.8)), # bg of the panel
+          plot.background = element_rect(fill = alpha('white', 0.8)), # bg of the plot
           axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)))
 
 library(cowplot)
@@ -124,7 +124,7 @@ library(cowplot)
 f1 <-
   ggdraw() +
   draw_plot(f1a) +
-  draw_plot(f1b, x = 0.04, y = 0.14, width = 0.5, height = 0.4)
+  draw_plot(f1b, x = 0.05, y = 0.155, width = 0.5, height = 0.4)
 
 # Can save the plot with ggsave()
 ggsave(filename = "/Users/kisei/Desktop/Fig1.png", 
