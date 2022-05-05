@@ -81,7 +81,7 @@ label = df %>%
     geom_contour(data = b,
                  aes(x = x, y = y, z = z),
                  breaks = seq(-10000, 0, by = 500),
-                 size = c(0.1),
+                 size = c(0.2),
                  alpha = 0.8,
                  colour = matlab.like(25969)) +
     geom_label_repel(data = label, 
@@ -121,17 +121,17 @@ df = df %>%
           plot.background = element_rect(fill = alpha('white', 0.8)), # bg of the plot
           axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)))
 
-library(cowplot)
+ library(cowplot)
 
-(f1 <-
+f1 <-
   ggdraw() +
   draw_plot(f1a) +
-  draw_plot(f1b, x = 0.08, y = 0.2, width = 0.5, height = 0.4))
+  draw_plot(f1b, x = 0.062, y = 0.135, width = 0.55, height = 0.45)
 
 # Can save the plot with ggsave()
-ggsave(filename = "/Users/kisei.tanaka/Desktop/Fig1.png", 
+ggsave(filename = paste0("/Users/", Sys.info()[7], "/Desktop/Fig1.png"), 
        plot = f1,
        width = 12, 
-       height = 12,
+       height = 10,
        units = "in",
        dpi = 500)
