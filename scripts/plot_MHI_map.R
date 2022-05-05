@@ -8,6 +8,8 @@ library(ggrepel)
 library(dplyr)
 library(ggOceanMaps)
 library(metR)
+library(colorRamps)
+library(cowplot)
 
 rm(list = ls())
 
@@ -72,16 +74,16 @@ label = df %>%
 (f1a <- ggplot() +
     geom_sf(data = world) +
     coord_sf(crs = st_crs(4135), # old hawaii projection code
-             xlim = c(-161, -154),
-             ylim = c(18, 23), expand = F) +
+             xlim = c(-161, -154.7),
+             ylim = c(18.5, 22.5), expand = F) +
     # geom_point(data = df, aes(LONGITUDE, LATITUDE, color = factor(OBS_YEAR)), alpha = 0.5, size = 0.1) +
     # scale_color_manual(values = matlab.like(9), "") + 
     geom_contour(data = b,
                  aes(x = x, y = y, z = z),
-                 breaks = seq(-10000, 0, by = 100),
+                 breaks = seq(-10000, 0, by = 500),
                  size = c(0.1),
                  alpha = 0.8,
-                 colour = matlab.like(127637)) +
+                 colour = matlab.like(25969)) +
     geom_label_repel(data = label, 
                      aes(x = lon, y = lat, label = ISLAND), 
                      label.size = NA,
@@ -109,7 +111,7 @@ df = df %>%
     geom_line(show.legend = F) + 
     scale_fill_manual(values = matlab.like(7), "") +
     scale_color_manual(values = matlab.like(7), "") +
-    labs(y = "Sampling effort (n)", x = "Year") + 
+    labs(y = "Sampling effort (n)", x = "") + 
     theme_half_open() + 
     scale_x_continuous(breaks = c(2010, 2012, 2013, 2015, 2016, 2019), 
                        labels = c(2010, 2012, 2013, 2015, 2016, 2019)) +
@@ -121,15 +123,15 @@ df = df %>%
 
 library(cowplot)
 
-f1 <-
+(f1 <-
   ggdraw() +
   draw_plot(f1a) +
-  draw_plot(f1b, x = 0.05, y = 0.155, width = 0.5, height = 0.4)
+  draw_plot(f1b, x = 0.08, y = 0.2, width = 0.5, height = 0.4))
 
 # Can save the plot with ggsave()
-ggsave(filename = "/Users/kisei/Desktop/Fig1.png", 
+ggsave(filename = "/Users/kisei.tanaka/Desktop/Fig1.png", 
        plot = f1,
        width = 12, 
        height = 12,
        units = "in",
-       dpi = 300)
+       dpi = 500)
