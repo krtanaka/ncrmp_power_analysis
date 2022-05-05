@@ -41,8 +41,9 @@ trophic = trophic %>% subset(year >= 2010)
     ylab("Northings (km)") + 
     xlab("Eastings (km)") + 
     scale_fill_gradient2("") +
-    scale_fill_viridis_c("") +
-    theme_map() +
+    # scale_fill_viridis_c("") +
+    # scale_fill_gradientn("", colors = matlab.like(100)) + 
+    theme_void() +
     theme(legend.position = c(0, 0), 
           legend.justification = c(-0.1, -0.1),
           legend.key = element_rect(colour = NA, fill = NA),
@@ -53,8 +54,8 @@ trophic = trophic %>% subset(year >= 2010)
           axis.ticks = element_blank(),
           axis.title = element_blank(),
           panel.background = element_rect(fill = "gray10", colour = "gray10"),
-          panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray20"),
-          panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20"))+
+          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray20"),
+          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray20"))+
     ggtitle("(a)"))
 
 (c2 = trophic %>% 
@@ -69,8 +70,9 @@ trophic = trophic %>% subset(year >= 2010)
     ylab("Northings (km)") + 
     xlab("Eastings (km)") + 
     scale_fill_gradient2("") +
-    scale_fill_viridis_c("") +
-    theme_map() +
+    # scale_fill_viridis_c("") +
+    # scale_fill_gradientn("", colors = matlab.like(100)) + 
+    theme_void() +
     theme(legend.position = c(0, 0), 
           legend.justification = c(-0.1, -0.1),
           legend.key = element_rect(colour = NA, fill = NA),
@@ -81,8 +83,8 @@ trophic = trophic %>% subset(year >= 2010)
           axis.ticks = element_blank(),
           axis.title = element_blank(),
           panel.background = element_rect(fill = "gray10", colour = "gray10"),
-          panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray20"), 
-          panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20"))+ 
+          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray20"), 
+          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray20"))+ 
     ggtitle(""))
 
 (c3 = trophic %>% 
@@ -97,8 +99,9 @@ trophic = trophic %>% subset(year >= 2010)
     ylab("Northings (km)") + 
     xlab("Eastings (km)") + 
     scale_fill_gradient2("") +
-    scale_fill_viridis_c("") +
-    theme_map() +
+    # scale_fill_viridis_c("") +
+    # scale_fill_gradientn("", colors = matlab.like(100)) + 
+    theme_void() +
     theme(legend.position = c(0, 0), 
           legend.justification = c(-0.1, -0.1),
           legend.key = element_rect(colour = NA, fill = NA),
@@ -109,8 +112,8 @@ trophic = trophic %>% subset(year >= 2010)
           axis.ticks = element_blank(),
           axis.title = element_blank(),
           panel.background = element_rect(fill = "gray10", colour = "gray10"),
-          panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray20"), 
-          panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20"))+ 
+          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray20"), 
+          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray20"))+ 
     ggtitle(""))
 
 (c4 = trophic %>% 
@@ -125,8 +128,9 @@ trophic = trophic %>% subset(year >= 2010)
     ylab("Northings (km)") + 
     xlab("Eastings (km)") + 
     scale_fill_gradient2("") +
-    scale_fill_viridis_c("") +
-    theme_map() +
+    # scale_fill_viridis_c("") +
+    # scale_fill_gradientn("", colors = matlab.like(100)) + 
+    theme_void() +
     theme(legend.position = c(0, 0), 
           legend.justification = c(-0.1, -0.1),
           legend.key = element_rect(colour = NA, fill = NA),
@@ -137,8 +141,8 @@ trophic = trophic %>% subset(year >= 2010)
           axis.ticks = element_blank(),
           axis.title = element_blank(),
           panel.background = element_rect(fill = "gray10", colour = "gray10"),
-          panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray20"), 
-          panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20"))+ 
+          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray20"), 
+          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray20"))+ 
     ggtitle(""))
 
 png(paste0('/Users/', Sys.info()[7], '/Desktop/fig4a.png'), height = 3, width = 18, units = "in", res = 100)
