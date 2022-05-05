@@ -13,10 +13,10 @@ rm(list = ls())
 
 world <- ne_countries(scale = "large", returnclass = "sf")
 
-b = marmap::getNOAA.bathy(lon1 = min(-160.5),
-                          lon2 = max(-154.8),
-                          lat1 = min(18.91),
-                          lat2 = max(22.25),
+b = marmap::getNOAA.bathy(lon1 = min(-161),
+                          lon2 = max(-154),
+                          lat1 = min(18),
+                          lat2 = max(23),
                           resolution = 1)
 
 b = marmap::fortify.bathy(b)
@@ -40,13 +40,13 @@ world = st_transform(st_as_sf(world))
 world <- ms_simplify(world, keep = 0.1, keep_shapes = F)
 
 load("data/rea/ALL_REA_FISH_RAW_SST.RData")
-# df = df %>% 
-#   subset(REGION == "MHI" & ISLAND %in% islands) %>% 
-#   group_by(LONGITUDE, LATITUDE, OBS_YEAR) %>% 
-#   summarise(n = n())
+
+df = df %>%
+  subset(REGION == "MHI" & ISLAND %in% islands) %>%
+  group_by(LONGITUDE, LATITUDE, ISLAND, OBS_YEAR) %>%
+  summarise(n = n())
 
 label = df %>% 
-  subset(REGION == "MHI" & ISLAND %in% islands) %>% 
   group_by(ISLAND) %>% 
   summarise(lat = mean(LATITUDE),
             lon = mean(LONGITUDE))
@@ -73,35 +73,30 @@ label = df %>%
     theme_pubr(I(20)) + 
     theme(legend.position = "right"))
 
-(map <- ggplot(data = world) +
-    coord_sf(crs = st_crs(4135) # old hawaii projection code
-             # xlim = c(-160.5, -154.8),
-             # ylim = c(18.91, 22.25), expand = F
-    ) +
-    geom_sf() +
-    # scale_x_continuous(breaks = seq(-160.5, -154.8, by = 0.5)) +
-    # scale_y_continuous(breaks = seq(18.91, 22.25, by = 0.5)) +
-    # geom_point(data = df, aes(LONGITUDE, LATITUDE, color = factor(OBS_YEAR))) + 
+(map <- ggplot() +
+    geom_sf(data = world) +
+    coord_sf(crs = st_crs(4135), # old hawaii projection code
+             xlim = c(-161, -154),
+             ylim = c(18, 23), expand = F) +
+    # geom_point(data = df, aes(LONGITUDE, LATITUDE, color = factor(OBS_YEAR))) +
     geom_contour(data = b,
                  aes(x = x, y = y, z = z),
-                 breaks = seq(-8000, 0, by = 500),
+                 breaks = seq(-10000, 0, by = 100),
                  size = c(0.1),
                  alpha = 0.8,
-                 colour = grey.colors(17003, rev = T)) +
-    scale_fill_discrete("") + 
-    scale_color_discrete("") + 
-    geom_text_repel(data = label, 
-                    aes(x = lon, y = lat, label = ISLAND), 
-                    fontface = "bold",   
-                    nudge_x = c(0.5, 0.5, 0.5, 0.5, 0.5),
-                    nudge_y = c(0.5, 0.5, 0.5, 0.5, 0.5)) +
-    # theme_pubr() + 
-    theme(
-      # axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
-      axis.title = element_blank()))
-# legend.position = c(0.1, 0.3))
+                 colour = matlab.like(127637)) +
+    geom_label_repel(data = label, 
+                     aes(x = lon, y = lat, label = ISLAND), 
+                     label.size = NA,
+                     fontface = "bold",   
+                     label.padding = 0.5, 
+                     na.rm = T,
+                     fill = alpha(c("white"), 0.8),
+                     nudge_x = c(0.5, 0.5, 0.5, 0.5, 0.5),
+                     nudge_y = c(0.5, 0.5, 0.5, 0.5, 0.5)) +
+    theme_light() +
+    theme(axis.title = element_blank()))
 
-# pdf('/Users/Kisei.Tanaka/Desktop/MHI_200m_Bathy_Countour.pdf', height = 5, width = 7)
-png('/Users/kisei/Desktop/MHI_200m_Bathy_Countour.png', height = 5, width = 7, res = 500, units = "in")
+png('/Users/kisei/Desktop/Fig1.png', height = 5, width = 7, res = 500, units = "in")
 print(map)
 dev.off()
