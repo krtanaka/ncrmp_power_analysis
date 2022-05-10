@@ -1,4 +1,7 @@
 library(dplyr)
+library(cowplot)
+library(ggplot2)
+library(colorRamps)
 
 options(scipen = 999)
 
@@ -42,11 +45,3 @@ png("/Users/kisei.tanaka/Desktop/functional_group.png", height = 10, width = 20,
     theme_half_open() + 
     theme(axis.text.y = element_text(face = "italic")))
 dev.off()
-
-  
-
-
-
-
-
-
