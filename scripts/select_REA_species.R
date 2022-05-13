@@ -33,7 +33,7 @@ for (t in 1:length(TROPHIC_group)) {
 
 }
 
-png("/Users/kisei.tanaka/Desktop/functional_group.png", height = 10, width = 20, units = "in", res = 300)
+png("/Users/kisei.tanaka/Desktop/functional_group.png", height = 15, width = 20, units = "in", res = 300)
 (TROPHIC_group_table %>% 
     subset(Proportion > 0.01) %>%
     ggplot(aes(Proportion, reorder(TAXONNAME, Proportion), fill = Proportion)) +  

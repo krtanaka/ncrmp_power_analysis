@@ -15,10 +15,10 @@ rm(list = ls())
 
 world <- ne_countries(scale = "large", returnclass = "sf")
 
-b = marmap::getNOAA.bathy(lon1 = min(-161),
-                          lon2 = max(-154),
-                          lat1 = min(18),
-                          lat2 = max(23),
+b = marmap::getNOAA.bathy(lon1 = -160.5,
+                          lon2 = -153,
+                          lat1 = 17,
+                          lat2 = 23,
                           resolution = 1)
 
 b = marmap::fortify.bathy(b)
@@ -74,27 +74,34 @@ label = df %>%
 (f1a <- ggplot() +
     geom_sf(data = world) +
     coord_sf(crs = st_crs(4135), # old hawaii projection code
-             xlim = c(-161, -154.7),
-             ylim = c(18.5, 22.5), expand = F) +
+             xlim = c(-160.5, -154.7),
+             ylim = c(18.8, 22.5), expand = F) +
     # geom_point(data = df, aes(LONGITUDE, LATITUDE, color = factor(OBS_YEAR)), alpha = 0.5, size = 0.1) +
     # scale_color_manual(values = matlab.like(9), "") + 
+    # geom_contour(data = b,
+    #              aes(x = x, y = y, z = z),
+    #              breaks = seq(-10000, 0, by = 500),
+    #              size = c(0.2),
+    #              alpha = 0.8,
+    #              colour = matlab.like(29771)) +
     geom_contour(data = b,
-                 aes(x = x, y = y, z = z),
-                 breaks = seq(-10000, 0, by = 500),
-                 size = c(0.2),
-                 alpha = 0.8,
-                 colour = matlab.like(25969)) +
+                 aes(x = x, y = y, z = z, colour = stat(level)),
+                 breaks = seq(-5000, 0, by = 100),
+                 size = c(0.5)) +
+    scale_colour_distiller(palette = "RdYlBu", direction = -1, "Depth (m)") +
     geom_label_repel(data = label, 
                      aes(x = lon, y = lat, label = ISLAND), 
                      label.size = NA,
                      fontface = "bold",   
                      label.padding = 0.5, 
                      na.rm = T,
-                     fill = alpha(c("white"), 0.8),
+                     fill = alpha(c("white"), 0.9),
                      nudge_x = c(0.5, 0.5, 0.5, 0.5, 0.5),
                      nudge_y = c(0.5, 0.5, 0.5, 0.5, 0.5)) +
-    theme_half_open() + 
-    theme(panel.background = element_rect(fill = "white"), # bg of the panel
+    theme_linedraw() + 
+    theme(legend.position = c(1,1),
+          legend.justification = c(1.1,1.1),
+          panel.background = element_rect(fill = "white"), # bg of the panel
           plot.background = element_rect(fill = "white"), # bg of the plot
           axis.title = element_blank()))
 
@@ -112,11 +119,15 @@ df = df %>%
     scale_fill_manual(values = matlab.like(7), "") +
     scale_color_manual(values = matlab.like(7), "") +
     labs(y = "Sampling effort (n)", x = "") + 
-    theme_half_open() + 
+    theme_bw() +
     scale_x_continuous(breaks = c(2010, 2012, 2013, 2015, 2016, 2019), 
                        labels = c(2010, 2012, 2013, 2015, 2016, 2019)) +
     theme(legend.position = c(0,1),
           legend.justification = c(-0.1, 0.9),
+          legend.background = element_blank(),
+          legend.box.background = element_blank(),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
           panel.background = element_rect(fill = alpha('white', 0.8)), # bg of the panel
           plot.background = element_rect(fill = alpha('white', 0.8)), # bg of the plot
           axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)))
@@ -126,7 +137,7 @@ df = df %>%
 f1 <-
   ggdraw() +
   draw_plot(f1a) +
-  draw_plot(f1b, x = 0.062, y = 0.135, width = 0.55, height = 0.45)
+  draw_plot(f1b, x = 0.05, y = 0.125, width = 0.5, height = 0.45)
 
 # Can save the plot with ggsave()
 ggsave(filename = paste0("/Users/", Sys.info()[7], "/Desktop/Fig1.png"), 
