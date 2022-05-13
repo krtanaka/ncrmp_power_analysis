@@ -430,12 +430,15 @@ isl_power = isl_power %>%
     guides(color = guide_legend(override.aes = list(fill = NA))) + 
     xlab("Sampling Efforts (N sites per island)") + 
     ylab("Standadized RMSE") +
-    theme_bw() + 
+    theme_bw() +
     theme(panel.border = element_blank(), 
           axis.line = element_line(),
+          # panel.background = element_rect(fill = "gray10", colour = "gray10"),
+          # panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray20"),
+          # panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20"),
           legend.position = "top"))
 
-png("outputs/fig7.png", units = "in", height = 5, width = 5, res = 500)
+png("outputs/fig7.png", units = "in", height = 5, width = 10, res = 500)
 (fig7)
 dev.off()
 
