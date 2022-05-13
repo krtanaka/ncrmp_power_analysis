@@ -442,42 +442,42 @@ png("outputs/fig7.png", units = "in", height = 5, width = 10, res = 500)
 (fig7)
 dev.off()
 
+efforts = data.frame(  x = c(400, 487, 498),
+                       y = c(-0.5, -0.5, -0.5),
+                       label = c("2016 (n = 400)", "2019 (n = 487)", "2013 (n = 498)"))
+
 (fig6 = isl_power %>%
     # subset(isl == "Oahu") %>% 
     # subset(sp == "PISCIVORE") %>% 
     mutate(RMSE = as.numeric(RMSE)) %>% 
     ggplot() + 
-    geom_smooth(aes(N, zscore, color = design), show.legend = T, se = T) +
+    geom_smooth(aes(N, zscore, color = design, fill = design), show.legend = T, se = T) +
     # geom_point(aes(N, RMSE, color = design), alpha = 0.2) +
     # geom_hex(aes(N, RMSE, color = design, fill = design), alpha = 0.2, bins = 50) +
     # geom_vline(aes(xintercept = N, color = Year), data = survey_effort_MHI_year) +
-    annotate("segment",
-             x = 498, xend = 498, y = 4.5, yend = 0.1,
-             colour = "red",
-             arrow = arrow()) +
-    annotate("segment",
-             x = 400, xend = 400, y = 4, yend = 3,
-             colour = "blue",
-             arrow = arrow()) +
-    annotate("segment",
-             x = 487, xend = 487, y = 3, yend = 3,
-             colour = "orange",
-             arrow = arrow()) +
-    annotate("text",
-             x = c(400, 487, 498),
-             y = c(4.5, 4, 3),
-             label = c("2016", "2019", "2013")) +
-    # scale_color_discrete("") +
+    geom_label_repel(data = efforts, 
+                     aes(x = x, y = y, label = label), 
+                     label.size = NA,
+                     fontface = "bold",   
+                     label.padding = 0.5, 
+                     na.rm = T,
+                     fill = alpha(c("white"), 0.8),
+                     nudge_x = c(-0.1, -0.1, -0.1),
+                     nudge_y = c(0.5, 1.5, 2.5)) + 
+    scale_fill_viridis_d("") +
     scale_color_viridis_d("") + 
     xlab("Sampling Efforts") + 
     ylab("Standadized RMSE") + 
     # scale_y_log10() +
-    scale_x_log10() +
-    # scale_x_log10(breaks = trans_breaks('log10', function(x) 10^x),
-    #               labels = trans_format('log10', math_format(10^.x)), "Sampling Efforts") +
+    # scale_x_log10() +
+    scale_x_log10(breaks = trans_breaks('log10', function(x) 10^x),
+                  labels = trans_format('log10', math_format(10^.x)),
+                  "Sampling Efforts (N sites per year)",
+                  expand = c(0, 0)) +
     # scale_y_log10(breaks = trans_breaks('log10', function(x) 10^x),
     #               labels = trans_format('log10', math_format(10^.x)), "RMSE") +
-    theme_half_open() +
+    scale_y_continuous(expand = c(0, 0)) +
+    theme_bw() +
     guides(color = guide_legend(override.aes = list(fill = NA))) + 
     theme(legend.position = c(0, 0),
           legend.justification = c(-0.2, -0.2)))
