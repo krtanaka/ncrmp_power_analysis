@@ -415,28 +415,29 @@ isl_power = isl_power %>%
          zscore = (RMSE - mean(RMSE))/sd(RMSE))
 
 (fig7 = isl_power %>%
-    # subset(isl == "Oahu") %>%
-    mutate(RMSE = as.numeric(RMSE)) %>% 
-    ggplot() + 
-    geom_smooth(aes(N, zscore, color = design), show.legend = T, se = T) +
-    scale_color_viridis_d("") + 
-    ggnewscale::new_scale_color() +
-    facet_wrap(isl ~ sp, scales = "free_y", ncol = 7) +
-    # facet_grid(sp ~ isl) +
-    scale_x_log10(breaks = trans_breaks('log10', function(x) 10^x),
-                  labels = trans_format('log10', math_format(10^.x)), "Sampling Efforts") +
-    # scale_y_log10(breaks = trans_breaks('log10', function(x) 10^x),
-    #               labels = trans_format('log10', math_format(10^.x)), "RMSE") + 
-    guides(color = guide_legend(override.aes = list(fill = NA))) + 
-    # geom_vline(aes(xintercept = sites, color = effort), data = efforts) +
-    # geom_point(aes(N, RMSE, color = design), alpha = 0.2) +
-    # geom_hex(aes(N, RMSE, color = design, fill = design), alpha = 0.2, bins = 50) +
+    ggplot(aes(N, zscore)) + 
+    facet_grid(sp ~ isl) +
     # facet_wrap(sp ~ isl, scales = "free_y", ncol = 7) +
-    # scale_y_log10() +
-    # scale_x_log10() +
-    xlab("Sampling Efforts") + 
-    ylab("Standadized RMSE") + 
-    theme_cowplot())
+    scale_x_log10(breaks = trans_breaks('log10', function(x) 10^x),
+                  labels = trans_format('log10', math_format(10^.x)), "Sampling Efforts (N sites per island)") +
+    geom_vline(data = efforts, aes(xintercept = sites, color = effort)) + 
+    scale_color_discrete("") + 
+    ggnewscale::new_scale_color() +
+    ggnewscale::new_scale_fill() +
+    geom_smooth(aes(color = design, fill = design), se = T) +
+    scale_color_viridis_d("") + 
+    scale_fill_viridis_d("") + 
+    guides(color = guide_legend(override.aes = list(fill = NA))) + 
+    xlab("Sampling Efforts (N sites per island)") + 
+    ylab("Standadized RMSE") +
+    theme_bw() + 
+    theme(panel.border = element_blank(), 
+          axis.line = element_line(),
+          legend.position = "top"))
+
+png("outputs/fig7.png", units = "in", height = 5, width = 5, res = 500)
+(fig7)
+dev.off()
 
 (fig6 = isl_power %>%
     # subset(isl == "Oahu") %>% 
