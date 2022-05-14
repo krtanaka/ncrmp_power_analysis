@@ -417,7 +417,7 @@ isl_power = isl_power %>%
 (fig7 = isl_power %>%
     ggplot(aes(N, zscore)) + 
     facet_grid(sp ~ isl) +
-    # facet_wrap(sp ~ isl, scales = "free_y", ncol = 7) +
+    # facet_rep_wrap(sp ~ isl, scales = "free_y", ncol = 7) +
     scale_x_log10(breaks = trans_breaks('log10', function(x) 10^x),
                   labels = trans_format('log10', math_format(10^.x)), "Sampling Efforts (N sites per island)") +
     geom_vline(data = efforts, aes(xintercept = sites, color = effort)) + 
@@ -430,7 +430,7 @@ isl_power = isl_power %>%
     guides(color = guide_legend(override.aes = list(fill = NA))) + 
     xlab("Sampling Efforts (N sites per island)") + 
     ylab("Standadized RMSE") +
-    theme_bw() +
+    theme_half_open() +
     theme(panel.border = element_blank(), 
           axis.line = element_line(),
           # panel.background = element_rect(fill = "gray10", colour = "gray10"),
@@ -438,11 +438,11 @@ isl_power = isl_power %>%
           # panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20"),
           legend.position = "top"))
 
-png("outputs/fig7.png", units = "in", height = 5, width = 10, res = 500)
+png("outputs/fig7.png", units = "in", height = 5, width = 10, res = 300)
 (fig7)
 dev.off()
 
-efforts = data.frame(  x = c(400, 487, 498),
+recent_efforts = data.frame(  x = c(400, 487, 498),
                        y = c(-0.5, -0.5, -0.5),
                        label = c("2016 (n = 400)", "2019 (n = 487)", "2013 (n = 498)"))
 
@@ -455,15 +455,15 @@ efforts = data.frame(  x = c(400, 487, 498),
     # geom_point(aes(N, RMSE, color = design), alpha = 0.2) +
     # geom_hex(aes(N, RMSE, color = design, fill = design), alpha = 0.2, bins = 50) +
     # geom_vline(aes(xintercept = N, color = Year), data = survey_effort_MHI_year) +
-    geom_label_repel(data = efforts, 
+    geom_label_repel(data = recent_efforts, 
                      aes(x = x, y = y, label = label), 
                      label.size = NA,
                      fontface = "bold",   
                      label.padding = 0.5, 
                      na.rm = T,
                      fill = alpha(c("white"), 0.8),
-                     nudge_x = c(-0.1, -0.1, -0.1),
-                     nudge_y = c(0.5, 1.5, 2.5)) + 
+                     nudge_x = c(-0.34, -0.5, -0.1),
+                     nudge_y = c(1, 3, 5)) + 
     scale_fill_viridis_d("") +
     scale_color_viridis_d("") + 
     xlab("Sampling Efforts") + 
@@ -477,7 +477,7 @@ efforts = data.frame(  x = c(400, 487, 498),
     # scale_y_log10(breaks = trans_breaks('log10', function(x) 10^x),
     #               labels = trans_format('log10', math_format(10^.x)), "RMSE") +
     scale_y_continuous(expand = c(0, 0)) +
-    theme_bw() +
+    theme_half_open() +
     guides(color = guide_legend(override.aes = list(fill = NA))) + 
     theme(legend.position = c(0, 0),
           legend.justification = c(-0.2, -0.2)))
@@ -524,30 +524,52 @@ png('outputs/')
     theme(axis.text.x = element_text(angle = 90, hjust = 1)))
 
 df$Effort_level = ""
-df$Effort_level = ifelse(df$Survey_efforts %in% c(10:50), "Low (10-50 sites)", df$Effort_level)
-df$Effort_level = ifelse(df$Survey_efforts %in% c(100:150), "Normal (100-150 sites)", df$Effort_level)
+df$Effort_level = ifelse(df$Survey_efforts %in% c(10:50), "Low effort (10-50 sites)", df$Effort_level)
+df$Effort_level = ifelse(df$Survey_efforts %in% c(100:150), "Normal effort (100-150 sites)", df$Effort_level)
 # df$Effort_level = ifelse(df$Survey_efforts %in% c(60:100), "Mid (60-100 sites)", df$Effort_level)
 # df$Effort_level = ifelse(df$Survey_efforts %in% c(110:150), "High (110-150 sites)", df$Effort_level)
 
-df$Effort_level = factor(df$Effort_level, levels = c('High (110-150 sites)', 
-                                                     'Mid (60-100 sites)',
-                                                     'Normal (100-150 sites)',
-                                                     'Low (10-50 sites)'))
+df$Effort_level = factor(df$Effort_level, levels = c('High effort (110-150 sites)', 
+                                                     'Mid effort (60-100 sites)',
+                                                     'Normal effort (100-150 sites)',
+                                                     'Low effort (10-50 sites)'))
 
-(df %>% 
-    # subset(Effort_level %in% c("Low (10-50 sites)", "Mid (60-100 sites)", "High (110-150 sites)")) %>% 
-    subset(Effort_level %in% c("Low (10-50 sites)", "Normal (100-150 sites)")) %>% 
+(fig7a = df %>% 
+    subset(Effort_level %in% c("Normal effort (100-150 sites)")) %>% 
     ggplot(aes(x = Island, y = RMSE, fill = Survey_design)) +
-    geom_boxplot(outlier.shape = NA) +
-    facet_grid(Effort_level~ Trophic_group, scale = "free") +
-    # facet_grid(~ Effort_level, scale = "free") +
-    # scale_y_log10() +
+    geom_boxplot(outlier.shape = NA, show.legend = F) +
+    facet_wrap(~ Trophic_group, scale = "free", ncol = 4) +
     scale_y_log10(breaks = trans_breaks('log10', function(x) 10^x),
                   labels = trans_format('log10', math_format(10^.x)), "RMSE") +
     scale_fill_viridis_d("") + 
     xlab("") + 
     theme_half_open() +
-    theme(axis.text.x = element_text(angle = 90, hjust = 1)))
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+    ggtitle("Normal effort (100-150 sites)") + 
+    labs(tag = "(a)"))
+
+(fig7b = df %>% 
+    subset(Effort_level %in% c("Low effort (10-50 sites)")) %>% 
+    ggplot(aes(x = Island, y = RMSE, fill = Survey_design)) +
+    geom_boxplot(outlier.shape = NA) +
+    facet_wrap(~ Trophic_group, scale = "free", ncol = 4) +
+    scale_y_log10(breaks = trans_breaks('log10', function(x) 10^x),
+                  labels = trans_format('log10', math_format(10^.x)), "RMSE") +
+    scale_fill_viridis_d("") + 
+    xlab("") + 
+    theme_half_open() +
+    theme(legend.position = "bottom", 
+          legend.justification = c(1,1),
+          axis.text.x = element_text(angle = 90, hjust = 1)) + 
+    ggtitle("Low effort (10-50 sites)") + 
+    labs(tag = "(b)"))
+
+library(patchwork)
+fig7 = fig7a/fig7b
+
+png("outputs/fig7.png", units = "in", height = 10, width = 10, res = 300)
+(fig7)
+dev.off()
 
 df = isl_power %>% 
   mutate(RMSE = as.numeric(RMSE)) %>% 
