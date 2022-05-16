@@ -11,6 +11,7 @@ library(dplyr)
 library(patchwork)
 library(scales)
 library(ggnewscale)
+library(cowplot)
 
 rm(list = ls())
 
@@ -414,12 +415,13 @@ isl_power = isl_power %>%
   mutate(RMSE = as.numeric(RMSE),
          zscore = (RMSE - mean(RMSE))/sd(RMSE))
 
-(fig7 = isl_power %>%
+(fig8 = isl_power %>%
     ggplot(aes(N, zscore)) + 
-    facet_grid(sp ~ isl) +
-    # facet_rep_wrap(sp ~ isl, scales = "free_y", ncol = 7) +
+    facet_rep_grid(isl ~ sp) +
+    # coord_capped_cart(bottom='both', left='both') +
     scale_x_log10(breaks = trans_breaks('log10', function(x) 10^x),
-                  labels = trans_format('log10', math_format(10^.x)), "Sampling Efforts (N sites per island)") +
+                  labels = trans_format('log10', math_format(10^.x)),
+                  "Sampling Efforts (N sites per island)") +
     geom_vline(data = efforts, aes(xintercept = sites, color = effort)) + 
     scale_color_discrete("") + 
     ggnewscale::new_scale_color() +
@@ -430,21 +432,20 @@ isl_power = isl_power %>%
     guides(color = guide_legend(override.aes = list(fill = NA))) + 
     xlab("Sampling Efforts (N sites per island)") + 
     ylab("Standadized RMSE") +
-    theme_half_open() +
-    theme(panel.border = element_blank(), 
+    theme(panel.background = element_rect(fill = "white"),
+          panel.grid = element_blank(),
           axis.line = element_line(),
-          # panel.background = element_rect(fill = "gray10", colour = "gray10"),
-          # panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray20"),
-          # panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20"),
           legend.position = "top"))
 
-png("outputs/fig7.png", units = "in", height = 5, width = 10, res = 300)
-(fig7)
+png("outputs/fig8.png", units = "in", height = 7, width = 10, res = 300)
+(fig8)
 dev.off()
 
 recent_efforts = data.frame(  x = c(400, 487, 498),
                        y = c(-0.5, -0.5, -0.5),
                        label = c("2016 (n = 400)", "2019 (n = 487)", "2013 (n = 498)"))
+
+library(ggrepel)
 
 (fig6 = isl_power %>%
     # subset(isl == "Oahu") %>% 
@@ -502,8 +503,6 @@ df$Survey_design = gsub("(^[[:alpha:]])", "\\U\\1", df$Survey_design, perl = T)
 df$Trophic_group = tolower(df$Trophic_group)
 df$Trophic_group = gsub("(^[[:alpha:]])", "\\U\\1", df$Trophic_group, perl = T)
 # df[is.na(df)] <- " "
-
-png('outputs/')
 
 (df %>% 
     ggplot(aes(x = Island, y = RMSE, fill = Survey_design)) +
