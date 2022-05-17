@@ -13,7 +13,17 @@ library(cowplot)
 
 rm(list = ls())
 
-world <- ne_countries(scale = "large", returnclass = "sf")
+world <- ne_countries(scale = "small", returnclass = "sf")
+
+a <- st_as_sf(data.frame(plot_id = 1, lat = -156.8, long = 20), 
+              coords = c("lat", "long"), crs = 4326)
+
+(globe = ggplot(data = world) +
+    geom_sf() +
+    geom_sf(data = a, shape = 0, size = 10, color = "red", stroke = 2) +
+    coord_sf(crs = "+proj=laea +lat_0=35 +lon_0=-156.8 +x_0=0 +y_0=0 +ellps=WGS84 +units=m +no_defs") + 
+    theme_bw() +
+    theme(panel.background = element_rect(fill = 'white')))#transparent plot bg)
 
 b = marmap::getNOAA.bathy(lon1 = -160.5,
                           lon2 = -153,
@@ -39,7 +49,7 @@ load("data/MHI_islands_shp.RData")
 crs(ISL_bounds) = "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
 world = ISL_bounds[which(ISL_bounds$ISLAND %in% toupper(islands)),]
 world = st_transform(st_as_sf(world))
-world <- ms_simplify(world, keep = 0.001, keep_shapes = F)
+world <- ms_simplify(world, keep = 0.1, keep_shapes = F)
 
 load("data/rea/ALL_REA_FISH_RAW_SST.RData")
 
@@ -99,7 +109,7 @@ label = df %>%
                      nudge_x = c(0.5, 0.5, 0.5, 0.5, 0.5),
                      nudge_y = c(0.5, 0.5, 0.5, 0.5, 0.5)) +
     theme_linedraw() + 
-    theme(legend.position = c(1,1),
+    theme(legend.position = c(0.84,1),
           legend.justification = c(1.1,1.1),
           panel.background = element_rect(fill = "white"), # bg of the panel
           plot.background = element_rect(fill = "white"), # bg of the plot
@@ -132,12 +142,13 @@ df = df %>%
           plot.background = element_rect(fill = alpha('white', 0.8)), # bg of the plot
           axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)))
 
- library(cowplot)
+library(cowplot)
 
 f1 <-
   ggdraw() +
   draw_plot(f1a) +
-  draw_plot(f1b, x = 0.05, y = 0.125, width = 0.5, height = 0.45)
+  draw_plot(f1b, x = 0.045, y = 0.124, width = 0.5, height = 0.45) + 
+  draw_plot(globe, x = 0.816, y = 0.705, width = 0.2, height = 0.2)
 
 # Can save the plot with ggsave()
 ggsave(filename = paste0("/Users/", Sys.info()[7], "/Desktop/Fig1.png"), 
