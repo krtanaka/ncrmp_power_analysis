@@ -150,7 +150,6 @@ f1 <-
   draw_plot(f1b, x = 0.045, y = 0.124, width = 0.5, height = 0.45) + 
   draw_plot(globe, x = 0.816, y = 0.705, width = 0.2, height = 0.2)
 
-# Can save the plot with ggsave()
 ggsave(filename = paste0("/Users/", Sys.info()[7], "/Desktop/Fig1.png"), 
        plot = f1,
        width = 12, 
