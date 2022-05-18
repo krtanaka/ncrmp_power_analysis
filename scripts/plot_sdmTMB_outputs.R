@@ -29,6 +29,25 @@ options(digits = 1)
 
 trophic = trophic %>% subset(year >= 2010)
 
+c1 = trophic %>% 
+  subset(year == 2010) %>% 
+  subset(sp == "PISCIVORE") %>%
+  mutate(x = round(x*0.1, 0)*10,
+         y = round(y*0.1, 0)*10) %>% 
+  group_by(x, y, sp) %>% 
+  summarise(est = mean(zeta_s)*10)
+
+c1$abs_est = abs(c1$est)
+
+(ggplot(c1, aes_string("x", "y", color = "est")) +
+    geom_point(size = c1$abs_est*3000000) + 
+    xlab("Eastings (km)") +
+    ylab("Northings (km)") + 
+    coord_fixed() +
+    scale_color_gradient2() + 
+    theme_minimal())
+
+
 (c1 = trophic %>% 
     subset(year == 2010) %>% 
     subset(sp == "PISCIVORE") %>%
@@ -88,6 +107,8 @@ trophic = trophic %>% subset(year >= 2010)
 (c3 = trophic %>% 
     subset(year == 2010) %>% 
     subset(sp == "PRIMARY") %>% 
+    mutate(x = round(x*0.1, 0)*10,
+           y = round(y*0.1, 0)*10) %>% 
     group_by(x, y, sp) %>% 
     summarise(est = mean(zeta_s)) %>%  
     ggplot(aes(x, y, fill = est)) + 
@@ -97,8 +118,6 @@ trophic = trophic %>% subset(year >= 2010)
     ylab("Northings (km)") + 
     xlab("Eastings (km)") + 
     scale_fill_gradient2("") +
-    # scale_fill_viridis_c("") +
-    # scale_fill_gradientn("", colors = matlab.like(100)) + 
     theme_half_open() +
     theme(legend.position = c(0, 0), 
           legend.justification = c(-0.1, -0.1),
@@ -112,21 +131,31 @@ trophic = trophic %>% subset(year >= 2010)
           panel.background = element_rect(fill = "gray10", colour = "gray10"),
           panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray20"), 
           panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray20")))
+
+m_p$back_abs_res = abs(df$residuals)
+
+(p1 = ggplot(df, aes_string("X", "Y", color = "residuals")) +
+    geom_point(alpha = 0.8, size = round(abs(df$residuals), digits = 0)) + 
+    # facet_wrap(.~ISLAND, scales = "free", ncol = 3) +
+    xlab("Eastings (km)") +
+    ylab("Northings (km)") + 
+    coord_fixed() +
+    scale_color_gradient2() + 
+    theme_minimal())
 
 (c4 = trophic %>% 
     subset(year == 2010) %>% 
     subset(sp == "SECONDARY") %>% 
+    mutate(x = round(x*0.1, 0)*10,
+           y = round(y*0.1, 0)*10) %>% 
     group_by(x, y, sp) %>% 
     summarise(est = mean(zeta_s)) %>%  
-    ggplot(aes(x, y, fill = est)) + 
-    geom_tile(height = 0.8, width = 0.8) +
+    ggplot(aes(x, y)) + 
+    geom_point(aes(fill = est, size = abs(est)), shape = 21) + 
     coord_fixed() + 
-    facet_grid(~ sp) + 
+    scale_fill_gradient2(guide = "legend") +
     ylab("Northings (km)") + 
     xlab("Eastings (km)") + 
-    scale_fill_gradient2("") +
-    # scale_fill_viridis_c("") +
-    # scale_fill_gradientn("", colors = matlab.like(100)) + 
     theme_half_open() +
     theme(legend.position = c(0, 0), 
           legend.justification = c(-0.1, -0.1),
@@ -137,11 +166,12 @@ trophic = trophic %>% subset(year >= 2010)
           axis.text = element_blank(),
           axis.ticks = element_blank(),
           axis.title = element_blank(),
+          legend.title=element_blank(),
           panel.background = element_rect(fill = "gray10", colour = "gray10"),
           panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray20"), 
           panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray20")))
 
-png(paste0('/Users/', Sys.info()[7], '/Desktop/fig4a.png'), height = 7, width = 10, units = "in", res = 100)
+png('outputs/fig2a.png', height = 7, width = 10, units = "in", res = 100)
 grid.arrange(c1, c2, c3, c4, nrow = 2)
 dev.off()
 
