@@ -201,7 +201,7 @@ png('outputs/fig2a.png', height = 7, width = 10, units = "in", res = 100)
 grid.arrange(c1, c2, c3, c4, nrow = 2)
 dev.off()
 
-(c1_supp = trophic %>% 
+(c_supp = trophic %>% 
     group_by(x, y, sp) %>% 
     summarise(est = mean(zeta_s)) %>% 
     ggplot(aes(x, y, fill = est)) + 
@@ -218,7 +218,7 @@ dev.off()
           panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20")))
 
 png('outputs/fig2_supp.png', height = 7, width = 10, units = "in", res = 100)
-(c1_supp)
+(c_supp)
 dev.off()
 
 df = trophic %>% 
@@ -250,66 +250,102 @@ df = trophic %>%
           axis.line = element_blank(),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
-          axis.title = element_blank())
-)
+          axis.title = element_blank()))
 
-(m1a = trophic %>% 
-    subset(sp == "PISCIVORE") %>% 
-    group_by(x, y, sp) %>% 
-    summarise(est = median(est)) %>%  
-    ggplot(aes(x, y, fill = est)) + 
-    geom_tile(height = 0.8, width = 0.8) +
-    coord_fixed() + 
-    facet_grid(~sp) +
-    ylab("Northings (km)") + 
-    xlab("Eastings (km)") + 
-    # scale_fill_gradient2("") +
-    # scale_fill_viridis_c("") +
-    scale_fill_gradientn("", colors = matlab.like(100)) +
-    theme_half_open() +
+df = trophic %>% 
+  subset(sp == "PLANKTIVORE") %>%
+  mutate(lon = round(lon, 1),
+         lat = round(lat, 1)) %>%
+  group_by(lon, lat) %>% 
+  summarise(est = median(est)) %>%  
+  mutate(abs_est = abs(est))
+
+(m2 = ggplot() +
+    geom_sf(data = world) +
+    geom_point(data = df,  aes_string("lon", "lat", color = "est"), size = scale(df$abs_est)) +
+    coord_sf(crs = st_crs(4135), # old hawaii projection code
+             xlim = c(-160.5, -154.7),
+             ylim = c(18.8, 22.5), expand = F) +
+    scale_color_gradientn(colours = matlab.like(100), "") + 
+    ggtitle("Planktivore") +
+    theme_half_open() + 
     theme(legend.position = c(0, 0), 
           legend.justification = c(-0.1, -0.1),
-          legend.key = element_rect(colour = NA, fill = NA),
-          legend.text = element_text(color = "white", size = 12),
-          legend.key.size = unit(0.3, "cm"),
-          axis.line = element_blank(),
-          axis.text = element_blank(),
-          axis.ticks = element_blank(),
-          axis.title = element_blank(),
-          panel.background = element_rect(fill = "gray10", colour = "gray10"),
-          panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray20"), 
-          panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20"))+ 
-    ggtitle("(a)"))
-
-(m2 = trophic %>% 
-    subset(sp == "PLANKTIVORE") %>% 
-    group_by(x, y, sp) %>% 
-    summarise(est = median(est)) %>%  
-    ggplot(aes(x, y, fill = est)) + 
-    geom_tile(height = 0.8, width = 0.8) +
-    coord_fixed() + 
-    facet_grid(~sp) +
-    ylab("Northings (km)") + 
-    xlab("Eastings (km)") + 
-    # scale_fill_gradient2("") +
-    # scale_fill_viridis_c("") +
-    scale_fill_gradientn("", colors = matlab.like(100)) +
-    theme_half_open() +
-    theme(legend.position = c(0, 0), 
-          legend.justification = c(-0.1, -0.1),
-          legend.key = element_rect(colour = NA, fill = NA),
+          legend.key = element_rect(fill = "transparent", colour = "transparent"),
+          legend.box.background = element_rect(fill = "transparent", colour = "transparent"),
           legend.text = element_text(color = "white", size = 12),
           legend.key.size = unit(0.5, "cm"),
+          panel.background = element_rect(fill = "gray10", colour = "gray10"),
+          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray20"),
+          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray20"),
           axis.line = element_blank(),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
-          axis.title = element_blank(),
-          panel.background = element_rect(fill = "gray10", colour = "gray10"),
-          panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray20"), 
-          panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20"))+ 
-    ggtitle(""))
+          axis.title = element_blank()))
 
-(m3 = trophic %>% 
+df = trophic %>% 
+  subset(sp == "PRIMARY") %>%
+  mutate(lon = round(lon, 1),
+         lat = round(lat, 1)) %>%
+  group_by(lon, lat) %>% 
+  summarise(est = median(est)) %>%  
+  mutate(abs_est = abs(est))
+
+(m3 = ggplot() +
+    geom_sf(data = world) +
+    geom_point(data = df,  aes_string("lon", "lat", color = "est"), size = scale(df$abs_est)) +
+    coord_sf(crs = st_crs(4135), # old hawaii projection code
+             xlim = c(-160.5, -154.7),
+             ylim = c(18.8, 22.5), expand = F) +
+    scale_color_gradientn(colours = matlab.like(100), "") + 
+    ggtitle("Primary") +
+    theme_half_open() + 
+    theme(legend.position = c(0, 0), 
+          legend.justification = c(-0.1, -0.1),
+          legend.key = element_rect(fill = "transparent", colour = "transparent"),
+          legend.box.background = element_rect(fill = "transparent", colour = "transparent"),
+          legend.text = element_text(color = "white", size = 12),
+          legend.key.size = unit(0.5, "cm"),
+          panel.background = element_rect(fill = "gray10", colour = "gray10"),
+          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray20"),
+          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray20"),
+          axis.line = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          axis.title = element_blank()))
+
+df = trophic %>% 
+  subset(sp == "SECONDARY") %>%
+  mutate(lon = round(lon, 1),
+         lat = round(lat, 1)) %>%
+  group_by(lon, lat) %>% 
+  summarise(est = median(est)) %>%  
+  mutate(abs_est = abs(est))
+
+(m4 = ggplot() +
+    geom_sf(data = world) +
+    geom_point(data = df,  aes_string("lon", "lat", color = "est"), size = scale(df$abs_est)) +
+    coord_sf(crs = st_crs(4135), # old hawaii projection code
+             xlim = c(-160.5, -154.7),
+             ylim = c(18.8, 22.5), expand = F) +
+    scale_color_gradientn(colours = matlab.like(100), "") + 
+    ggtitle("Secondary") +
+    theme_half_open() + 
+    theme(legend.position = c(0, 0), 
+          legend.justification = c(-0.1, -0.1),
+          legend.key = element_rect(fill = "transparent", colour = "transparent"),
+          legend.box.background = element_rect(fill = "transparent", colour = "transparent"),
+          legend.text = element_text(color = "white", size = 12),
+          legend.key.size = unit(0.5, "cm"),
+          panel.background = element_rect(fill = "gray10", colour = "gray10"),
+          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray20"),
+          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray20"),
+          axis.line = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          axis.title = element_blank()))
+
+(m4 = trophic %>% 
     subset(sp == "PRIMARY") %>% 
     group_by(x, y, sp) %>% 
     summarise(est = median(est)) %>%  
@@ -337,37 +373,32 @@ df = trophic %>%
           panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20"))+ 
     ggtitle(""))
 
-(m4 = trophic %>% 
-    subset(sp == "SECONDARY") %>% 
+png(paste0('/Users/', Sys.info()[7], '/Desktop/fig4b.png'), height = 3, width = 16, units = "in", res = 100)
+grid.arrange(m1, m2, m3, m4, nrow = 2)
+dev.off()
+
+(m_supp = trophic %>% 
     group_by(x, y, sp) %>% 
     summarise(est = median(est)) %>%  
     ggplot(aes(x, y, fill = est)) + 
     geom_tile(height = 0.8, width = 0.8) +
     coord_fixed() + 
-    facet_grid(~sp) +
+    facet_wrap(~sp, nrow = 2) +
     ylab("Northings (km)") + 
     xlab("Eastings (km)") + 
-    # scale_fill_gradient2("") +
-    # scale_fill_viridis_c("") +
     scale_fill_gradientn("", colors = matlab.like(100)) +
-    theme_half_open() +
-    theme(legend.position = c(0, 0), 
-          legend.justification = c(-0.1, -0.1),
-          legend.key = element_rect(colour = NA, fill = NA),
-          legend.text = element_text(color = "white", size = 12),
-          legend.key.size = unit(0.5, "cm"),
-          axis.line = element_blank(),
+    theme(axis.line = element_blank(),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
           axis.title = element_blank(),
           panel.background = element_rect(fill = "gray10", colour = "gray10"),
           panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray20"), 
-          panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20"))+ 
-    ggtitle(""))
+          panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20")))
 
-png(paste0('/Users/', Sys.info()[7], '/Desktop/fig4b.png'), height = 3, width = 16, units = "in", res = 100)
-grid.arrange(m1, m2, m3, m4, nrow = 1)
+png('outputs/fig3_supp.png', height = 7, width = 10, units = "in", res = 100)
+(m_supp)
 dev.off()
+
 
 (t1 = trophic %>% 
     subset(sp == "PISCIVORE") %>%
