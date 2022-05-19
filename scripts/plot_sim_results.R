@@ -67,7 +67,7 @@ for (i in 1:3) {
     coord_fixed() +
     geom_raster(aes(fill = factor(strat)), show.legend = F) + 
     scale_fill_viridis_d("") +
-    theme_linedraw() +
+    theme_classic() +
     scale_x_continuous(expand = c(0.01, 0.01)) +
     scale_y_continuous(expand = c(0.01, 0.01)) +
     annotate("text",  x = Inf, y = Inf, label = "n = 21", vjust = 1.2, hjust = 1.2, size = 4) + 
@@ -75,7 +75,8 @@ for (i in 1:3) {
           panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray80"),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
-          axis.title = element_blank()) + 
+          axis.title = element_blank(),
+          plot.title = element_text(face = "bold")) + 
     ggtitle("Traditional") + 
     labs(tag = "(a)"))
 
@@ -85,7 +86,7 @@ for (i in 1:3) {
     coord_fixed() +
     geom_raster(aes(fill = factor(strat)), show.legend = F) + 
     scale_fill_viridis_d("") +
-    theme_linedraw() +
+    theme_classic() +
     scale_x_continuous(expand = c(0.01, 0.01)) +
     scale_y_continuous(expand = c(0.01, 0.01)) +
     annotate("text",  x = Inf, y = Inf, label = "n = 9", vjust = 1.2, hjust = 1.2, size = 4) + 
@@ -93,7 +94,8 @@ for (i in 1:3) {
           panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray80"),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
-          axis.title = element_blank()) + 
+          axis.title = element_blank(),
+          plot.title = element_text(face = "bold")) + 
     ggtitle("Zone-based") + 
     labs(tag = " "))
 
@@ -103,7 +105,7 @@ for (i in 1:3) {
     coord_fixed() +
     geom_raster(aes(fill = factor(strat)), show.legend = F) + 
     scale_fill_viridis_d("") +
-    theme_linedraw() +
+    theme_classic() +
     scale_x_continuous(expand = c(0.01, 0.01)) +
     scale_y_continuous(expand = c(0.01, 0.01)) +
     annotate("text",  x = Inf, y = Inf, label = "n = 3", vjust = 1.2, hjust = 1.2, size = 4) + 
@@ -111,7 +113,8 @@ for (i in 1:3) {
           panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray80"),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
-          axis.title = element_blank()) + 
+          axis.title = element_blank(),
+          plot.title = element_text(face = "bold")) + 
     ggtitle("Zone-triaged") + 
     labs(tag = " "))
 
@@ -122,18 +125,20 @@ f4a = (f4aa + f4ab + f4ac); rm(f4aa, f4ab, f4ac)
     ggplot(aes(x, y)) +
     coord_fixed() +
     geom_raster(aes(fill = strat_sets)) + 
-    theme_linedraw() +
+    theme_classic() +
     scale_x_continuous(expand = c(0.01, 0.01)) +
     scale_y_continuous(expand = c(0.01, 0.01)) +
     theme(legend.position = "right") +
     scale_fill_gradientn(colours = matlab.like(100), "# of sites") +
     theme(legend.position = c(1,1),
           legend.justification = c(1.1, 1.1),
+          legend.key.size = unit(0.3, "cm"),
           panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray80"),
           panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray80"),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
-          axis.title = element_blank()) + 
+          axis.title = element_blank(),
+          plot.title = element_text(face = "bold")) + 
     ggtitle("Traditional") + 
     labs(tag = "(b)"))
 
@@ -142,18 +147,20 @@ f4a = (f4aa + f4ab + f4ac); rm(f4aa, f4ab, f4ac)
     ggplot(aes(x, y)) +
     coord_fixed() +
     geom_raster(aes(fill = strat_sets)) + 
-    theme_linedraw() +
+    theme_classic() +
     scale_x_continuous(expand = c(0.01, 0.01)) +
     scale_y_continuous(expand = c(0.01, 0.01)) +
     theme(legend.position = "right") +
     scale_fill_gradientn(colours = matlab.like(100), "# of sites") +
     theme(legend.position = c(1,1),
           legend.justification = c(1.1, 1.1),
+          legend.key.size = unit(0.3, "cm"),
           panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray80"),
           panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray80"),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
-          axis.title = element_blank()) + 
+          axis.title = element_blank(),
+          plot.title = element_text(face = "bold")) + 
     ggtitle("Zone-based") + 
     labs(tag = " "))
 
@@ -162,18 +169,20 @@ f4a = (f4aa + f4ab + f4ac); rm(f4aa, f4ab, f4ac)
     ggplot(aes(x, y)) +
     coord_fixed() +
     geom_raster(aes(fill = strat_sets)) + 
-    theme_linedraw() +
+    theme_classic() +
     scale_x_continuous(expand = c(0.01, 0.01)) +
     scale_y_continuous(expand = c(0.01, 0.01)) +
     theme(legend.position = "right") +
     scale_fill_gradientn(colours = matlab.like(100), "# of sites") +
     theme(legend.position = c(1,1),
           legend.justification = c(1.1, 1.1),
+          legend.key.size = unit(0.3, "cm"),
           panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray80"),
           panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray80"),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
-          axis.title = element_blank()) + 
+          axis.title = element_blank(),
+          plot.title = element_text(face = "bold")) + 
     ggtitle("Zone-triaged") + 
     labs(tag = " "))
 

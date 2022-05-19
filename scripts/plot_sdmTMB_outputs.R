@@ -73,7 +73,7 @@ df = trophic %>%
                           # limits = c(quantile(df$est, 0.999)*-1, quantile(df$est, 0.999)) +
                           "") + 
     ggtitle("(a) Linear trend 2010-2019") + 
-    theme_linedraw() +
+    theme_classic() +
     annotate("text",  x = Inf, y = Inf, label = "Piscivore", vjust = 1.2, hjust = 1.2, size = 4) +  
     theme(legend.position = c(0, 0), 
           legend.justification = c(-0.1, -0.1),
@@ -87,7 +87,8 @@ df = trophic %>%
           # axis.line = element_blank(),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
-          axis.title = element_blank()))
+          axis.title = element_blank(),
+          plot.title = element_text(face = "bold")))
 
 df = trophic %>% 
   subset(sp == "PLANKTIVORE") %>%
@@ -106,7 +107,7 @@ df = trophic %>%
                           # limits = c(quantile(df$est, 0.999)*-1, quantile(df$est, 0.999)) +
                           "") + 
     ggtitle("") + 
-    theme_linedraw() +
+    theme_classic() +
     annotate("text",  x = Inf, y = Inf, label = "Piscivore", vjust = 1.2, hjust = 1.2, size = 4) + 
     theme(legend.position = c(0, 0), 
           legend.justification = c(-0.1, -0.1),
@@ -120,7 +121,8 @@ df = trophic %>%
           # axis.line = element_blank(),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
-          axis.title = element_blank()))
+          axis.title = element_blank(),
+          plot.title = element_text(face = "bold")))
 
 df = trophic %>% 
   subset(sp == "PRIMARY") %>%
@@ -139,7 +141,7 @@ df = trophic %>%
                           # limits = c(quantile(df$est, 0.999)*-1, quantile(df$est, 0.999)) +
                           "") + 
     ggtitle(" ") + 
-    theme_linedraw() +
+    theme_classic() +
     annotate("text",  x = Inf, y = Inf, label = "Primary", vjust = 1.2, hjust = 1.2, size = 4) +  
     theme(legend.position = c(0, 0), 
           legend.justification = c(-0.1, -0.1),
@@ -153,7 +155,8 @@ df = trophic %>%
           # axis.line = element_blank(),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
-          axis.title = element_blank()))
+          axis.title = element_blank(),
+          plot.title = element_text(face = "bold")))
 
 df = trophic %>%
   subset(sp == "SECONDARY") %>%
@@ -172,7 +175,7 @@ df = trophic %>%
                           # limits = c(quantile(df$est, 0.999)*-1, quantile(df$est, 0.999)) +
                           "") + 
     ggtitle("  ") + 
-    theme_linedraw() +
+    theme_classic() +
     annotate("text",  x = Inf, y = Inf, label = "Secondary", vjust = 1.2, hjust = 1.2, size = 4) + 
     theme(legend.position = c(0, 0), 
           legend.justification = c(-0.1, -0.1),
@@ -186,7 +189,8 @@ df = trophic %>%
           # axis.line = element_blank(),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
-          axis.title = element_blank()))
+          axis.title = element_blank(),
+          plot.title = element_text(face = "bold")))
 
 png('outputs/fig2a.png', height = 3, width = 17, units = "in", res = 500)
 grid.arrange(c1, c2, c3, c4, nrow = 1)
@@ -208,9 +212,9 @@ dev.off()
           panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray20"), 
           panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20")))
 
-png('outputs/fig2_supp.png', height = 7, width = 10, units = "in", res = 500)
-(c_supp)
-dev.off()
+# png('outputs/fig2_supp.png', height = 7, width = 10, units = "in", res = 500)
+# (c_supp)
+# dev.off()
 
 df = trophic %>% 
   subset(sp == "PISCIVORE") %>%
@@ -226,7 +230,7 @@ df = trophic %>%
     coord_sf(crs = st_crs(4135)) +
     scale_color_gradientn(colours = matlab.like(100), "") + 
     ggtitle("(b) Median biomass 2010-2019") + 
-    theme_linedraw() +
+    theme_classic() +
     annotate("text",  x = Inf, y = Inf, label = "Piscivore", vjust = 1.2, hjust = 1.2, size = 4) + 
     theme(legend.position = c(0, 0), 
           legend.justification = c(-0.1, -0.1),
@@ -240,7 +244,8 @@ df = trophic %>%
           # axis.line = element_blank(),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
-          axis.title = element_blank()))
+          axis.title = element_blank(),
+          plot.title = element_text(face = "bold")))
 
 df = trophic %>% 
   subset(sp == "PLANKTIVORE") %>%
@@ -256,7 +261,7 @@ df = trophic %>%
     coord_sf(crs = st_crs(4135)) +
     scale_color_gradientn(colours = matlab.like(100), "") + 
     ggtitle(" ") +
-    theme_linedraw() +
+    theme_classic() +
     annotate("text",  x = Inf, y = Inf, label = "Planktivore", vjust = 1.2, hjust = 1.2, size = 4) + 
     theme(legend.position = c(0, 0), 
           legend.justification = c(-0.1, -0.1),
@@ -270,7 +275,9 @@ df = trophic %>%
           # axis.line = element_blank(),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
-          axis.title = element_blank()))
+          axis.title = element_blank(),
+          plot.title = element_text(face = "bold")))
+
 df = trophic %>% 
   subset(sp == "PRIMARY") %>%
   mutate(lon = round(lon, 1),
@@ -285,7 +292,7 @@ df = trophic %>%
     coord_sf(crs = st_crs(4135)) +
     scale_color_gradientn(colours = matlab.like(100), "") + 
     ggtitle(" ") +
-    theme_linedraw() +
+    theme_classic() +
     annotate("text",  x = Inf, y = Inf, label = "Primary", vjust = 1.2, hjust = 1.2, size = 4) + 
     theme(legend.position = c(0, 0), 
           legend.justification = c(-0.1, -0.1),
@@ -299,7 +306,8 @@ df = trophic %>%
           # axis.line = element_blank(),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
-          axis.title = element_blank()))
+          axis.title = element_blank(),
+          plot.title = element_text(face = "bold")))
 
 df = trophic %>% 
   subset(sp == "SECONDARY") %>%
@@ -315,7 +323,7 @@ df = trophic %>%
     coord_sf(crs = st_crs(4135)) +
     scale_color_gradientn(colours = matlab.like(100), "") + 
     ggtitle(" ") +
-    theme_linedraw() +
+    theme_classic() +
     annotate("text",  x = Inf, y = Inf, label = "Secondary", vjust = 1.2, hjust = 1.2, size = 4) + 
     theme(legend.position = c(0, 0), 
           legend.justification = c(-0.1, -0.1),
@@ -329,7 +337,8 @@ df = trophic %>%
           # axis.line = element_blank(),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
-          axis.title = element_blank()))
+          axis.title = element_blank(),
+          plot.title = element_text(face = "bold")))
 
 png('outputs/fig2b.png', height = 3, width = 17, units = "in", res = 500)
 grid.arrange(m1, m2, m3, m4, nrow = 1)
@@ -371,7 +380,7 @@ dev.off()
     labs(y = expression("Biomass (g) per " ~ m^2~""), x = "") +
     scale_x_continuous(breaks = c(2010, 2012, 2013, 2015, 2016, 2019), 
                        labels = c(2010, 2012, 2013, 2015, 2016, 2019)) + 
-    theme_linedraw() +
+    theme_half_open() +
     theme(legend.position = "top",
           legend.justification = c(1, 1),
           legend.key = element_rect(fill = "transparent", colour = "transparent"),
