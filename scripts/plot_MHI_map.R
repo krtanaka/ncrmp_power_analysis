@@ -96,7 +96,7 @@ label = df %>%
     #              colour = matlab.like(29771)) +
     geom_contour(data = b,
                  aes(x = x, y = y, z = z, colour = stat(level)),
-                 breaks = seq(-5000, 0, by = 100),
+                 breaks = seq(-1000, 0, by = 100),
                  size = c(0.5)) +
     scale_colour_distiller(palette = "RdYlBu", direction = -1, "Depth (m)") +
     geom_label_repel(data = label, 
@@ -147,10 +147,10 @@ library(cowplot)
 f1 <-
   ggdraw() +
   draw_plot(f1a) +
-  draw_plot(f1b, x = 0.045, y = 0.124, width = 0.5, height = 0.45) + 
+  draw_plot(f1b, x = 0.045, y = 0.124, width = 0.5, height = 0.4) + 
   draw_plot(globe, x = 0.816, y = 0.705, width = 0.2, height = 0.2)
 
-ggsave(filename = paste0("/Users/", Sys.info()[7], "/Desktop/Fig1.png"), 
+ggsave(filename = "outputs/fig1.png", 
        plot = f1,
        width = 12, 
        height = 10,

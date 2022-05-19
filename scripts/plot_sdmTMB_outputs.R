@@ -4,6 +4,9 @@ library(colorRamps)
 library(ggpubr)
 library(gridExtra)
 library(sp)
+library(sf)
+library(rgdal)
+library(rmapshaper)
 
 rm(list = ls())
 
@@ -64,30 +67,27 @@ df = trophic %>%
 (c1 = ggplot() +
     geom_sf(data = world) +
     geom_point(data = df,  aes_string("lon", "lat", color = "est"), size = scale(df$abs_est)) +
-    coord_sf(crs = st_crs(4135), # old hawaii projection code
-             xlim = c(-160.5, -154.7),
-             ylim = c(18.8, 22.5), expand = F) +
+    coord_sf(crs = st_crs(4135)) +
     scale_color_distiller(palette ="RdBu",
                           direction = -1,
                           # limits = c(quantile(df$est, 0.999)*-1, quantile(df$est, 0.999)) +
                           "") + 
-    ggtitle("Piscivore") + 
-    theme_half_open() + 
-    # guides(color=guide_legend(), size = guide_legend()) + 
+    ggtitle("(a) Linear trend 2010-2019") + 
+    theme_linedraw() +
+    annotate("text",  x = Inf, y = Inf, label = "Piscivore", vjust = 1.2, hjust = 1.2, size = 4) +  
     theme(legend.position = c(0, 0), 
           legend.justification = c(-0.1, -0.1),
           legend.key = element_rect(fill = "transparent", colour = "transparent"),
           legend.box.background = element_rect(fill = "transparent", colour = "transparent"),
-          legend.text = element_text(color = "white", size = 12),
+          # legend.text = element_text(color = "white", size = 12),
           legend.key.size = unit(0.5, "cm"),
-          panel.background = element_rect(fill = "gray10", colour = "gray10"),
-          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray20"),
-          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray20"),
-          axis.line = element_blank(),
+          # panel.background = element_rect(fill = "gray10", colour = "gray10"),
+          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray80"),
+          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray80"),
+          # axis.line = element_blank(),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
-          axis.title = element_blank())
-)
+          axis.title = element_blank()))
 
 df = trophic %>% 
   subset(sp == "PLANKTIVORE") %>%
@@ -100,30 +100,27 @@ df = trophic %>%
 (c2 = ggplot() +
     geom_sf(data = world) +
     geom_point(data = df,  aes_string("lon", "lat", color = "est"), size = scale(df$abs_est)) +
-    coord_sf(crs = st_crs(4135), # old hawaii projection code
-             xlim = c(-160.5, -154.7),
-             ylim = c(18.8, 22.5), expand = F) +
+    coord_sf(crs = st_crs(4135)) +
     scale_color_distiller(palette ="RdBu",
                           direction = -1,
                           # limits = c(quantile(df$est, 0.999)*-1, quantile(df$est, 0.999)) +
                           "") + 
-    ggtitle("Planktivore") + 
-    theme_half_open() + 
-    # guides(color=guide_legend(), size = guide_legend()) + 
+    ggtitle("") + 
+    theme_linedraw() +
+    annotate("text",  x = Inf, y = Inf, label = "Piscivore", vjust = 1.2, hjust = 1.2, size = 4) + 
     theme(legend.position = c(0, 0), 
           legend.justification = c(-0.1, -0.1),
           legend.key = element_rect(fill = "transparent", colour = "transparent"),
           legend.box.background = element_rect(fill = "transparent", colour = "transparent"),
-          legend.text = element_text(color = "white", size = 12),
+          # legend.text = element_text(color = "white", size = 12),
           legend.key.size = unit(0.5, "cm"),
-          panel.background = element_rect(fill = "gray10", colour = "gray10"),
-          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray20"),
-          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray20"),
-          axis.line = element_blank(),
+          # panel.background = element_rect(fill = "gray10", colour = "gray10"),
+          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray80"),
+          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray80"),
+          # axis.line = element_blank(),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
-          axis.title = element_blank())
-)
+          axis.title = element_blank()))
 
 df = trophic %>% 
   subset(sp == "PRIMARY") %>%
@@ -136,32 +133,29 @@ df = trophic %>%
 (c3 = ggplot() +
     geom_sf(data = world) +
     geom_point(data = df,  aes_string("lon", "lat", color = "est"), size = scale(df$abs_est)) +
-    coord_sf(crs = st_crs(4135), # old hawaii projection code
-             xlim = c(-160.5, -154.7),
-             ylim = c(18.8, 22.5), expand = F) +
+    coord_sf(crs = st_crs(4135)) +
     scale_color_distiller(palette ="RdBu",
                           direction = -1,
                           # limits = c(quantile(df$est, 0.999)*-1, quantile(df$est, 0.999)) +
                           "") + 
-    ggtitle("Primary") + 
-    theme_half_open() + 
-    # guides(color=guide_legend(), size = guide_legend()) + 
+    ggtitle(" ") + 
+    theme_linedraw() +
+    annotate("text",  x = Inf, y = Inf, label = "Primary", vjust = 1.2, hjust = 1.2, size = 4) +  
     theme(legend.position = c(0, 0), 
           legend.justification = c(-0.1, -0.1),
           legend.key = element_rect(fill = "transparent", colour = "transparent"),
           legend.box.background = element_rect(fill = "transparent", colour = "transparent"),
-          legend.text = element_text(color = "white", size = 12),
+          # legend.text = element_text(color = "white", size = 12),
           legend.key.size = unit(0.5, "cm"),
-          panel.background = element_rect(fill = "gray10", colour = "gray10"),
-          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray20"),
-          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray20"),
-          axis.line = element_blank(),
+          # panel.background = element_rect(fill = "gray10", colour = "gray10"),
+          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray80"),
+          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray80"),
+          # axis.line = element_blank(),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
-          axis.title = element_blank())
-)
+          axis.title = element_blank()))
 
-df = trophic %>% 
+df = trophic %>%
   subset(sp == "SECONDARY") %>%
   mutate(lon = round(lon, 1),
          lat = round(lat, 1)) %>%
@@ -172,33 +166,30 @@ df = trophic %>%
 (c4 = ggplot() +
     geom_sf(data = world) +
     geom_point(data = df,  aes_string("lon", "lat", color = "est"), size = scale(df$abs_est)) +
-    coord_sf(crs = st_crs(4135), # old hawaii projection code
-             xlim = c(-160.5, -154.7),
-             ylim = c(18.8, 22.5), expand = F) +
+    coord_sf(crs = st_crs(4135)) +
     scale_color_distiller(palette ="RdBu",
                           direction = -1,
                           # limits = c(quantile(df$est, 0.999)*-1, quantile(df$est, 0.999)) +
                           "") + 
-    ggtitle("Secondary") + 
-    theme_half_open() + 
-    # guides(color=guide_legend(), size = guide_legend()) + 
+    ggtitle("  ") + 
+    theme_linedraw() +
+    annotate("text",  x = Inf, y = Inf, label = "Secondary", vjust = 1.2, hjust = 1.2, size = 4) + 
     theme(legend.position = c(0, 0), 
           legend.justification = c(-0.1, -0.1),
           legend.key = element_rect(fill = "transparent", colour = "transparent"),
           legend.box.background = element_rect(fill = "transparent", colour = "transparent"),
-          legend.text = element_text(color = "white", size = 12),
+          # legend.text = element_text(color = "white", size = 12),
           legend.key.size = unit(0.5, "cm"),
-          panel.background = element_rect(fill = "gray10", colour = "gray10"),
-          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray20"),
-          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray20"),
-          axis.line = element_blank(),
+          # panel.background = element_rect(fill = "gray10", colour = "gray10"),
+          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray80"),
+          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray80"),
+          # axis.line = element_blank(),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
-          axis.title = element_blank())
-)
+          axis.title = element_blank()))
 
-png('outputs/fig2a.png', height = 7, width = 10, units = "in", res = 100)
-grid.arrange(c1, c2, c3, c4, nrow = 2)
+png('outputs/fig2a.png', height = 3, width = 17, units = "in", res = 500)
+grid.arrange(c1, c2, c3, c4, nrow = 1)
 dev.off()
 
 (c_supp = trophic %>% 
@@ -217,7 +208,7 @@ dev.off()
           panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray20"), 
           panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20")))
 
-png('outputs/fig2_supp.png', height = 7, width = 10, units = "in", res = 100)
+png('outputs/fig2_supp.png', height = 7, width = 10, units = "in", res = 500)
 (c_supp)
 dev.off()
 
@@ -232,22 +223,21 @@ df = trophic %>%
 (m1 = ggplot() +
     geom_sf(data = world) +
     geom_point(data = df,  aes_string("lon", "lat", color = "est"), size = scale(df$abs_est)) +
-    coord_sf(crs = st_crs(4135), # old hawaii projection code
-             xlim = c(-160.5, -154.7),
-             ylim = c(18.8, 22.5), expand = F) +
+    coord_sf(crs = st_crs(4135)) +
     scale_color_gradientn(colours = matlab.like(100), "") + 
-    ggtitle("Piscivore") +
-    theme_half_open() + 
+    ggtitle("(b) Median biomass 2010-2019") + 
+    theme_linedraw() +
+    annotate("text",  x = Inf, y = Inf, label = "Piscivore", vjust = 1.2, hjust = 1.2, size = 4) + 
     theme(legend.position = c(0, 0), 
           legend.justification = c(-0.1, -0.1),
           legend.key = element_rect(fill = "transparent", colour = "transparent"),
           legend.box.background = element_rect(fill = "transparent", colour = "transparent"),
-          legend.text = element_text(color = "white", size = 12),
+          # legend.text = element_text(color = "white", size = 12),
           legend.key.size = unit(0.5, "cm"),
-          panel.background = element_rect(fill = "gray10", colour = "gray10"),
-          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray20"),
-          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray20"),
-          axis.line = element_blank(),
+          # panel.background = element_rect(fill = "gray10", colour = "gray10"),
+          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray80"),
+          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray80"),
+          # axis.line = element_blank(),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
           axis.title = element_blank()))
@@ -263,26 +253,24 @@ df = trophic %>%
 (m2 = ggplot() +
     geom_sf(data = world) +
     geom_point(data = df,  aes_string("lon", "lat", color = "est"), size = scale(df$abs_est)) +
-    coord_sf(crs = st_crs(4135), # old hawaii projection code
-             xlim = c(-160.5, -154.7),
-             ylim = c(18.8, 22.5), expand = F) +
+    coord_sf(crs = st_crs(4135)) +
     scale_color_gradientn(colours = matlab.like(100), "") + 
-    ggtitle("Planktivore") +
-    theme_half_open() + 
+    ggtitle(" ") +
+    theme_linedraw() +
+    annotate("text",  x = Inf, y = Inf, label = "Planktivore", vjust = 1.2, hjust = 1.2, size = 4) + 
     theme(legend.position = c(0, 0), 
           legend.justification = c(-0.1, -0.1),
           legend.key = element_rect(fill = "transparent", colour = "transparent"),
           legend.box.background = element_rect(fill = "transparent", colour = "transparent"),
-          legend.text = element_text(color = "white", size = 12),
+          # legend.text = element_text(color = "white", size = 12),
           legend.key.size = unit(0.5, "cm"),
-          panel.background = element_rect(fill = "gray10", colour = "gray10"),
-          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray20"),
-          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray20"),
-          axis.line = element_blank(),
+          # panel.background = element_rect(fill = "gray10", colour = "gray10"),
+          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray80"),
+          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray80"),
+          # axis.line = element_blank(),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
           axis.title = element_blank()))
-
 df = trophic %>% 
   subset(sp == "PRIMARY") %>%
   mutate(lon = round(lon, 1),
@@ -294,22 +282,21 @@ df = trophic %>%
 (m3 = ggplot() +
     geom_sf(data = world) +
     geom_point(data = df,  aes_string("lon", "lat", color = "est"), size = scale(df$abs_est)) +
-    coord_sf(crs = st_crs(4135), # old hawaii projection code
-             xlim = c(-160.5, -154.7),
-             ylim = c(18.8, 22.5), expand = F) +
+    coord_sf(crs = st_crs(4135)) +
     scale_color_gradientn(colours = matlab.like(100), "") + 
-    ggtitle("Primary") +
-    theme_half_open() + 
+    ggtitle(" ") +
+    theme_linedraw() +
+    annotate("text",  x = Inf, y = Inf, label = "Primary", vjust = 1.2, hjust = 1.2, size = 4) + 
     theme(legend.position = c(0, 0), 
           legend.justification = c(-0.1, -0.1),
           legend.key = element_rect(fill = "transparent", colour = "transparent"),
           legend.box.background = element_rect(fill = "transparent", colour = "transparent"),
-          legend.text = element_text(color = "white", size = 12),
+          # legend.text = element_text(color = "white", size = 12),
           legend.key.size = unit(0.5, "cm"),
-          panel.background = element_rect(fill = "gray10", colour = "gray10"),
-          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray20"),
-          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray20"),
-          axis.line = element_blank(),
+          # panel.background = element_rect(fill = "gray10", colour = "gray10"),
+          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray80"),
+          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray80"),
+          # axis.line = element_blank(),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
           axis.title = element_blank()))
@@ -325,83 +312,74 @@ df = trophic %>%
 (m4 = ggplot() +
     geom_sf(data = world) +
     geom_point(data = df,  aes_string("lon", "lat", color = "est"), size = scale(df$abs_est)) +
-    coord_sf(crs = st_crs(4135), # old hawaii projection code
-             xlim = c(-160.5, -154.7),
-             ylim = c(18.8, 22.5), expand = F) +
+    coord_sf(crs = st_crs(4135)) +
     scale_color_gradientn(colours = matlab.like(100), "") + 
-    ggtitle("Secondary") +
-    theme_half_open() + 
+    ggtitle(" ") +
+    theme_linedraw() +
+    annotate("text",  x = Inf, y = Inf, label = "Secondary", vjust = 1.2, hjust = 1.2, size = 4) + 
     theme(legend.position = c(0, 0), 
           legend.justification = c(-0.1, -0.1),
           legend.key = element_rect(fill = "transparent", colour = "transparent"),
           legend.box.background = element_rect(fill = "transparent", colour = "transparent"),
-          legend.text = element_text(color = "white", size = 12),
+          # legend.text = element_text(color = "white", size = 12),
           legend.key.size = unit(0.5, "cm"),
-          panel.background = element_rect(fill = "gray10", colour = "gray10"),
-          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray20"),
-          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray20"),
-          axis.line = element_blank(),
+          # panel.background = element_rect(fill = "gray10", colour = "gray10"),
+          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray80"),
+          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray80"),
+          # axis.line = element_blank(),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
           axis.title = element_blank()))
 
-(m4 = trophic %>% 
-    subset(sp == "PRIMARY") %>% 
-    group_by(x, y, sp) %>% 
-    summarise(est = median(est)) %>%  
-    ggplot(aes(x, y, fill = est)) + 
-    geom_tile(height = 0.8, width = 0.8) +
-    coord_fixed() + 
-    facet_grid(~sp) +
-    ylab("Northings (km)") + 
-    xlab("Eastings (km)") + 
-    # scale_fill_gradient2("") +
-    # scale_fill_viridis_c("") +
-    scale_fill_gradientn("", colors = matlab.like(100)) +
-    theme_half_open() +
-    theme(legend.position = c(0, 0), 
-          legend.justification = c(-0.1, -0.1),
-          legend.key = element_rect(colour = NA, fill = NA),
-          legend.text = element_text(color = "white", size = 12),
-          legend.key.size = unit(0.5, "cm"),
-          axis.line = element_blank(),
-          axis.text = element_blank(),
-          axis.ticks = element_blank(),
-          axis.title = element_blank(),
-          panel.background = element_rect(fill = "gray10", colour = "gray10"),
-          panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray20"), 
-          panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20"))+ 
-    ggtitle(""))
-
-png(paste0('/Users/', Sys.info()[7], '/Desktop/fig4b.png'), height = 3, width = 16, units = "in", res = 100)
-grid.arrange(m1, m2, m3, m4, nrow = 2)
+png('outputs/fig2b.png', height = 3, width = 17, units = "in", res = 500)
+grid.arrange(m1, m2, m3, m4, nrow = 1)
 dev.off()
 
-(m_supp = trophic %>% 
-    group_by(x, y, sp) %>% 
+(fig3_supp = trophic %>% 
+    group_by(lon, lat, sp) %>% 
     summarise(est = median(est)) %>%  
-    ggplot(aes(x, y, fill = est)) + 
-    geom_tile(height = 0.8, width = 0.8) +
+    ggplot(aes(lon, lat, fill = est)) + 
+    geom_tile(height = 0.01, width = 0.01) +
     coord_fixed() + 
     facet_wrap(~sp, nrow = 2) +
-    ylab("Northings (km)") + 
-    xlab("Eastings (km)") + 
     scale_fill_gradientn("", colors = matlab.like(100)) +
-    theme(axis.line = element_blank(),
-          axis.text = element_blank(),
-          axis.ticks = element_blank(),
-          axis.title = element_blank(),
-          panel.background = element_rect(fill = "gray10", colour = "gray10"),
-          panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray20"), 
-          panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20")))
+    theme(
+      # axis.line = element_blank(),
+      # axis.text = element_blank(),
+      # axis.ticks = element_blank(),
+      axis.title = element_blank(),
+      panel.background = element_rect(fill = "gray10", colour = "gray10"),
+      panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray20"), 
+      panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20")))
 
-png('outputs/fig3_supp.png', height = 7, width = 10, units = "in", res = 100)
-(m_supp)
+png('outputs/fig3_supp.png', height = 7, width = 10, units = "in", res = 500)
+(fig3_supp)
 dev.off()
 
+(fig4 = trophic %>%
+    group_by(year, sp) %>% 
+    summarise(mean_est = median(est),
+              sd = sd(est, na.rm = T)) %>%
+    ggplot(aes(year, mean_est)) +
+    geom_pointrange(
+      aes(ymin = ifelse(mean_est - sd < 0, 0, mean_est - sd), 
+          ymax = mean_est+sd, color = sp),
+      position = position_dodge(0.5)) + 
+    scale_color_viridis_d("") + 
+    labs(y = expression("Biomass (g) per " ~ m^2~""), x = "") +
+    scale_x_continuous(breaks = c(2010, 2012, 2013, 2015, 2016, 2019), 
+                       labels = c(2010, 2012, 2013, 2015, 2016, 2019)) + 
+    theme_half_open() + 
+    theme(legend.position = c(1, 1),
+          legend.justification = c(1, 0.9),
+          axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)))
 
-(t1 = trophic %>% 
-    subset(sp == "PISCIVORE") %>%
+png("outputs/fig4.png", height = 5, width = 7, units = "in", res = 500)
+(fig4)
+dev.off()
+
+(fig4_supp = trophic %>% 
+    # subset(sp == "SECONDARY") %>% 
     group_by(year, sp) %>% 
     summarise(mean_est = median(est),
               sd = sd(est, na.rm = T)) %>%
@@ -413,70 +391,12 @@ dev.off()
                   width=.2,
                   show.legend = F,
                   position = position_dodge(0.05)) + 
-    ylab("g/353 sq.m") + 
-    xlab("Year") + 
-    facet_grid(~sp) + 
-    theme_half_open() + 
+    labs(y = expression("Biomass (g) per " ~ m^2~""), x = "") +
+    facet_wrap(~sp) + 
+    theme_half_open() +
     theme(legend.position = "right"))
 
-(t2 = trophic %>% 
-    subset(sp == "PLANKTIVORE") %>% 
-    group_by(year, sp) %>% 
-    summarise(mean_est = median(est),
-              sd = sd(est, na.rm = T)) %>%
-    ggplot(aes(year, mean_est)) + 
-    geom_line(show.legend = F) +
-    geom_point(size = 3, show.legend = F) + 
-    geom_errorbar(aes(ymin = ifelse(mean_est - sd < 0, 0, mean_est - sd), 
-                      ymax = mean_est+sd), 
-                  width=.2,
-                  show.legend = F,
-                  position = position_dodge(0.05)) + 
-    ylab("g/353 sq.m") + 
-    xlab("Year") + 
-    facet_grid(~sp) + 
-    theme_half_open() + 
-    theme(legend.position = "right"))
-
-(t3 = trophic %>% 
-    subset(sp == "PRIMARY") %>% 
-    group_by(year, sp) %>% 
-    summarise(mean_est = median(est),
-              sd = sd(est, na.rm = T)) %>%
-    ggplot(aes(year, mean_est)) + 
-    geom_line(show.legend = F) +
-    geom_point(size = 3, show.legend = F) + 
-    geom_errorbar(aes(ymin = ifelse(mean_est - sd < 0, 0, mean_est - sd), 
-                      ymax = mean_est+sd), 
-                  width=.2,
-                  show.legend = F,
-                  position = position_dodge(0.05)) + 
-    ylab("g/353 sq.m") + 
-    xlab("Year") + 
-    facet_grid(~sp) + 
-    theme_half_open() + 
-    theme(legend.position = "right"))
-
-(t4 = trophic %>% 
-    subset(sp == "SECONDARY") %>% 
-    group_by(year, sp) %>% 
-    summarise(mean_est = median(est),
-              sd = sd(est, na.rm = T)) %>%
-    ggplot(aes(year, mean_est)) + 
-    geom_line(show.legend = F) +
-    geom_point(size = 3, show.legend = F) + 
-    geom_errorbar(aes(ymin = ifelse(mean_est - sd < 0, 0, mean_est - sd), 
-                      ymax = mean_est+sd), 
-                  width=.2,
-                  show.legend = F,
-                  position = position_dodge(0.05)) + 
-    ylab("g/353 sq.m") + 
-    xlab("Year") + 
-    facet_grid(~sp) + 
-    theme_half_open() + 
-    theme(legend.position = "right"))
-
-png(paste0('/Users/', Sys.info()[7], '/Desktop/trend.png'), height = 3, width = 18, units = "in", res = 100)
-grid.arrange(t1, t2, t3, t4, nrow = 1)
+png('outputs/fig4_supp.png', height = 5, width = 8, units = "in", res = 500)
+(fig4_supp)
 dev.off()
 
