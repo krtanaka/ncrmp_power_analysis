@@ -129,7 +129,7 @@ f4a = (f4aa + f4ab + f4ac); rm(f4aa, f4ab, f4ac)
     scale_x_continuous(expand = c(0.01, 0.01)) +
     scale_y_continuous(expand = c(0.01, 0.01)) +
     theme(legend.position = "right") +
-    scale_fill_gradientn(colours = matlab.like(100), "# of sites") +
+    scale_fill_viridis_c("# of sites") +
     theme(legend.position = c(1,1),
           legend.justification = c(1.1, 1.1),
           legend.key.size = unit(0.3, "cm"),
@@ -151,7 +151,7 @@ f4a = (f4aa + f4ab + f4ac); rm(f4aa, f4ab, f4ac)
     scale_x_continuous(expand = c(0.01, 0.01)) +
     scale_y_continuous(expand = c(0.01, 0.01)) +
     theme(legend.position = "right") +
-    scale_fill_gradientn(colours = matlab.like(100), "# of sites") +
+    scale_fill_viridis_c("# of sites") +
     theme(legend.position = c(1,1),
           legend.justification = c(1.1, 1.1),
           legend.key.size = unit(0.3, "cm"),
@@ -173,7 +173,7 @@ f4a = (f4aa + f4ab + f4ac); rm(f4aa, f4ab, f4ac)
     scale_x_continuous(expand = c(0.01, 0.01)) +
     scale_y_continuous(expand = c(0.01, 0.01)) +
     theme(legend.position = "right") +
-    scale_fill_gradientn(colours = matlab.like(100), "# of sites") +
+    scale_fill_viridis_c("# of sites") +
     theme(legend.position = c(1,1),
           legend.justification = c(1.1, 1.1),
           legend.key.size = unit(0.3, "cm"),
@@ -205,12 +205,11 @@ dev.off()
                position = position_jitter(0.3),
                show.legend = T) +
     scale_color_viridis_c("Simulation") + 
-    scale_color_gradientn(colours = matlab.like(100), "Simulation") +
     ggnewscale::new_scale_color() +
     geom_line(aes(year, I, color = "True biomass"), size = 1) + 
     geom_point(aes(year, I, color = "True biomass"), size = 2) + 
     scale_color_viridis_d("", option = "A") +
-    theme_half_open() + 
+    theme_half_open() +
     scale_x_continuous(breaks = c(2010, 2012, 2013, 2015, 2016, 2019), 
                        labels = c(2010, 2012, 2013, 2015, 2016, 2019)) +
     ylab("Total Biomass (kg)") +
@@ -223,7 +222,7 @@ dev.off()
       vjust = 2) + 
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)))
 
-png("outputs/fig5.png", units = "in", height = 4, width = 8, res = 500)
+png("outputs/fig5.png", units = "in", height = 6, width = 12, res = 500)
 (fig5)
 dev.off()
 

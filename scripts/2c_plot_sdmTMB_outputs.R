@@ -229,6 +229,7 @@ df = trophic %>%
     geom_point(data = df,  aes_string("lon", "lat", color = "est"), size = scale(df$abs_est)) +
     coord_sf(crs = st_crs(4135)) +
     scale_color_gradientn(colours = matlab.like(100), "") + 
+    scale_color_viridis_c("") + 
     ggtitle("(b) Median biomass 2010-2019") + 
     theme_classic() +
     annotate("text",  x = Inf, y = Inf, label = "Piscivore", vjust = 1.2, hjust = 1.2, size = 4) + 
@@ -260,6 +261,7 @@ df = trophic %>%
     geom_point(data = df,  aes_string("lon", "lat", color = "est"), size = scale(df$abs_est)) +
     coord_sf(crs = st_crs(4135)) +
     scale_color_gradientn(colours = matlab.like(100), "") + 
+    scale_color_viridis_c("") + 
     ggtitle(" ") +
     theme_classic() +
     annotate("text",  x = Inf, y = Inf, label = "Planktivore", vjust = 1.2, hjust = 1.2, size = 4) + 
@@ -291,6 +293,7 @@ df = trophic %>%
     geom_point(data = df,  aes_string("lon", "lat", color = "est"), size = scale(df$abs_est)) +
     coord_sf(crs = st_crs(4135)) +
     scale_color_gradientn(colours = matlab.like(100), "") + 
+    scale_color_viridis_c("") + 
     ggtitle(" ") +
     theme_classic() +
     annotate("text",  x = Inf, y = Inf, label = "Primary", vjust = 1.2, hjust = 1.2, size = 4) + 
@@ -322,6 +325,7 @@ df = trophic %>%
     geom_point(data = df,  aes_string("lon", "lat", color = "est"), size = scale(df$abs_est)) +
     coord_sf(crs = st_crs(4135)) +
     scale_color_gradientn(colours = matlab.like(100), "") + 
+    scale_color_viridis_c("") + 
     ggtitle(" ") +
     theme_classic() +
     annotate("text",  x = Inf, y = Inf, label = "Secondary", vjust = 1.2, hjust = 1.2, size = 4) + 
@@ -383,15 +387,15 @@ dev.off()
     scale_x_continuous(breaks = c(2010, 2012, 2013, 2015, 2016, 2019), 
                        labels = c(2010, 2012, 2013, 2015, 2016, 2019)) + 
     theme_classic() +
-    theme(legend.position = c(0,1),
-          legend.justification = c(-0.1, 0.8),
+    theme(legend.position = c(1,1),
+          legend.justification = c(1, 0.8),
           legend.key = element_rect(fill = "transparent", colour = "transparent"),
           axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
           # panel.background = element_rect(fill = "gray90", colour = "gray90"),
           panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray100"),
           panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray100")))
 
-png("outputs/fig3.png", height = 5, width = 7, units = "in", res = 500)
+png("outputs/fig3.png", height = 5, width = 6, units = "in", res = 500)
 (fig3)
 dev.off()
 

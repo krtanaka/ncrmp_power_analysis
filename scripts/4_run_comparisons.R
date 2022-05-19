@@ -414,6 +414,7 @@ isl_power = isl_power %>%
   group_by(sp, isl) %>% 
   mutate(RMSE = as.numeric(RMSE),
          zscore = (RMSE - mean(RMSE))/sd(RMSE))
+library(lemon)
 
 (fig8 = isl_power %>%
     ggplot(aes(N, zscore)) + 
@@ -433,11 +434,13 @@ isl_power = isl_power %>%
     xlab("Sampling Efforts (N sites per island)") + 
     ylab("Standadized RMSE") +
     theme(panel.background = element_rect(fill = "white"),
-          panel.grid = element_blank(),
+          # panel.grid = element_blank(),
+          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray90"),
+          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray90"),
           axis.line = element_line(),
           legend.position = "top"))
 
-png("outputs/fig8.png", units = "in", height = 7, width = 10, res = 300)
+png("outputs/fig8.png", units = "in", height = 7, width = 7, res = 300)
 (fig8)
 dev.off()
 
@@ -543,7 +546,9 @@ df$Effort_level = factor(df$Effort_level, levels = c('High effort (110-150 sites
     scale_fill_viridis_d("") + 
     xlab("") + 
     theme_half_open() +
-    theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+    theme(panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray90"),
+          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray90"),
+          axis.text.x = element_text(angle = 90, hjust = 1)) + 
     ggtitle("Normal effort (100-150 sites)") + 
     labs(tag = "(a)"))
 
@@ -555,9 +560,12 @@ df$Effort_level = factor(df$Effort_level, levels = c('High effort (110-150 sites
     scale_y_log10(breaks = trans_breaks('log10', function(x) 10^x),
                   labels = trans_format('log10', math_format(10^.x)), "RMSE") +
     scale_fill_viridis_d("") + 
+    # scale_color_viridis_d("") + 
     xlab("") + 
     theme_half_open() +
-    theme(legend.position = "bottom", 
+    theme(panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray90"),
+          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray90"),
+          legend.position = "bottom", 
           legend.justification = c(1,1),
           axis.text.x = element_text(angle = 90, hjust = 1)) + 
     ggtitle("Low effort (10-50 sites)") + 
@@ -566,7 +574,7 @@ df$Effort_level = factor(df$Effort_level, levels = c('High effort (110-150 sites
 library(patchwork)
 fig7 = fig7a/fig7b
 
-png("outputs/fig7.png", units = "in", height = 10, width = 10, res = 300)
+png("outputs/fig7.png", units = "in", height = 10, width = 15, res = 300)
 (fig7)
 dev.off()
 

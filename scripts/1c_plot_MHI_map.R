@@ -98,7 +98,8 @@ label = df %>%
                  aes(x = x, y = y, z = z, colour = stat(level)),
                  breaks = seq(-1000, 0, by = 100),
                  size = c(0.5)) +
-    scale_colour_distiller(palette = "RdYlBu", direction = -1, "Depth (m)") +
+    # scale_colour_distiller(palette = "RdYlBu", direction = -1, "Depth (m)") +
+    scale_colour_viridis_c("Depth (m)") +
     geom_label_repel(data = label, 
                      aes(x = lon, y = lat, label = ISLAND), 
                      label.size = NA,
@@ -128,6 +129,8 @@ df = df %>%
     geom_line(show.legend = F) + 
     scale_fill_manual(values = matlab.like(7), "") +
     scale_color_manual(values = matlab.like(7), "") +
+    scale_fill_viridis_d("") + 
+    scale_color_viridis_d("") + 
     labs(y = "Sampling effort (n)", x = "") + 
     theme_bw() +
     scale_x_continuous(breaks = c(2010, 2012, 2013, 2015, 2016, 2019), 
