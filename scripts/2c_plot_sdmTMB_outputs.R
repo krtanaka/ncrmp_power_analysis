@@ -375,16 +375,16 @@ dev.off()
           ymax = mean_est+sd, color = sp),
       position = position_dodge(0.5)) + 
     # scale_color_discrete("", ) + 
-    # scale_color_viridis_d("", option = "E") +
-    scale_color_manual(values = matlab.like2(4), "") +
+    scale_color_viridis_d("") +
+    # scale_color_manual(values = terrain.colors(4), "") +
     # scale_x_continuous(expand = c(0, 0)) +
     # scale_y_continuous(expand = c(0, 0)) +
     labs(y = expression("Biomass (g) per " ~ m^2~""), x = "") +
     scale_x_continuous(breaks = c(2010, 2012, 2013, 2015, 2016, 2019), 
                        labels = c(2010, 2012, 2013, 2015, 2016, 2019)) + 
     theme_classic() +
-    theme(legend.position = "top",
-          legend.justification = c(1, 1),
+    theme(legend.position = c(0,1),
+          legend.justification = c(-0.1, 0.8),
           legend.key = element_rect(fill = "transparent", colour = "transparent"),
           axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
           # panel.background = element_rect(fill = "gray90", colour = "gray90"),
