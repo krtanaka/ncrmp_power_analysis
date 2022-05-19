@@ -379,12 +379,6 @@ rmse = formatC(sim$total_strat_error_stats[4], digits = 3)
 
 label = paste0("ME = ", me, "\n", "MAE = ", mae, "\n", "MSE = ", mse, "\n", "RMSE = ", rmse)
 
-ggplot(df1, aes(x = x, y = y)) +
-  geom_tile(aes(fill = value)) + 
-  scale_fill_gradient2(low = "gray", high = "red", mid = "#e3e3e3", midpoint = 0) +
-  geom_point(data = df2, aes(color = value), shape = 19, size = 3) +
-  scale_color_gradient(low = "gray", high = "blue")
-
 strata = sim$grid_xy %>%
   mutate(x = round(x/0.5, digits = 0),
          y = round(y/0.5, digits = 0)) %>%
