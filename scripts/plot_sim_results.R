@@ -11,7 +11,7 @@ sims = NULL
 
 for (i in 1:3) {
   
-  # i = 2
+  # i = 1
   
   # # 2005-2019
   # if (i == 1) load('outputs/sim_results_Maui_traditional_median_PLANKTIVORE_100_biomass.RData')
@@ -57,26 +57,240 @@ for (i in 1:3) {
     summarise(rmse = sqrt(mean(error^2))) %>% 
     mutate(rmse = formatC(rmse, digits = 2)))
 
-(p1 = areas %>% 
+(num_strata = areas %>% 
+    group_by(strategy) %>% 
+    summarise(sum = length(unique(strat))))
+
+(f4aa = areas %>% 
+    subset(strategy == "Traditional") %>% 
     ggplot(aes(x, y)) +
     coord_fixed() +
-    geom_raster(aes(fill = log(strat_sets))) + 
-    theme_half_open() + 
-    ylab("Northing (km)") + xlab("Easting (km)") + 
-    theme(legend.position = "right") +
-    facet_grid(~ strategy) + 
-    scale_fill_gradientn(colours = matlab.like(100), "log(# of sites)") +
-    theme(#axis.line = element_blank(),
+    geom_raster(aes(fill = factor(strat)), show.legend = F) + 
+    scale_fill_viridis_d("") +
+    theme_linedraw() +
+    scale_x_continuous(expand = c(0.01, 0.01)) +
+    scale_y_continuous(expand = c(0.01, 0.01)) +
+    annotate("text",  x = Inf, y = Inf, label = "n = 21", vjust = 1.2, hjust = 1.2, size = 4) + 
+    theme(panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray80"),
+          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray80"),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
-          axis.title = element_blank(),
-          # panel.background = element_rect(fill = "gray10", colour = "gray10"),
-          # panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray20"), 
-          # panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20")
-          ) + 
-    ggtitle("(a)"))
+          axis.title = element_blank()) + 
+    ggtitle("Traditional") + 
+    labs(tag = "(a)"))
 
-(p2 = sims %>% 
+(f4ab = areas %>% 
+    subset(strategy == "Zone-based") %>% 
+    ggplot(aes(x, y)) +
+    coord_fixed() +
+    geom_raster(aes(fill = factor(strat)), show.legend = F) + 
+    scale_fill_viridis_d("") +
+    theme_linedraw() +
+    scale_x_continuous(expand = c(0.01, 0.01)) +
+    scale_y_continuous(expand = c(0.01, 0.01)) +
+    annotate("text",  x = Inf, y = Inf, label = "n = 9", vjust = 1.2, hjust = 1.2, size = 4) + 
+    theme(panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray80"),
+          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray80"),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          axis.title = element_blank()) + 
+    ggtitle("Zone-based") + 
+    labs(tag = " "))
+
+(f4ac = areas %>% 
+    subset(strategy == "Zone-triaged") %>% 
+    ggplot(aes(x, y)) +
+    coord_fixed() +
+    geom_raster(aes(fill = factor(strat)), show.legend = F) + 
+    scale_fill_viridis_d("") +
+    theme_linedraw() +
+    scale_x_continuous(expand = c(0.01, 0.01)) +
+    scale_y_continuous(expand = c(0.01, 0.01)) +
+    annotate("text",  x = Inf, y = Inf, label = "n = 3", vjust = 1.2, hjust = 1.2, size = 4) + 
+    theme(panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray80"),
+          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray80"),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          axis.title = element_blank()) + 
+    ggtitle("Zone-triaged") + 
+    labs(tag = " "))
+
+f4a = (f4aa + f4ab + f4ac); rm(f4aa, f4ab, f4ac)
+
+(f4ba = areas %>% 
+    subset(strategy == "Traditional") %>% 
+    ggplot(aes(x, y)) +
+    coord_fixed() +
+    geom_raster(aes(fill = strat_sets)) + 
+    theme_linedraw() +
+    scale_x_continuous(expand = c(0.01, 0.01)) +
+    scale_y_continuous(expand = c(0.01, 0.01)) +
+    theme(legend.position = "right") +
+    scale_fill_gradientn(colours = matlab.like(100), "# of sites") +
+    theme(legend.position = c(1,1),
+          legend.justification = c(1.1, 1.1),
+          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray80"),
+          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray80"),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          axis.title = element_blank()) + 
+    ggtitle("Traditional") + 
+    labs(tag = "(b)"))
+
+(f4bb = areas %>% 
+    subset(strategy == "Zone-based") %>% 
+    ggplot(aes(x, y)) +
+    coord_fixed() +
+    geom_raster(aes(fill = strat_sets)) + 
+    theme_linedraw() +
+    scale_x_continuous(expand = c(0.01, 0.01)) +
+    scale_y_continuous(expand = c(0.01, 0.01)) +
+    theme(legend.position = "right") +
+    scale_fill_gradientn(colours = matlab.like(100), "# of sites") +
+    theme(legend.position = c(1,1),
+          legend.justification = c(1.1, 1.1),
+          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray80"),
+          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray80"),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          axis.title = element_blank()) + 
+    ggtitle("Zone-based") + 
+    labs(tag = " "))
+
+(f4bc = areas %>% 
+    subset(strategy == "Zone-triaged") %>% 
+    ggplot(aes(x, y)) +
+    coord_fixed() +
+    geom_raster(aes(fill = strat_sets)) + 
+    theme_linedraw() +
+    scale_x_continuous(expand = c(0.01, 0.01)) +
+    scale_y_continuous(expand = c(0.01, 0.01)) +
+    theme(legend.position = "right") +
+    scale_fill_gradientn(colours = matlab.like(100), "# of sites") +
+    theme(legend.position = c(1,1),
+          legend.justification = c(1.1, 1.1),
+          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray80"),
+          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray80"),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          axis.title = element_blank()) + 
+    ggtitle("Zone-triaged") + 
+    labs(tag = " "))
+
+f4b = (f4ba + f4bb + f4bc); rm(f4ba, f4bb, f4bc)
+
+f4a / f4b
+
+(f4ca = sims %>% 
+    subset(year >= 2010) %>%
+    subset(strategy == "Traditional") %>% 
+    ggplot() + 
+    geom_point(aes(year, I_hat, group = sim, color = sim), 
+               alpha = 0.5, 
+               size = 2, 
+               position = position_jitter(0.2),
+               show.legend = T) +
+    scale_color_gradientn(colours = matlab.like(100), "Simulation") +
+    ggnewscale::new_scale_color() +
+    geom_line(aes(year, I, color = "True biomass"), size = 1) + 
+    geom_point(aes(year, I, color = "True biomass"), size = 2) + 
+    scale_color_viridis_d("", option = "A") +
+    theme_linedraw() +
+    scale_x_continuous(breaks = c(2010, 2012, 2013, 2015, 2016, 2019), 
+                       labels = c(2010, 2012, 2013, 2015, 2016, 2019)) +
+    ylab("Biomass (g)") +
+    xlab("") + 
+    geom_text(
+      data = subset(rmse, strategy == "Traditional"),
+      mapping = aes(x = Inf, y = Inf, label = paste0("RMSE = ", rmse)),
+      hjust = 1.1,
+      vjust = 1.2) + 
+    theme(legend.position = c(0,1),
+          legend.justification = c(-0.3, 1.1),
+          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray90"),
+          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray80"),
+          axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
+    ggtitle("Traditional") + 
+    labs(tag = "(c)"))
+
+(f4cb = sims %>% 
+    subset(year >= 2010) %>%
+    subset(strategy == "Zone-based") %>% 
+    ggplot() + 
+    geom_point(aes(year, I_hat, group = sim, color = sim), 
+               alpha = 0.5, 
+               size = 2, 
+               position = position_jitter(0.2),
+               show.legend = F) +
+    scale_color_gradientn(colours = matlab.like(100), "Simulation") +
+    ggnewscale::new_scale_color() +
+    geom_line(aes(year, I, color = "True biomass"), size = 1) + 
+    geom_point(aes(year, I, color = "True biomass"), size = 2) + 
+    scale_color_viridis_d("", option = "A") +
+    theme_linedraw() +
+    scale_x_continuous(breaks = c(2010, 2012, 2013, 2015, 2016, 2019), 
+                       labels = c(2010, 2012, 2013, 2015, 2016, 2019)) +
+    ylab("Biomass (g)") +
+    xlab("") + 
+    geom_text(
+      data = subset(rmse, strategy == "Zone-based"),
+      mapping = aes(x = Inf, y = Inf, label = paste0("RMSE = ", rmse)),
+      hjust = 1.1,
+      vjust = 1.2) + 
+    theme(legend.position = c(0,1),
+          legend.justification = c(-0.3, 1.1),
+          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray90"),
+          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray80"),
+          axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
+    ggtitle("Zone-based") + 
+    labs(tag = " "))
+
+(f4cc = sims %>% 
+    subset(year >= 2010) %>%
+    subset(strategy == "Zone-triaged") %>% 
+    ggplot() + 
+    geom_point(aes(year, I_hat, group = sim, color = sim), 
+               alpha = 0.5, 
+               size = 2, 
+               position = position_jitter(0.2),
+               show.legend = F) +
+    scale_color_gradientn(colours = matlab.like(100), "Simulation") +
+    ggnewscale::new_scale_color() +
+    geom_line(aes(year, I, color = "True biomass"), size = 1) + 
+    geom_point(aes(year, I, color = "True biomass"), size = 2) + 
+    scale_color_viridis_d("", option = "A") +
+    theme_linedraw() +
+    scale_x_continuous(breaks = c(2010, 2012, 2013, 2015, 2016, 2019), 
+                       labels = c(2010, 2012, 2013, 2015, 2016, 2019)) +
+    ylab("Biomass (g)") +
+    xlab("") + 
+    geom_text(
+      data = subset(rmse, strategy == "Zone-triaged"),
+      mapping = aes(x = Inf, y = Inf, label = paste0("RMSE = ", rmse)),
+      hjust = 1.1,
+      vjust = 1.2) + 
+    theme(legend.position = c(0,1),
+          legend.justification = c(-0.3, 1.1),
+          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray90"),
+          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray80"),
+          axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
+    ggtitle("Zone-triaged") + 
+    labs(tag = " "))
+
+f4c = (f4ca + f4cb + f4cc); rm(f4ca, f4cb, f4cc)
+
+f4a / f4b / f4c
+
+
+png("outputs/fig4ab.png", units = "in", height = 10, width = 18, res = 500)
+(f4a / f4b)
+dev.off()
+
+png("outputs/fig4c.png", units = "in", height = 5, width = 18, res = 500)
+(f4c)
+dev.off()
+
+(sims %>% 
     subset(year >= 2010) %>%
     ggplot() + 
     geom_point(aes(year, I_hat, group = sim, color = sim), 
@@ -84,18 +298,15 @@ for (i in 1:3) {
                size = 2, 
                position = position_jitter(0.3),
                show.legend = T) +
-    # geom_line(aes(year, I_hat, group = sim, color = sim), alpha = 0.5, size = 1, show.legend = T) +
     scale_color_viridis_c("Simulation") + 
     scale_color_gradientn(colours = matlab.like(100), "Simulation") +
     ggnewscale::new_scale_color() +
     geom_line(aes(year, I, color = "True biomass"), size = 1) + 
     geom_point(aes(year, I, color = "True biomass"), size = 2) + 
     scale_color_viridis_d("", option = "A") +
-    # scale_color_discrete("") +
     theme_half_open() + 
-    # scale_y_log10() +
-    # scale_x_log10() + 
-    scale_x_continuous(breaks = c(2010, 2012, 2013, 2015, 2016, 2019), labels = c(2010, 2012, 2013, 2015, 2016, 2019)) +
+    scale_x_continuous(breaks = c(2010, 2012, 2013, 2015, 2016, 2019), 
+                       labels = c(2010, 2012, 2013, 2015, 2016, 2019)) +
     ylab("Biomass (g)") +
     xlab("") + 
     facet_grid(~ strategy) + 
@@ -109,6 +320,3 @@ for (i in 1:3) {
 
 p1/p2
 
-png("outputs/fig5.png", units = "in", height = 8, width = 13, res = 500)
-(p1/p2)
-dev.off()

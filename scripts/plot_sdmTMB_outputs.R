@@ -335,7 +335,7 @@ png('outputs/fig2b.png', height = 3, width = 17, units = "in", res = 500)
 grid.arrange(m1, m2, m3, m4, nrow = 1)
 dev.off()
 
-(fig3_supp = trophic %>% 
+(fig2_supp = trophic %>% 
     group_by(lon, lat, sp) %>% 
     summarise(est = median(est)) %>%  
     ggplot(aes(lon, lat, fill = est)) + 
@@ -352,11 +352,11 @@ dev.off()
       panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray20"), 
       panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20")))
 
-png('outputs/fig3_supp.png', height = 7, width = 10, units = "in", res = 500)
-(fig3_supp)
-dev.off()
+# png('outputs/fig2_supp.png', height = 7, width = 10, units = "in", res = 500)
+# (fig2_supp)
+# dev.off()
 
-(fig4 = trophic %>%
+(fig3 = trophic %>%
     group_by(year, sp) %>% 
     summarise(mean_est = median(est),
               sd = sd(est, na.rm = T)) %>%
@@ -366,19 +366,24 @@ dev.off()
           ymax = mean_est+sd, color = sp),
       position = position_dodge(0.5)) + 
     scale_color_viridis_d("") + 
+    # scale_x_continuous(expand = c(0, 0)) +
+    # scale_y_continuous(expand = c(0, 0)) +
     labs(y = expression("Biomass (g) per " ~ m^2~""), x = "") +
     scale_x_continuous(breaks = c(2010, 2012, 2013, 2015, 2016, 2019), 
                        labels = c(2010, 2012, 2013, 2015, 2016, 2019)) + 
-    theme_half_open() + 
-    theme(legend.position = c(1, 1),
-          legend.justification = c(1, 0.9),
-          axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)))
+    theme_linedraw() +
+    theme(legend.position = "top",
+          legend.justification = c(1, 1),
+          legend.key = element_rect(fill = "transparent", colour = "transparent"),
+          axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray100"),
+          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray100")))
 
-png("outputs/fig4.png", height = 5, width = 7, units = "in", res = 500)
-(fig4)
+png("outputs/fig3.png", height = 5, width = 7, units = "in", res = 500)
+(fig3)
 dev.off()
 
-(fig4_supp = trophic %>% 
+(fig3_supp = trophic %>% 
     # subset(sp == "SECONDARY") %>% 
     group_by(year, sp) %>% 
     summarise(mean_est = median(est),
@@ -396,7 +401,7 @@ dev.off()
     theme_half_open() +
     theme(legend.position = "right"))
 
-png('outputs/fig4_supp.png', height = 5, width = 8, units = "in", res = 500)
-(fig4_supp)
-dev.off()
+# png('outputs/fig4_supp.png', height = 5, width = 8, units = "in", res = 500)
+# (fig4_supp)
+# dev.off()
 
