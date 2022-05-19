@@ -181,116 +181,13 @@ f4b = (f4ba + f4bb + f4bc); rm(f4ba, f4bb, f4bc)
 
 f4a / f4b
 
-(f4ca = sims %>% 
-    subset(year >= 2010) %>%
-    subset(strategy == "Traditional") %>% 
-    ggplot() + 
-    geom_point(aes(year, I_hat, group = sim, color = sim), 
-               alpha = 0.5, 
-               size = 2, 
-               position = position_jitter(0.2),
-               show.legend = T) +
-    scale_color_gradientn(colours = matlab.like(100), "Simulation") +
-    ggnewscale::new_scale_color() +
-    geom_line(aes(year, I, color = "True biomass"), size = 1) + 
-    geom_point(aes(year, I, color = "True biomass"), size = 2) + 
-    scale_color_viridis_d("", option = "A") +
-    theme_linedraw() +
-    scale_x_continuous(breaks = c(2010, 2012, 2013, 2015, 2016, 2019), 
-                       labels = c(2010, 2012, 2013, 2015, 2016, 2019)) +
-    ylab("Biomass (g)") +
-    xlab("") + 
-    geom_text(
-      data = subset(rmse, strategy == "Traditional"),
-      mapping = aes(x = Inf, y = Inf, label = paste0("RMSE = ", rmse)),
-      hjust = 1.1,
-      vjust = 1.2) + 
-    theme(legend.position = c(0,1),
-          legend.justification = c(-0.3, 1.1),
-          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray90"),
-          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray80"),
-          axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
-    ggtitle("Traditional") + 
-    labs(tag = "(c)"))
-
-(f4cb = sims %>% 
-    subset(year >= 2010) %>%
-    subset(strategy == "Zone-based") %>% 
-    ggplot() + 
-    geom_point(aes(year, I_hat, group = sim, color = sim), 
-               alpha = 0.5, 
-               size = 2, 
-               position = position_jitter(0.2),
-               show.legend = F) +
-    scale_color_gradientn(colours = matlab.like(100), "Simulation") +
-    ggnewscale::new_scale_color() +
-    geom_line(aes(year, I, color = "True biomass"), size = 1) + 
-    geom_point(aes(year, I, color = "True biomass"), size = 2) + 
-    scale_color_viridis_d("", option = "A") +
-    theme_linedraw() +
-    scale_x_continuous(breaks = c(2010, 2012, 2013, 2015, 2016, 2019), 
-                       labels = c(2010, 2012, 2013, 2015, 2016, 2019)) +
-    ylab("Biomass (g)") +
-    xlab("") + 
-    geom_text(
-      data = subset(rmse, strategy == "Zone-based"),
-      mapping = aes(x = Inf, y = Inf, label = paste0("RMSE = ", rmse)),
-      hjust = 1.1,
-      vjust = 1.2) + 
-    theme(legend.position = c(0,1),
-          legend.justification = c(-0.3, 1.1),
-          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray90"),
-          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray80"),
-          axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
-    ggtitle("Zone-based") + 
-    labs(tag = " "))
-
-(f4cc = sims %>% 
-    subset(year >= 2010) %>%
-    subset(strategy == "Zone-triaged") %>% 
-    ggplot() + 
-    geom_point(aes(year, I_hat, group = sim, color = sim), 
-               alpha = 0.5, 
-               size = 2, 
-               position = position_jitter(0.2),
-               show.legend = F) +
-    scale_color_gradientn(colours = matlab.like(100), "Simulation") +
-    ggnewscale::new_scale_color() +
-    geom_line(aes(year, I, color = "True biomass"), size = 1) + 
-    geom_point(aes(year, I, color = "True biomass"), size = 2) + 
-    scale_color_viridis_d("", option = "A") +
-    theme_linedraw() +
-    scale_x_continuous(breaks = c(2010, 2012, 2013, 2015, 2016, 2019), 
-                       labels = c(2010, 2012, 2013, 2015, 2016, 2019)) +
-    ylab("Biomass (g)") +
-    xlab("") + 
-    geom_text(
-      data = subset(rmse, strategy == "Zone-triaged"),
-      mapping = aes(x = Inf, y = Inf, label = paste0("RMSE = ", rmse)),
-      hjust = 1.1,
-      vjust = 1.2) + 
-    theme(legend.position = c(0,1),
-          legend.justification = c(-0.3, 1.1),
-          panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray90"),
-          panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray80"),
-          axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
-    ggtitle("Zone-triaged") + 
-    labs(tag = " "))
-
-f4c = (f4ca + f4cb + f4cc); rm(f4ca, f4cb, f4cc)
-
-f4a / f4b / f4c
-
-
-png("outputs/fig4ab.png", units = "in", height = 10, width = 18, res = 500)
+png("outputs/fig4.png", units = "in", height = 10, width = 18, res = 500)
 (f4a / f4b)
 dev.off()
 
-png("outputs/fig4c.png", units = "in", height = 5, width = 18, res = 500)
-(f4c)
-dev.off()
-
-(sims %>% 
+(fig5 = sims %>% 
+    mutate(I_hat = I_hat/1000,
+           I = I/1000) %>% 
     subset(year >= 2010) %>%
     ggplot() + 
     geom_point(aes(year, I_hat, group = sim, color = sim), 
@@ -307,7 +204,7 @@ dev.off()
     theme_half_open() + 
     scale_x_continuous(breaks = c(2010, 2012, 2013, 2015, 2016, 2019), 
                        labels = c(2010, 2012, 2013, 2015, 2016, 2019)) +
-    ylab("Biomass (g)") +
+    ylab("Total Biomass (kg)") +
     xlab("") + 
     facet_grid(~ strategy) + 
     geom_text(
@@ -315,8 +212,9 @@ dev.off()
       mapping = aes(x = Inf, y = Inf, label = paste0("RMSE = ", rmse)),
       hjust = 1,
       vjust = 2) + 
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
-    ggtitle("(b)"))
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)))
 
-p1/p2
+png("outputs/fig5.png", units = "in", height = 4, width = 8, res = 500)
+(fig5)
+dev.off()
 
