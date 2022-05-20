@@ -48,6 +48,7 @@ for (i in 1:3) {
   
   areas = rbind(area, areas)
   sims = rbind(sim, sims)
+  rm(area, sim, sim_results)
   
 }
 
@@ -129,9 +130,9 @@ f4a = (f4aa + f4ab + f4ac); rm(f4aa, f4ab, f4ac)
     scale_x_continuous(expand = c(0.01, 0.01)) +
     scale_y_continuous(expand = c(0.01, 0.01)) +
     theme(legend.position = "right") +
-    scale_fill_viridis_c("# of sites") +
+    scale_fill_viridis_c("") +
     theme(legend.position = c(1,1),
-          legend.justification = c(1.1, 1.1),
+          legend.justification = c(1.1, 0.85),
           legend.key.size = unit(0.3, "cm"),
           panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray80"),
           panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray80"),
@@ -151,9 +152,9 @@ f4a = (f4aa + f4ab + f4ac); rm(f4aa, f4ab, f4ac)
     scale_x_continuous(expand = c(0.01, 0.01)) +
     scale_y_continuous(expand = c(0.01, 0.01)) +
     theme(legend.position = "right") +
-    scale_fill_viridis_c("# of sites") +
+    scale_fill_viridis_c("") +
     theme(legend.position = c(1,1),
-          legend.justification = c(1.1, 1.1),
+          legend.justification = c(1.1, 0.85),
           legend.key.size = unit(0.3, "cm"),
           panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray80"),
           panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray80"),
@@ -173,9 +174,9 @@ f4a = (f4aa + f4ab + f4ac); rm(f4aa, f4ab, f4ac)
     scale_x_continuous(expand = c(0.01, 0.01)) +
     scale_y_continuous(expand = c(0.01, 0.01)) +
     theme(legend.position = "right") +
-    scale_fill_viridis_c("# of sites") +
+    scale_fill_viridis_c("") +
     theme(legend.position = c(1,1),
-          legend.justification = c(1.1, 1.1),
+          legend.justification = c(1.1, 0.85),
           legend.key.size = unit(0.3, "cm"),
           panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray80"),
           panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray80"),
@@ -190,7 +191,7 @@ f4b = (f4ba + f4bb + f4bc); rm(f4ba, f4bb, f4bc)
 
 f4a / f4b
 
-png("outputs/fig4.png", units = "in", height = 10, width = 18, res = 500)
+png("outputs/fig4.png", units = "in", height = 6, width = 10, res = 500)
 (f4a / f4b)
 dev.off()
 
