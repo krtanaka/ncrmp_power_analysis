@@ -16,7 +16,7 @@ source('scripts/ExpandingExtract.R')
 
 load("data/modeled_survey_variability.RData") #modeled at grid scale
 
-# set.seed(42)
+set.seed(42)
 # options(scipen = 999, digits = 2)
 
 # pick an island ----------------------------------------------------------
