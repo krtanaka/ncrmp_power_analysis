@@ -96,6 +96,41 @@ trophic %>%
 
 dev.off()
 
+png('outputs/fig2b.png', height = 4, width = 10, units = "in", res = 500)
+
+trophic %>% 
+  mutate(lon = round(lon, 1),
+         lat = round(lat, 1)) %>%
+  group_by(sp, lon, lat) %>% 
+  summarise(est = median(est)) %>%  
+  mutate(abs_est = abs(est)) %>% 
+  group_by(sp) %>% 
+  do(gg = {
+    ggplot(., aes(lon, lat, fill = est)) + 
+      geom_tile() + 
+      scale_fill_viridis_c("") +
+      facet_grid(~sp) + 
+      theme_half_open() +
+      theme(legend.position = c(0, 0), 
+            legend.justification = c(-0.1, -0.1),
+            legend.key = element_rect(fill = "transparent", colour = "transparent"),
+            legend.box.background = element_rect(fill = "transparent", colour = "transparent"),
+            legend.key.size = unit(0.5, "cm"),
+            panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray90"),
+            panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray90"),
+            axis.text = element_blank(),
+            axis.ticks = element_blank(),
+            axis.title = element_blank(),
+            plot.title = element_text(face = "bold"))
+  }) %>% 
+  .$gg %>% 
+  arrangeGrob(grobs = ., top = textGrob(expression(bold("(b) Median biomass 2010-2019")), 
+                                        gp = gpar(fontsize = 15, fontface = 'bold'), 
+                                        x = 0, hjust = 0), nrow = 1) %>%
+  grid.arrange()
+
+dev.off()
+
 df = trophic %>% 
   subset(sp == "PISCIVORE") %>%
   mutate(lon = round(lon, 1),
