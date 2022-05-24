@@ -61,7 +61,7 @@ longlatcoor <- spTransform(utmcoor,CRS("+proj=longlat"))
 trophic$lon <- coordinates(longlatcoor)[,1]
 trophic$lat <- coordinates(longlatcoor)[,2]
 
-png('outputs/fig2a.png', height = 4, width = 10, units = "in", res = 500)
+png('outputs/fig2a.png', height = 3.5, width = 10, units = "in", res = 500)
 
 trophic %>% 
   mutate(lon = round(lon, 1),
@@ -96,7 +96,7 @@ trophic %>%
 
 dev.off()
 
-png('outputs/fig2b.png', height = 4, width = 10, units = "in", res = 500)
+png('outputs/fig2b.png', height = 3.5, width = 10, units = "in", res = 500)
 
 trophic %>% 
   mutate(lon = round(lon, 1),
