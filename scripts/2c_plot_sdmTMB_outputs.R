@@ -10,6 +10,7 @@ library(rmapshaper)
 library(raster)
 require(gridExtra)
 library(cowplot)
+library(grid)
 
 rm(list = ls())
 
@@ -59,11 +60,11 @@ longlatcoor <- spTransform(utmcoor,CRS("+proj=longlat"))
 trophic$lon <- coordinates(longlatcoor)[,1]
 trophic$lat <- coordinates(longlatcoor)[,2]
 
-png('outputs/fig2a.png', height = 3, width = 10, units = "in", res = 500)
+png('outputs/fig2a.png', height = 4, width = 10, units = "in", res = 500)
 
-fig2 = trophic %>% 
-  mutate(lon = round(lon, 2),
-         lat = round(lat, 2)) %>%
+trophic %>% 
+  mutate(lon = round(lon, 1),
+         lat = round(lat, 1)) %>%
   group_by(sp, lon, lat) %>% 
   summarise(est = mean(zeta_s)) %>% 
   mutate(abs_est = abs(est)) %>% 
@@ -87,7 +88,9 @@ fig2 = trophic %>%
             plot.title = element_text(face = "bold"))
   }) %>% 
   .$gg %>% 
-  arrangeGrob(grobs = ., top = grid::textGrob("(a) Linear trend 2010-2019", x = 0, hjust = 0), nrow = 1) %>%
+  arrangeGrob(grobs = ., top = textGrob(expression(bold("(a) Linear trend 2010-2019")), 
+                                              gp = gpar(fontsize = 15, fontface = 'bold'), 
+                                              x = 0, hjust = 0), nrow = 1) %>%
   grid.arrange()
 
 dev.off()
