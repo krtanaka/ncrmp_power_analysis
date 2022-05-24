@@ -51,7 +51,8 @@ for (i in 1:4) {
   
 }
 
-options(digits = 1)
+# options(digits = 1)
+# options(scipen=10000)
 
 trophic = trophic %>% subset(year >= 2010)
 
