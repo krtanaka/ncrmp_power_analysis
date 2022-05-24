@@ -75,14 +75,14 @@ trophic %>%
       geom_tile() + 
       scale_fill_distiller(palette ="RdBu", direction = -1, "") + 
       facet_grid(~sp) + 
-      theme_half_open() +
+      theme_pubr() +
       theme(legend.position = c(0, 0), 
             legend.justification = c(-0.1, -0.1),
             legend.key = element_rect(fill = "transparent", colour = "transparent"),
             legend.box.background = element_rect(fill = "transparent", colour = "transparent"),
             legend.key.size = unit(0.5, "cm"),
-            panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray90"),
-            panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray90"),
+            # panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray90"),
+            # panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray90"),
             axis.text = element_blank(),
             axis.ticks = element_blank(),
             axis.title = element_blank(),
@@ -110,7 +110,7 @@ trophic %>%
       geom_tile() + 
       scale_fill_viridis_c("") +
       facet_grid(~sp) + 
-      theme_half_open() +
+      theme_pubr() +
       theme(legend.position = c(0, 0), 
             legend.justification = c(-0.1, -0.1),
             legend.key = element_rect(fill = "transparent", colour = "transparent"),
