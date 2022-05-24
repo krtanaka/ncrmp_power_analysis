@@ -33,13 +33,12 @@ for (t in 1:length(TROPHIC_group)) {
 
 }
 
-png("/Users/kisei.tanaka/Desktop/functional_group.png", height = 15, width = 20, units = "in", res = 300)
+png("outputs/fig_s1.png", height = 12, width = 15, units = "in", res = 500)
 (TROPHIC_group_table %>% 
     subset(Proportion > 0.01) %>%
     ggplot(aes(Proportion, reorder(TAXONNAME, Proportion), fill = Proportion)) +  
-    geom_bar(stat = "identity") + 
-    guides(color = guide_legend(), size = guide_legend()) + 
-    scale_fill_gradientn(colours = matlab.like(10)) + 
+    geom_bar(stat = "identity", show.legend = F) + 
+    scale_fill_gradientn(colours = matlab.like(100)) + 
     facet_wrap(.~Functional_group, ncol = 4, scales = "free") + 
     ylab("") + 
     theme_half_open() + 
