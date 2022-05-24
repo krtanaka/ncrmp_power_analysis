@@ -7,6 +7,7 @@ library(sp)
 library(sf)
 library(rgdal)
 library(rmapshaper)
+library(raster)
 
 rm(list = ls())
 
@@ -56,11 +57,42 @@ longlatcoor <- spTransform(utmcoor,CRS("+proj=longlat"))
 trophic$lon <- coordinates(longlatcoor)[,1]
 trophic$lat <- coordinates(longlatcoor)[,2]
 
+require(gridExtra)
+
+fig2a = trophic %>% 
+  mutate(lon = round(lon, 1),
+         lat = round(lat, 1)) %>%
+  group_by(sp, lon, lat) %>% 
+  summarise(est = mean(zeta_s)) %>% 
+  mutate(abs_est = abs(est)) %>% 
+  group_by(sp) %>% 
+  do(gg = {
+    ggplot(., aes(lon, lat, fill = est)) + 
+      geom_tile() + 
+      scale_fill_distiller(palette ="RdBu", direction = -1, "") + 
+      facet_grid(~sp) + 
+      theme_half_open() +
+      theme(legend.position = c(0, 0), 
+            legend.justification = c(-0.1, -0.1),
+            legend.key = element_rect(fill = "transparent", colour = "transparent"),
+            legend.box.background = element_rect(fill = "transparent", colour = "transparent"),
+            legend.key.size = unit(0.5, "cm"),
+            panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray90"),
+            panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray90"),
+            axis.text = element_blank(),
+            axis.ticks = element_blank(),
+            axis.title = element_blank(),
+            plot.title = element_text(face = "bold"))
+  }) %>% 
+  .$gg %>% 
+  arrangeGrob(grobs = ., nrow = 1) %>%
+  grid.arrange()
+
 df = trophic %>% 
   subset(sp == "PISCIVORE") %>%
   mutate(lon = round(lon, 1),
          lat = round(lat, 1)) %>%
-  group_by(lon, lat) %>% 
+  group_by(sp, lon, lat) %>% 
   summarise(est = mean(zeta_s)) %>% 
   mutate(abs_est = abs(est))
 
@@ -72,7 +104,7 @@ df = trophic %>%
                           direction = -1,
                           # limits = c(quantile(df$est, 0.999)*-1, quantile(df$est, 0.999)) +
                           "") + 
-    ggtitle("(a) Linear trend 2010-2019") + 
+    ggtitle("Linear trend 2010-2019") + 
     theme_classic() +
     annotate("text",  x = Inf, y = Inf, label = "Piscivore", vjust = 1.2, hjust = 1.2, size = 4) +  
     theme(legend.position = c(0, 0), 
@@ -88,7 +120,7 @@ df = trophic %>%
           axis.text = element_blank(),
           axis.ticks = element_blank(),
           axis.title = element_blank(),
-          plot.title = element_text(face = "bold")))
+          plot.title = element_text(face = "bold")) + labs(tag = "(a)"))
 
 df = trophic %>% 
   subset(sp == "PLANKTIVORE") %>%
@@ -122,7 +154,7 @@ df = trophic %>%
           axis.text = element_blank(),
           axis.ticks = element_blank(),
           axis.title = element_blank(),
-          plot.title = element_text(face = "bold")))
+          plot.title = element_text(face = "bold")) + labs(tag = "   "))
 
 df = trophic %>% 
   subset(sp == "PRIMARY") %>%
