@@ -45,6 +45,36 @@ response_variable = "fish_count";      sp = ifelse(uku_or_not == T, "Aprion vire
 response_variable = "fish_biomass";    sp = ifelse(uku_or_not == T, "Aprion virescens", "Acanthurus olivaceus")
 response_variable = "trophic_biomass"; sp = c("PISCIVORE", "PLANKTIVORE", "PRIMARY", "SECONDARY", "TOTAL")[4]
 
+load("data/rea/ALL_REA_FISH_RAW_SST.RData")
+df[df == -9991] <- NA
+
+df %>% 
+  subset(ISLAND == "Niihau") %>%
+  # subset(TRAINING_YN == 0) %>% 
+  group_by(LONGITUDE, LATITUDE, TROPHIC_MONREP) %>% 
+  summarise(g_per_sq.m = median(BIOMASS_G_M2, na.rm = T)) %>% 
+  na.omit() %>% 
+  subset(g_per_sq.m < quantile(g_per_sq.m, prob = 0.99)) %>% 
+  ggplot(aes(LONGITUDE, LATITUDE, fill = g_per_sq.m, size = g_per_sq.m)) + 
+  geom_point(shape = 21, alpha = 0.7) + 
+  facet_wrap(~TROPHIC_MONREP) + 
+  guides(fill = guide_legend(), size = guide_legend()) + 
+  scale_fill_gradientn(colours = matlab.like2(100)) +
+  theme_pubr() + 
+  theme(aspect.ratio = 0.8,
+        legend.position = "bottom",
+        # legend.justification = c(0, 1),
+        # legend.position = c(0, 1),
+        # legend.key = element_rect(colour = NA, fill = NA),
+        # legend.text = element_text(color = NA, size = 12),
+        legend.key.size = unit(1.2, "cm"),
+        panel.background = element_rect(fill = "gray10", colour = "gray10"),
+        panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray20"), 
+        panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20"),
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank())
+
 if (response_variable == "fish_count") {
   
   load("data/rea/ALL_REA_FISH_RAW_SST.RData")
