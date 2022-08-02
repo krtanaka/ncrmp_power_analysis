@@ -110,8 +110,10 @@ label = df %>%
                      nudge_x = c(0.5, 0.5, 0.5, 0.5, 0.5),
                      nudge_y = c(0.5, 0.5, 0.5, 0.5, 0.5)) +
     theme_linedraw() + 
-    theme(legend.position = c(0.84,1),
-          legend.justification = c(1.1,1.1),
+    theme(#legend.position = c(1, 1),
+          #legend.justification = c(1.1, 1.1),
+          legend.position = c(0.84, 1),
+          legend.justification = c(1.1, 1.1),
           panel.background = element_rect(fill = "white"), # bg of the panel
           plot.background = element_rect(fill = "white"), # bg of the plot
           axis.title = element_blank()))
@@ -152,6 +154,18 @@ f1 <-
   draw_plot(f1a) +
   draw_plot(f1b, x = 0.045, y = 0.124, width = 0.5, height = 0.4) + 
   draw_plot(globe, x = 0.816, y = 0.705, width = 0.2, height = 0.2)
+
+f1 <-
+  ggdraw() +
+  draw_plot(f1a) +
+  draw_plot(f1b, x = 0.045, y = 0.124, width = 0.5, height = 0.4) + 
+  draw_plot(globe, x = 0.816, y = 0.705, width = 0.2, height = 0.2)
+
+f1 <-
+  ggdraw() +
+  draw_plot(f1a) +
+  # draw_plot(f1b, x = 0.045, y = 0.124, width = 0.5, height = 0.4) + 
+  draw_plot(globe, x = 0.01, y = 0.15, width = 0.5, height = 0.4)
 
 ggsave(filename = "outputs/fig1.png", 
        plot = f1,
