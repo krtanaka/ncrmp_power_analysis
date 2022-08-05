@@ -81,8 +81,8 @@ trophic %>%
             legend.key = element_rect(fill = "transparent", colour = "transparent"),
             legend.box.background = element_rect(fill = "transparent", colour = "transparent"),
             legend.key.size = unit(0.5, "cm"),
-            # panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray90"),
-            # panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray90"),
+            panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray90"),
+            panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray90"),
             axis.text = element_blank(),
             axis.ticks = element_blank(),
             axis.title = element_blank(),
@@ -470,7 +470,7 @@ dev.off()
           panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray100"),
           panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray100")))
 
-png("outputs/fig3.png", height = 5, width = 6, units = "in", res = 500)
+png("outputs/fig3.png", height = 6, width = 4, units = "in", res = 500)
 (fig3)
 dev.off()
 

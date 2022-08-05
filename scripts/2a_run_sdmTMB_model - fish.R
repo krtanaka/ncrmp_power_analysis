@@ -48,32 +48,41 @@ response_variable = "trophic_biomass"; sp = c("PISCIVORE", "PLANKTIVORE", "PRIMA
 load("data/rea/ALL_REA_FISH_RAW_SST.RData")
 df[df == -9991] <- NA
 
-df %>% 
-  subset(ISLAND %in% c("Oahu", "Molokai", "Maui", "Lanai", "Kahoolawe")) %>%
-  # subset(TRAINING_YN == 0) %>% 
-  group_by(LONGITUDE, LATITUDE, TROPHIC_MONREP) %>% 
-  summarise(g_per_sq.m = median(BIOMASS_G_M2, na.rm = T)) %>% 
-  na.omit() %>% 
-  subset(g_per_sq.m < quantile(g_per_sq.m, prob = 0.999)) %>% 
-  ggplot(aes(LONGITUDE, LATITUDE, fill = g_per_sq.m, size = g_per_sq.m)) + 
-  geom_point(shape = 21, alpha = 0.5) + 
-  facet_wrap(~TROPHIC_MONREP) + 
-  guides(fill = guide_legend(), size = guide_legend()) + 
-  scale_fill_gradientn(colours = matlab.like2(100)) +
-  theme_cowplot() + 
-  theme(aspect.ratio = 0.55,
-        legend.position = "bottom",
-        legend.justification = c(1,0),
-        # legend.position = c(0, 1),
-        # legend.key = element_rect(colour = NA, fill = NA),
-        # legend.text = element_text(color = NA, size = 12),
-        # legend.key.size = unit(1.2, "cm"),
-        # panel.background = element_rect(fill = "gray10", colour = "gray10"),
-        panel.grid.major = element_line(size = 0.1, linetype = 'solid', colour = "gray80"),
-        panel.grid.minor = element_line(size = 0.1, linetype = 'solid',colour = "gray80"),
-        axis.title = element_blank(),
-        axis.text = element_blank(),
-        axis.ticks = element_blank())
+png("outputs/trophic_data_distribution.png", height = 5, width = 5, units = "in", res = 500)
+
+(df %>% 
+    # subset(ISLAND %in% c("Oahu", "Molokai", "Maui", "Lanai", "Kahoolawe")) %>%
+    # subset(ISLAND %in% c("Oahu")) %>%
+    subset(ISLAND %in% c("Niihau")) %>%
+    
+    # subset(TRAINING_YN == 0) %>% 
+    group_by(LONGITUDE, LATITUDE, TROPHIC_MONREP) %>% 
+    summarise(g_m2 = median(BIOMASS_G_M2, na.rm = T)) %>% 
+    na.omit() %>% 
+    subset(g_m2 < quantile(g_m2, prob = 0.99)) %>% 
+    ggplot(aes(LONGITUDE, LATITUDE, fill = g_m2, size = g_m2)) + 
+    geom_point(shape = 21, alpha = 0.5) + 
+    facet_wrap(~TROPHIC_MONREP) + 
+    guides(fill = guide_legend(), size = guide_legend()) + 
+    scale_fill_gradientn(colours = matlab.like2(100)) +
+    theme_half_open() + 
+    theme(aspect.ratio = 0.7,
+          legend.position = "bottom",
+          legend.justification = c(1,0),
+          # legend.position = c(0, 1),
+          # legend.key = element_rect(colour = NA, fill = NA),
+          # legend.text = element_text(color = NA, size = 12),
+          # legend.key.size = unit(1.2, "cm"),
+          # panel.background = element_rect(fill = "gray10", colour = "gray10"),
+          panel.grid.major = element_line(size = 0.1, linetype = 'solid', colour = "gray80"),
+          panel.grid.minor = element_line(size = 0.1, linetype = 'solid',colour = "gray80"),
+          axis.title = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank()))
+
+dev.off()
+
+
 
 if (response_variable == "fish_count") {
   
@@ -152,13 +161,13 @@ if (response_variable == "trophic_biomass") {
                 depth = mean(DEPTH, na.rm = T),
                 temp = mean(mean_SST_CRW_Daily_DY01, na.rm = T))  %>% 
       na.omit() %>% subset(response < quantile(response, prob = 0.999))
-
+    
     
   }
   
   df %>% ggplot(aes(response)) + geom_histogram() + 
     df %>% group_by(OBS_YEAR) %>% summarise(n = median(response)) %>% ggplot(aes(OBS_YEAR, n)) + geom_line()
-
+  
 }
 
 # north-south gradient

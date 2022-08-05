@@ -33,7 +33,7 @@ islands = islands[! islands %in% c("Kahoolawe")] # remove this island because it
 
 for (il in 1:length(islands)) {
   
-  # il = 2
+  # il = 7
   island = islands[il]
   extent = subset(MHI_extent, ISLAND == island)
   
@@ -113,14 +113,6 @@ for (il in 1:length(islands)) {
   res = 10  # rasterize it, but be careful with resolutions, lower = better but more missing points
   r <- raster(e, ncol = round((dim(crm_res)[2]/res), digits = 0), nrow = round(dim(crm_res)[1]/res, digits = 0))
   sector <- rasterize(sector[, 1:2], r, sector[,3], fun = mean)
-  sector %>% 
-    rasterToPoints(spatial = T) %>% 
-    as.data.frame() %>%
-    ggplot(aes(x, y, fill = layer)) + 
-    geom_raster() + 
-    coord_fixed() +
-    # scale_fill_viridis_b("") + 
-    ggdark::dark_theme_minimal()
   dim(sector)
   sector
   default_proj = "+init=epsg:4326 +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +towgs84=0,0,0"
@@ -138,10 +130,7 @@ for (il in 1:length(islands)) {
   
   sector %>% 
     ggplot(aes(longitude, latitude, color = factor(round(sector, 0)))) + 
-    geom_point() + 
-    coord_fixed() + 
-    # scale_fill_viridis_b("") + 
-    ggdark::dark_theme_minimal()
+    geom_point()
   
   df = merge(df, sector, by = c("cell"))
   
@@ -156,7 +145,7 @@ for (il in 1:length(islands)) {
   reef$lon <- coordinates(longlatcoor)[,1]
   reef$lat <- coordinates(longlatcoor)[,2]
   rm(longlatcoor, utmcoor)
-  # reef = reef %>% filter(!REEF_ZONE %in% c("Unknown", "Land", "Other", "Reef Crest/Reef Flat"))
+  reef = reef %>% filter(!REEF_ZONE %in% c("Unknown", "Land", "Other", "Reef Crest/Reef Flat"))
   reef$reef_zone = as.numeric(as.factor(reef$z))
   reef = as.matrix(reef[,c("lon", "lat", "reef_zone")])
   e = extent(reef[,1:2])
@@ -167,14 +156,6 @@ for (il in 1:length(islands)) {
   res = 10  # rasterize it, but be careful with resolutions, lower = better but more missing points
   r <- raster(e, ncol = round((dim(crm_res)[2]/res), digits = 0), nrow = round(dim(crm_res)[1]/res, digits = 0))
   reef <- rasterize(reef[, 1:2], r, reef[,3], fun = mean)
-  reef %>% 
-    rasterToPoints(spatial = T) %>% 
-    as.data.frame() %>%
-    ggplot(aes(x, y, fill = layer)) + 
-    geom_raster() + 
-    coord_fixed() +
-    # scale_fill_viridis_b("") + 
-    ggdark::dark_theme_minimal()
   dim(reef)
   reef
   default_proj = "+init=epsg:4326 +proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +towgs84=0,0,0"
@@ -192,10 +173,7 @@ for (il in 1:length(islands)) {
   
   reef %>% 
     ggplot(aes(longitude, latitude, color = factor(round(reef, 0)))) + 
-    geom_point() + 
-    coord_fixed() + 
-    # scale_fill_viridis_b("") + 
-    ggdark::dark_theme_minimal()
+    geom_point()
   
   df = merge(df, reef, by = "cell")
   
@@ -221,39 +199,101 @@ for (il in 1:length(islands)) {
   
   colnames(df)[2:3] = c("longitude", "latitude")
   
-  depth = df %>% 
-    ggplot( aes(longitude, latitude)) + 
-    geom_tile(aes(fill = depth, width = 0.005, height = 0.005)) +
-    scale_fill_gradientn(colours = colorRamps::matlab.like(100), "Bathymetry (m)") +
-    coord_fixed() +
-    ggdark::dark_theme_minimal() +
-    theme(axis.title = element_blank(),
-          legend.position = "bottom")
+  (depth = df %>% 
+      mutate(longitude = round(longitude, 2),
+             latitude  = round(latitude, 2)) %>%
+      group_by(longitude, latitude) %>%
+      summarise(depth = mean(depth, na.rm = T)) %>%
+      ggplot(aes(longitude, latitude, fill = depth)) +
+      geom_raster() +
+      scale_fill_gradientn(colours = colorRamps::matlab.like(100), "") +
+      coord_fixed() +
+      theme_pubr() +
+      ggtitle("Depth (m)") + 
+      theme(legend.position = c(0, 1),
+            legend.justification = c(-0.1, 0.9),
+            axis.title = element_blank(),
+            axis.text = element_blank(),
+            axis.ticks = element_blank()))
   
-  sector = df %>% 
-    ggplot( aes(longitude, latitude, fill = factor(sector))) + 
-    geom_tile(aes(width = 0.005, height = 0.005)) +
-    scale_fill_discrete("sector") +
-    coord_fixed() +
-    theme_minimal() + 
-    ggdark::dark_theme_minimal() +
-    theme(axis.title = element_blank(),
-          legend.position = "bottom")
+  (depth = df %>% 
+      mutate(longitude = round(longitude, 2),
+             latitude  = round(latitude, 2)) %>% 
+      group_by(longitude, latitude) %>% 
+      summarise(depth_bin = mean(as.numeric(depth_bin), na.rm = T)) %>% 
+      mutate(depth_bin = as.character(round(depth_bin, 0))) %>% 
+      ggplot( aes(longitude, latitude, fill = factor(depth_bin))) + 
+      geom_raster() +
+      scale_fill_brewer(palette = "Blues", "") +
+      coord_fixed() +
+      theme_pubr() +
+      ggtitle("Depth Bins") + 
+      theme(legend.position = c(0, 1),
+            legend.justification = c(-0.1, 0.9),
+            axis.title = element_blank(),
+            axis.text = element_blank(),
+            axis.ticks = element_blank()))
   
-  reef = df %>% 
-    ggplot( aes(longitude, latitude, fill = as.factor(reef))) + 
-    geom_tile(aes(width = 0.005, height = 0.005)) +
-    scale_fill_discrete("reef") +
-    coord_fixed() +
-    theme_minimal() + 
-    ggdark::dark_theme_minimal() +
-    theme(axis.title = element_blank(),
-          legend.position = "bottom")
+  (sector = df %>% 
+      mutate(longitude = round(longitude, 2),
+             latitude  = round(latitude, 2)) %>% 
+      group_by(longitude, latitude) %>% 
+      summarise(sector = mean(as.numeric(sector), na.rm = T)) %>% 
+      mutate(sector = as.character(round(sector, 0))) %>% 
+      ggplot( aes(longitude, latitude, fill = factor(sector))) + 
+      geom_raster() +
+      scale_fill_brewer(palette = "Oranges", "") +
+      coord_fixed() +
+      theme_pubr() +
+      ggtitle("Island Sector") + 
+      theme(legend.position = c(0, 1),
+            legend.justification = c(-0.1, 0.9),
+            axis.title = element_blank(),
+            axis.text = element_blank(),
+            axis.ticks = element_blank()))
   
-  # pdf(paste0("outputs/survey_grid_", islands[il], ".pdf"), height = 8, width = 10)
-  p =  depth + sector + reef
-  print(p)
-  # dev.off()
+  (reef = df %>% 
+      mutate(longitude = round(longitude, 2),
+             latitude  = round(latitude, 2)) %>% 
+      group_by(longitude, latitude) %>% 
+      summarise(reef = mean(as.numeric(reef), na.rm = T)) %>% 
+      mutate(reef = as.character(round(reef, 0))) %>% 
+      ggplot( aes(longitude, latitude, fill = as.factor(reef))) + 
+      geom_raster() +
+      scale_fill_brewer(palette = "Greens", "", direction = 1) +
+      coord_fixed() +
+      theme_pubr() +
+      ggtitle("Reef Type") + 
+      theme(legend.position = c(0, 1),
+            legend.justification = c(-0.1, 0.9),
+            axis.title = element_blank(),
+            axis.text = element_blank(),
+            axis.ticks = element_blank()))
+  
+  (strat = df %>% 
+      mutate(longitude = round(longitude, 2),
+             latitude  = round(latitude, 2)) %>% 
+      group_by(longitude, latitude) %>% 
+      summarise(strat = mean(as.numeric(strat), na.rm = T)) %>% 
+      mutate(strat = as.character(round(strat, 0))) %>%
+      ggplot( aes(longitude, latitude, fill = strat)) + 
+      geom_raster() +
+      # scale_fill_viridis_d("") +
+      # scale_fill_viridis_c("") +
+      scale_fill_brewer(palette = "Spectral", "") +
+      coord_fixed() +
+      theme_pubr() +
+      ggtitle("Strata") + 
+      theme(legend.position = c(0, 1),
+            legend.justification = c(-0.1, 0.9),
+            axis.title = element_blank(),
+            axis.text = element_blank(),
+            axis.ticks = element_blank()))
+  
+  
+  png(paste0("outputs/survey_grid_", islands[il], ".png"), height = 12, width = 10, res = 500, units = "in")
+  ((depth + sector) / (reef + strat))
+  dev.off()
   
   df = as.data.frame(df)
   
