@@ -33,7 +33,7 @@ islands = islands[! islands %in% c("Kahoolawe")] # remove this island because it
 
 for (il in 1:length(islands)) {
   
-  # il = 7
+  # il = 1
   island = islands[il]
   extent = subset(MHI_extent, ISLAND == island)
   
@@ -94,8 +94,8 @@ for (il in 1:length(islands)) {
   sector = rasterToPoints(sector) %>% as.data.frame(); colnames(sector) = c("x", "y", "z")
   reef = rasterToPoints(reef) %>% as.data.frame(); colnames(reef) = c("x", "y", "z")
   
-  # plot(sector$lon, sector$lat, pch = ".", bty = "l", ann = F, col = 4)
-  # points(reef$lon, reef$lat, pch = ".", bty = "l", ann = F, col = 2)
+  # plot(sector$x, sector$y, pch = ".", axes = F)
+  # points(reef$x, reef$y, pch = ".", bty = "l", ann = F, col = 2)
   
   # merge sectors -----------------------------------------------------------
   utmcoor <- SpatialPoints(cbind(sector$x, sector$y), proj4string = CRS("+proj=utm +units=m +zone=4"))
@@ -104,7 +104,7 @@ for (il in 1:length(islands)) {
   sector$lat <- coordinates(longlatcoor)[,2]
   rm(longlatcoor, utmcoor)
   sector$sector_name = as.numeric(as.factor(sector$z))
-  sector = as.matrix(sector[,c("lon", "lat", "sector_name")])
+    sector = as.matrix(sector[,c("lon", "lat", "sector_name")])
   e = extent(sector[,1:2])
   
   crm_res = rasterFromXYZ(df[,c("longitude", "latitude", "cell")])
