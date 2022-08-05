@@ -53,7 +53,7 @@ for (i in 1:3) {
 }
 
 (rmse = sims %>% 
-    # subset(year >= 2010) %>%
+    subset(year >= 2010) %>%
     group_by(strategy) %>% 
     summarise(rmse = sqrt(mean(error^2))) %>% 
     mutate(rmse = formatC(rmse, digits = 2)))
@@ -130,7 +130,8 @@ f4a = (f4aa + f4ab + f4ac); rm(f4aa, f4ab, f4ac)
     scale_x_continuous(expand = c(0.01, 0.01)) +
     scale_y_continuous(expand = c(0.01, 0.01)) +
     theme(legend.position = "right") +
-    scale_fill_viridis_c("") +
+    # scale_fill_viridis_c("") +
+    scale_fill_gradient2(mid = "blue", high = "red", "") + 
     theme(legend.position = c(1,1),
           legend.justification = c(1.1, 0.85),
           legend.key.size = unit(0.3, "cm"),
@@ -152,7 +153,8 @@ f4a = (f4aa + f4ab + f4ac); rm(f4aa, f4ab, f4ac)
     scale_x_continuous(expand = c(0.01, 0.01)) +
     scale_y_continuous(expand = c(0.01, 0.01)) +
     theme(legend.position = "right") +
-    scale_fill_viridis_c("") +
+    # scale_fill_viridis_c("") +
+    scale_fill_gradient2(mid = "blue", high = "red", "") + 
     theme(legend.position = c(1,1),
           legend.justification = c(1.1, 0.85),
           legend.key.size = unit(0.3, "cm"),
@@ -174,7 +176,8 @@ f4a = (f4aa + f4ab + f4ac); rm(f4aa, f4ab, f4ac)
     scale_x_continuous(expand = c(0.01, 0.01)) +
     scale_y_continuous(expand = c(0.01, 0.01)) +
     theme(legend.position = "right") +
-    scale_fill_viridis_c("") +
+    # scale_fill_viridis_c("") +
+    scale_fill_gradient2(mid = "blue", high = "red", "") + 
     theme(legend.position = c(1,1),
           legend.justification = c(1.1, 0.85),
           legend.key.size = unit(0.3, "cm"),
