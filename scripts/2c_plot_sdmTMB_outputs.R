@@ -61,22 +61,39 @@ longlatcoor <- spTransform(utmcoor,CRS("+proj=longlat"))
 trophic$lon <- coordinates(longlatcoor)[,1]
 trophic$lat <- coordinates(longlatcoor)[,2]
 
+MHI_extent = read.csv("data/misc/MHI_Extents.csv")
+
+islands = MHI_extent$ISLAND
+islands = islands[! islands %in% c("Kaula", "Lehua", "Molokini")] #remove islands that are too small
+islands = islands[! islands %in% c("Kahoolawe")] # remove this island because its missing reef layer
+
+islands
+extent = subset(MHI_extent, ISLAND == islands[6])
+
+trophic <- trophic %>% 
+  subset(
+    lon < extent$LEFT_XMIN &
+      lon > extent$RIGHT_XMAX &
+      lat > extent$TOP_YMAX & 
+      lat < extent$BOTTOM_YMIN) 
+
 png('outputs/fig2a.png', height = 3.5, width = 10, units = "in", res = 500)
 
 trophic %>% 
-  mutate(lon = round(lon, 1),
-         lat = round(lat, 1)) %>%
-  group_by(sp, lon, lat) %>% 
-  summarise(est = mean(zeta_s)) %>% 
-  mutate(abs_est = abs(est)) %>% 
+  mutate(lon = round(lon, 2),
+         lat = round(lat, 2)) %>%
+  group_by(sp, lon, lat) %>%
+  summarise(est = mean(zeta_s)) %>%
+  mutate(abs_est = abs(est)) %>%
   group_by(sp) %>% 
   do(gg = {
     ggplot(., aes(lon, lat, fill = est)) + 
       geom_tile() + 
       scale_fill_distiller(palette ="RdBu", direction = -1, "") + 
-      facet_grid(~sp) + 
+      facet_grid(~sp) +
       theme_pubr() +
-      theme(legend.position = c(0, 0), 
+      theme(aspect.ratio = 0.8,
+            legend.position = c(0, 0), 
             legend.justification = c(-0.1, -0.1),
             legend.key = element_rect(fill = "transparent", colour = "transparent"),
             legend.box.background = element_rect(fill = "transparent", colour = "transparent"),
@@ -90,8 +107,8 @@ trophic %>%
   }) %>% 
   .$gg %>% 
   arrangeGrob(grobs = ., top = textGrob(expression(bold("(a) Linear trend 2010-2019")), 
-                                              gp = gpar(fontsize = 15, fontface = 'bold'), 
-                                              x = 0, hjust = 0), nrow = 1) %>%
+                                        gp = gpar(fontsize = 15, fontface = 'bold'), 
+                                        x = 0, hjust = 0), nrow = 1) %>%
   grid.arrange()
 
 dev.off()
