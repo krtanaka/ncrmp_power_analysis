@@ -67,21 +67,42 @@ islands = MHI_extent$ISLAND
 islands = islands[! islands %in% c("Kaula", "Lehua", "Molokini")] #remove islands that are too small
 islands = islands[! islands %in% c("Kahoolawe")] # remove this island because its missing reef layer
 
-islands
 extent = subset(MHI_extent, ISLAND == islands[6])
 
-trophic <- trophic %>% 
+trophic %>% 
   subset(
     lon < extent$LEFT_XMIN &
       lon > extent$RIGHT_XMAX &
       lat > extent$TOP_YMAX & 
-      lat < extent$BOTTOM_YMIN) 
+      lat < extent$BOTTOM_YMIN) %>% 
+  mutate(lon = round(lon, 2),
+         lat = round(lat, 2)) %>%
+  group_by(sp, lon, lat) %>%
+  summarise(est = mean( est)) %>%
+  # mutate(abs_est = abs(est)) %>%
+  ggplot(aes(lon, lat, fill = est)) + 
+  geom_tile() + 
+  # scale_fill_distiller(palette ="RdBu", direction = -1, "") + 
+  facet_grid(~sp) +
+  theme_pubr() +
+  theme(aspect.ratio = 0.8,
+        legend.position = c(0, 0), 
+        legend.justification = c(-0.1, -0.1),
+        legend.key = element_rect(fill = "transparent", colour = "transparent"),
+        legend.box.background = element_rect(fill = "transparent", colour = "transparent"),
+        legend.key.size = unit(0.5, "cm"),
+        panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray90"),
+        panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray90"),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title = element_blank(),
+        plot.title = element_text(face = "bold"))
 
 png('outputs/fig2a.png', height = 3.5, width = 10, units = "in", res = 500)
 
 trophic %>% 
-  mutate(lon = round(lon, 2),
-         lat = round(lat, 2)) %>%
+  mutate(lon = round(lon, 1),
+         lat = round(lat, 1)) %>%
   group_by(sp, lon, lat) %>%
   summarise(est = mean(zeta_s)) %>%
   mutate(abs_est = abs(est)) %>%
@@ -92,8 +113,7 @@ trophic %>%
       scale_fill_distiller(palette ="RdBu", direction = -1, "") + 
       facet_grid(~sp) +
       theme_pubr() +
-      theme(aspect.ratio = 0.8,
-            legend.position = c(0, 0), 
+      theme(legend.position = c(0, 0), 
             legend.justification = c(-0.1, -0.1),
             legend.key = element_rect(fill = "transparent", colour = "transparent"),
             legend.box.background = element_rect(fill = "transparent", colour = "transparent"),
