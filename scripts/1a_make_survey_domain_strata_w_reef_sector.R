@@ -33,7 +33,7 @@ islands = islands[! islands %in% c("Kahoolawe")] # remove this island because it
 
 for (il in 1:length(islands)) {
   
-  # il = 1
+  # il = 6
   island = islands[il]
   extent = subset(MHI_extent, ISLAND == island)
   
@@ -230,9 +230,12 @@ for (il in 1:length(islands)) {
       ggtitle("Depth Bins") + 
       theme(legend.position = c(0, 1),
             legend.justification = c(-0.1, 0.9),
-            axis.title = element_blank(),
+            panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray90"),
+            panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray90"),
             axis.text = element_blank(),
-            axis.ticks = element_blank()))
+            axis.ticks = element_blank(),
+            axis.title = element_blank(),
+            plot.title = element_text(face = "bold")))
   
   (sector = df %>% 
       mutate(longitude = round(longitude, 2),
@@ -248,9 +251,12 @@ for (il in 1:length(islands)) {
       ggtitle("Island Sector") + 
       theme(legend.position = c(0, 1),
             legend.justification = c(-0.1, 0.9),
-            axis.title = element_blank(),
+            panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray90"),
+            panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray90"),
             axis.text = element_blank(),
-            axis.ticks = element_blank()))
+            axis.ticks = element_blank(),
+            axis.title = element_blank(),
+            plot.title = element_text(face = "bold")))
   
   (reef = df %>% 
       mutate(longitude = round(longitude, 2),
@@ -266,9 +272,12 @@ for (il in 1:length(islands)) {
       ggtitle("Reef Type") + 
       theme(legend.position = c(0, 1),
             legend.justification = c(-0.1, 0.9),
-            axis.title = element_blank(),
+            panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray90"),
+            panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray90"),
             axis.text = element_blank(),
-            axis.ticks = element_blank()))
+            axis.ticks = element_blank(),
+            axis.title = element_blank(),
+            plot.title = element_text(face = "bold")))
   
   (strat = df %>% 
       mutate(longitude = round(longitude, 2),
@@ -286,9 +295,12 @@ for (il in 1:length(islands)) {
       ggtitle("Strata") + 
       theme(legend.position = c(0, 1),
             legend.justification = c(-0.1, 0.9),
-            axis.title = element_blank(),
+            panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray90"),
+            panel.grid.minor = element_line(size = 0, linetype = 'solid',colour = "gray90"),
             axis.text = element_blank(),
-            axis.ticks = element_blank()))
+            axis.ticks = element_blank(),
+            axis.title = element_blank(),
+            plot.title = element_text(face = "bold")))
   
   
   png(paste0("outputs/survey_grid_", islands[il], ".png"), height = 12, width = 10, res = 500, units = "in")
