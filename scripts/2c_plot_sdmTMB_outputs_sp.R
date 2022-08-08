@@ -70,20 +70,21 @@ islands = islands[! islands %in% c("Kahoolawe")] # remove this island because it
 extent = subset(MHI_extent, ISLAND == islands[6])
 
 (PISCIVORE = trophic %>% 
-    subset(sp == "PISCIVORE" & 
-      lon < extent$LEFT_XMIN &
-        lon > extent$RIGHT_XMAX &
-        lat > extent$TOP_YMAX & 
-        lat < extent$BOTTOM_YMIN) %>% 
+    subset(sp == "PISCIVORE" &
+             lon < extent$LEFT_XMIN &
+             lon > extent$RIGHT_XMAX &
+             lat > extent$TOP_YMAX &
+             lat < extent$BOTTOM_YMIN) %>%
     mutate(lon = round(lon, 2),
            lat = round(lat, 2)) %>%
     group_by(lon, lat) %>%
     summarise(est = mean( est)) %>%
     ggplot(aes(lon, lat, fill = est)) + 
-    geom_tile() + 
+    geom_raster() + 
     scale_fill_viridis_c("g_m2") +
     theme_pubr() +
     ggtitle("Piscivore") + 
+    coord_fixed() + 
     theme(legend.position = c(0, 1),
           legend.justification = c(-0.1, 0.9),
           panel.grid.major = element_line(size = 0, linetype = 'solid', colour = "gray90"),
@@ -104,7 +105,7 @@ extent = subset(MHI_extent, ISLAND == islands[6])
     group_by(lon, lat) %>%
     summarise(est = mean( est)) %>%
     ggplot(aes(lon, lat, fill = est)) + 
-    geom_tile() + 
+    geom_raster() + 
     scale_fill_viridis_c("g_m2") +
     theme_pubr() +
     ggtitle("Planktivore") + 
