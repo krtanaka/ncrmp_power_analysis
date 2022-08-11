@@ -15,7 +15,7 @@ load("data/rea/SURVEY MASTER.RData"); df = SURVEY_MASTER
 
 df <- df %>% 
   subset(REGION == "MHI") %>% 
-  subset(OBS_YEAR %in% c(2013, 2016, 2019)) %>% 
+  # subset(OBS_YEAR %in% c(2013, 2016, 2019)) %>% 
   subset(ISLAND != "Kahoolawe")
 
 (p1 = df %>% 
@@ -96,6 +96,9 @@ world <- rnaturalearth::ne_countries(scale = 'small', returnclass = "sp")
 box_cut <- bbox2SP(n = 90, s = -90, w = -20, e = 20, proj4string = world@proj4string)
 world_crop <- gDifference(world, box_cut)
 
+sf::sf_use_s2(FALSE)
+
+
 pacific_crop <- world_crop %>% 
   st_as_sf() %>% 
   st_shift_longitude() %>% 
@@ -109,14 +112,24 @@ pacific_crop <- world_crop %>%
 
 df$Month = ifelse(df$Month %in% c(1:9), sprintf("%02d", as.numeric(df$Month)), df$Month)
 
-ggplot() +
-  # geom_sf(data = pacific_crop, size = 0.01, fill = "gray", color = "gray") +
-  geom_hex(data = df, aes(x = LONGITUDE_LOV, y = LATITUDE_LOV), bins = 10) +
+df %>% 
+  # subset(Year %in% c(2013, 2016, 2019)) %>%
+  # subset(Year %in% c(2010, 2011, 2012, 2013, 2015, 2016, 2019)) %>%
+  ggplot() +
+  geom_hex(aes(x = LONGITUDE_LOV, y = LATITUDE_LOV), bins = 100) +
+  # geom_sf(data = pacific_crop, size = 1, fill = "gray", color = "gray") +
   scale_fill_viridis_c("") + 
   # facet_grid(Month ~ Year) +
-  facet_wrap(~Year) +
+  # facet_wrap(~Year) +
   # facet_wrap(~Month) +
   # scale_x_continuous(expand = c(0, 0), "") +
   # scale_y_continuous(expand = c(0, 0), "") + 
-  ggdark::dark_theme_void() +
-  coord_fixed()
+  # ggdark::dark_theme_void() +
+  coord_fixed() + 
+  theme_void() + 
+  theme(aspect.ratio = 0.8,
+        # legend.justification = c(0, 1),
+        # legend.position = c(0, 1),
+        panel.background = element_rect(fill = "gray10", colour = "gray10"),
+        panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray20"), 
+        panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20")) 
